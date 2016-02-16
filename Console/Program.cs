@@ -6,18 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Console
-{
-    class Program
-    {
-        
-        static void Main(string[] args)
-        {
-
-
-            if (args.Length < 1)
-            {
-                System.Console.WriteLine("\n Usage: nsgaii random_seed \n");
+namespace ConsoleApp {
+    class Program {
+        static void Main(string[] args) {
+            if (args.Length < 1) {
+                Console.WriteLine("\n Usage: nsgaii random_seed \n");
                 return;
             }
 
@@ -27,14 +20,13 @@ namespace Console
             double seed;
 
             double.TryParse(seedStr, out seed);
-            if (seed <= 0.0 || seed >= 1.0)
-            {
-                System.Console.WriteLine("\n Entered seed value is wrong, seed value must be in (0,1) \n");
+            if (seed <= 0.0 || seed >= 1.0) {
+                Console.WriteLine("\n Entered seed value is wrong, seed value must be in (0,1) \n");
                 return;
             }
 
             int[,,] scheduling = new int[8, 5, 9]; //8 dönem, 5 gün, 9 ders            
-            int[,] lab_scheduling = new int[5,9]; // labda dönem tutulmuyor 
+            int[,] lab_scheduling = new int[5, 9]; // labda dönem tutulmuyor 
 
             // Output files:
 
@@ -58,10 +50,8 @@ namespace Console
                 input_labs = File.OpenRead("lab_list.in");
                 meeting_file = File.OpenRead("Meeting.txt");
                 prerequisite = File.OpenRead("Onkosul-list.csv");
-            }
-            catch (FileNotFoundException ex)
-            {
-                System.Console.WriteLine($"Input file missing.\n EX: {ex.FileName}");
+            } catch (FileNotFoundException ex) {
+                Console.WriteLine($"Input file missing.\n EX: {ex.FileName}");
                 return;
             }
 
@@ -69,34 +59,27 @@ namespace Console
             var deneme = File.OpenWrite("deneme.out");
 
 
-            System.Console.WriteLine("scanning input collective\n");
+            Console.WriteLine("scanning input collective\n");
 
             StreamReader reader = new StreamReader(input_collective);
             //var parts = input_collective.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             string line;
-            try
-            {
-                for (int i = 0; i < 8; i++)
-                {
-                    for (int j = 0; j < 9; j++)
-                    {
+            try {
+                for (int i = 0; i < 8; i++) {
+                    for (int j = 0; j < 9; j++) {
                         line = reader.ReadLine();
                         var parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        for (int k = 0; k < 5; k++)
-                        {
+                        for (int k = 0; k < 5; k++) {
                             //fscanf(input_collective, "%d", scheduling[i][k][j]);
                             scheduling[i, k, j] = int.Parse(parts[k]);
                         }
                     }
                     line = reader.ReadLine(); //trailing \n
                 }
-            }
-            catch (Exception ex)
-            {
-                
+            } catch (Exception ex) {
+                Console.WriteLine(ex.Message);
                 throw;
             }
-
 
             //System.Console.WriteLine("scanning lab scheduling\n");
             //for (int j = 0; j < 9; j++)
@@ -106,7 +89,6 @@ namespace Console
             //        fscanf(input_labs, "%d", &lab_scheduling[k][j]);
             //    }
             //}
-
         }
     }
 }
