@@ -8,6 +8,40 @@ namespace ConsoleApp
 {
     class Program
     {
+        static int nreal;
+        static int nbin;
+        static int maxnbit = 0;
+        static int nobj;
+        static int ncon;
+        static int popsize;
+        static double pcross_real = 0;
+        static double pcross_bin = 0;
+        static double pmut_real = 0;
+        static double pmut_bin = 0;
+        static double eta_c = 0;
+        static double eta_m = 0;
+        static int ngen;
+        static int nbinmut;
+        static int nrealmut;
+        static int nbincross;
+        static int nrealcross;
+
+        static int[] nbits = new int[50];
+        static double[] min_realvar = new double[50];
+        static double[] max_realvar = new double[50];
+        static double[] min_binvar = new double[50];
+        static double[] max_binvar = new double[50];
+
+        static int bitlength;
+        static int choice;
+        static int obj1;
+        static int obj2;
+        static int obj3;
+        static int angle1;
+        static int angle2;
+
+        static rand rnd = new rand();
+
         static void Main(string[] args)
         {
             if (args.Length < 1)
@@ -29,36 +63,6 @@ namespace ConsoleApp
             }
 
 
-            int nreal;
-            int nbin;
-            int nobj;
-            int ncon;
-            int popsize;
-            double pcross_real = 0;
-            double pcross_bin = 0;
-            double pmut_real = 0;
-            double pmut_bin = 0;
-            double eta_c = 0;
-            double eta_m = 0;
-            int ngen;
-            int nbinmut;
-            int nrealmut;
-            int nbincross;
-            int nrealcross;
-
-            int[] nbits = new int[50];
-            double[] min_realvar = new double[50];
-            double[] max_realvar = new double[50];
-            double[] min_binvar = new double[50];
-            double[] max_binvar = new double[50];
-
-            int bitlength;
-            int choice;
-            int obj1;
-            int obj2;
-            int obj3;
-            int angle1;
-            int angle2;
 
 
             int[,,] scheduling = new int[8, 5, 9]; //8 dönem, 5 gün, 9 ders            
@@ -66,6 +70,12 @@ namespace ConsoleApp
             string[] teacher_list = new string[70];
             int[,] meeting = new int[5, 9]; // bölüm hocalarının ortak meeting saatleri.
             string[] record_list1 = new string[2];
+
+            Population parent_pop;
+            Population child_pop;
+            Population mixed_pop;
+
+
 
             // Output files:
 
@@ -373,6 +383,8 @@ namespace ConsoleApp
                     consoleIn = Console.ReadLine();
                     var parts = consoleIn.Split(new char[] { ' ' });
                     nbits[i] = int.Parse(parts[0]);
+                    if (nbits[i] > maxnbit)
+                        maxnbit = nbits[i];
                     if (nbits[i] < 1)
                     {
                         Console.WriteLine(" Wrong number of bits for binary variable entered, hence exiting");
@@ -597,14 +609,16 @@ namespace ConsoleApp
 
 
 
-            //parent_pop = (population*)malloc(sizeof(population));
-            //child_pop = (population*)malloc(sizeof(population));
-            //mixed_pop = (population*)malloc(sizeof(population));
+            parent_pop = new Population(popsize,nreal,nbin, maxnbit, nobj,ncon); // (population*)malloc(sizeof(population));
+            child_pop = new Population(popsize,nreal,nbin, maxnbit, nobj,ncon); // (population*)malloc(sizeof(population));
+            mixed_pop = new Population(popsize, nreal, nbin, maxnbit, nobj, ncon); // (population*)malloc(sizeof(population));
             //allocate_memory_pop(parent_pop, popsize);
             //allocate_memory_pop(child_pop, popsize);
             //allocate_memory_pop(mixed_pop, 2 * popsize);
-            //randomize();
-            //initialize_pop(parent_pop);
+
+            
+            rnd.randomize();
+            initialize_pop(parent_pop);
             Console.WriteLine(" Initialization done, now performing first generation");
 
 
@@ -701,5 +715,48 @@ namespace ConsoleApp
             Console.WriteLine("\n Routine successfully exited \n");
 
         } // main
+
+
+
+        /* Function to initialize a population randomly */
+        static void initialize_pop(Population pop)
+        {
+            for (int i = 0; i < popsize; i++)
+            {
+                initialize_ind(pop.ind[i]);
+            }
+            return;
+        }
+
+        /* Function to initialize an individual randomly */
+        static void initialize_ind(Individual ind)
+        {
+            int j, k;
+            if (nreal != 0)
+            {
+                for (j = 0; j < nreal; j++)
+                {
+                    ind.xreal[j] = rnd.rndreal(min_realvar[j], max_realvar[j]);
+                }
+            }
+            if (nbin != 0)
+            {
+                for (j = 0; j < nbin; j++)
+                {
+                    for (k = 0; k < nbits[j]; k++)
+                    {
+                        if (rnd.randomperc() <= 0.5)
+                        {
+                            ind.gene[j,k] = 0;
+                        }
+                        else
+                        {
+                            ind.gene[j,k] = 1;
+                        }
+                    }
+                }
+            }
+            return;
+        }
     }
 }
