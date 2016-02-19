@@ -91,7 +91,7 @@ namespace ConsoleApp
         }
 
         /* Fetch a single random integer between low and high including the bounds */
-        int rnd(int low, int high)
+        public int rnd(int low, int high)
         {
             int res;
             if (low >= high)

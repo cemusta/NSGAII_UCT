@@ -4,10 +4,17 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
+
 namespace ConsoleApp
 {
     class Program
     {
+        static double INF = 1.0e14;
+        static double EPS = 1.0e-14;
+        static double E = 2.71828182845905;
+        static double PI = 3.14159265358979;
+        static string GNUPLOT_COMMAND = "gnuplot -persist";
+
         static int nreal;
         static int nbin;
         static int maxnbit = 0;
@@ -40,7 +47,7 @@ namespace ConsoleApp
         static int angle1;
         static int angle2;
 
-        static rand rnd = new rand();
+        static rand randObj = new rand();
 
         static int teacher_list_size = 0;
 
@@ -72,9 +79,9 @@ namespace ConsoleApp
             }
 
 
-            for(int i= 0; i < 8; i++)
+            for (int i = 0; i < 8; i++)
             {
-                scheduling.Add( new int[5, 9] );
+                scheduling.Add(new int[5, 9]);
             }
 
 
@@ -132,7 +139,7 @@ namespace ConsoleApp
                         for (int k = 0; k < 5; k++)
                         {
                             //fscanf(input_collective, "%d", scheduling[i][k][j]);
-                            scheduling[i][ k, j] = int.Parse(parts[k]);
+                            scheduling[i][k, j] = int.Parse(parts[k]);
                         }
                     }
                     line = reader.ReadLine(); //trailing \n
@@ -624,7 +631,7 @@ namespace ConsoleApp
                                                                                    //allocate_memory_pop(mixed_pop, 2 * popsize);
 
 
-            rnd.randomize();
+            randObj.randomize();
             initialize_pop(parent_pop);
             Console.WriteLine(" Initialization done, now performing first generation");
 
@@ -632,28 +639,29 @@ namespace ConsoleApp
 
             decode_pop(parent_pop);
             evaluate_pop(parent_pop);
-            //assign_rank_and_crowding_distance(parent_pop);
-            //report_pop(parent_pop, fpt1);
-            //fprintf(fpt4, "# gen = 1\n");
-            //report_pop(parent_pop, fpt4);
+            assign_rank_and_crowding_distance(parent_pop);
+            report_pop(parent_pop, writer1);
+            writer4.WriteLine("# gen = 1");
+            report_pop(parent_pop, writer4);
             Console.WriteLine(" gen = 1");
             //fflush(stdout);
             //if (choice != 0) onthefly_display(parent_pop, gp, 1);
-            //fflush(fpt1);
-            //fflush(fpt2);
-            //fflush(fpt3);
-            //fflush(fpt4);
-            //fflush(fpt5);
+            writer1.Flush();
+            writer2.Flush();
+            writer3.Flush();
+            writer4.Flush();
+            writer5.Flush();
 
 
             for (int i = 2; i <= ngen; i++)
             {
-                //selection(parent_pop, child_pop);
-                //mutation_pop(child_pop);
-                //decode_pop(child_pop);
-                //evaluate_pop(child_pop);
+                selection(parent_pop, child_pop);
+                mutation_pop(child_pop);
+                decode_pop(child_pop);
+                evaluate_pop(child_pop);
                 //merge(parent_pop, child_pop, mixed_pop);
                 //fill_nondominated_sort(mixed_pop, parent_pop);
+
                 ///* Comment following four lines if information for all
                 //generations is not desired, it will speed up the execution */
                 ///*fprintf(fpt4,"# gen = %d\n",i);
@@ -665,32 +673,37 @@ namespace ConsoleApp
 
 
 
+            Console.WriteLine($" Generations finished, now reporting solutions");
+            report_pop(parent_pop, writer2);
+            report_feasible(parent_pop, writer3);
 
-
-            //printf("\n Generations finished, now reporting solutions");
-            //report_pop(parent_pop, fpt2);
-            //report_feasible(parent_pop, fpt3);
-            //if (nreal != 0)
-            //{
-            //    fprintf(fpt5, "\n Number of crossover of real variable = %d", nrealcross);
-            //    fprintf(fpt5, "\n Number of mutation of real variable = %d", nrealmut);
-            //}
-            //if (nbin != 0)
-            //{
-            //    fprintf(fpt5, "\n Number of crossover of binary variable = %d", nbincross);
-            //    fprintf(fpt5, "\n Number of mutation of binary variable = %d", nbinmut);
-            //}
+            if (nreal != 0)
+            {
+                writer5.WriteLine($" Number of crossover of real variable = {nrealcross}");
+                writer5.WriteLine($" Number of mutation of real variable = {nrealmut}");
+            }
+            if (nbin != 0)
+            {
+                writer5.WriteLine($" Number of crossover of binary variable = {nbincross}");
+                writer5.WriteLine($" Number of mutation of binary variable = {nbinmut}");
+            }
             //fflush(stdout);
-            //fflush(fpt1);
-            //fflush(fpt2);
-            //fflush(fpt3);
-            //fflush(fpt4);
-            //fflush(fpt5);
-            //fclose(fpt1);
-            //fclose(fpt2);
-            //fclose(fpt3);
-            //fclose(fpt4);
-            //fclose(fpt5);
+            writer1.Flush();
+            writer2.Flush();
+            writer3.Flush();
+            writer4.Flush();
+            writer5.Flush();
+            writer1.Close();
+            writer2.Close();
+            writer3.Close();
+            writer4.Close();
+            writer5.Close();
+            fpt1.Close();
+            fpt2.Close();
+            fpt3.Close();
+            fpt4.Close();
+            fpt5.Close();
+
             //fclose(input_file);
             //fclose(input_collective);
             //fclose(input_labs);
@@ -718,13 +731,12 @@ namespace ConsoleApp
             //free(child_pop);
             //free(mixed_pop);
 
-
             Console.WriteLine("\n Routine successfully exited \n");
 
         } // main
 
 
-
+        #region initialize.c
         /* Function to initialize a population randomly */
         static void initialize_pop(Population pop)
         {
@@ -743,7 +755,7 @@ namespace ConsoleApp
             {
                 for (j = 0; j < nreal; j++)
                 {
-                    ind.xreal[j] = rnd.rndreal(min_realvar[j], max_realvar[j]);
+                    ind.xreal[j] = randObj.rndreal(min_realvar[j], max_realvar[j]);
                 }
             }
             if (nbin != 0)
@@ -752,7 +764,7 @@ namespace ConsoleApp
                 {
                     for (k = 0; k < nbits[j]; k++)
                     {
-                        if (rnd.randomperc() <= 0.5)
+                        if (randObj.randomperc() <= 0.5)
                         {
                             ind.gene[j, k] = 0;
                         }
@@ -765,7 +777,9 @@ namespace ConsoleApp
             }
             return;
         }
+        #endregion
 
+        #region decode.c
         /* Function to decode a population to find out the binary variable values based on its bit pattern */
         static void decode_pop(Population pop)
         {
@@ -802,7 +816,9 @@ namespace ConsoleApp
             }
             return;
         }
+        #endregion
 
+        #region eval.c
         /* Routine to evaluate objective function values and constraints for a population */
         static void evaluate_pop(Population pop)
         {
@@ -834,7 +850,9 @@ namespace ConsoleApp
             }
             return;
         }
+        #endregion
 
+        #region problemdef.c
         static void test_problem(double[] xreal, double[] xbin, int[,] gene, double[] obj, double[] constr)
         {
             // todo fix fix these stuff. dinamik olmamalı bunlar her seferinde? emin degilim...
@@ -843,7 +861,7 @@ namespace ConsoleApp
             List<int[,]> teacher_scheduling_counter = new List<int[,]>(50); //todo teacher no kadar...
             for (i = 0; i < 50; i++)
             {
-                teacher_scheduling_counter.Add( new int[5, 9]);
+                teacher_scheduling_counter.Add(new int[5, 9]);
             }
             int teacher_index = 0;
             int[,] lab_counter = new int[5, 9];
@@ -1000,8 +1018,9 @@ namespace ConsoleApp
             //                                                                                //+TODO	obj[2] kontrol et.
             //return;
         }
+        #endregion
 
-
+        #region functions.c
         /* Reset ith semester table*/
         static void reset(int[,] array)
         {
@@ -1028,9 +1047,6 @@ namespace ConsoleApp
             //    }
             //}
         }
-
-
-
 
         /* filling scheduling table for 1-hour class by using slot number 
         9-10	-	-	-	-	-
@@ -1092,8 +1108,8 @@ namespace ConsoleApp
             {
                 j = 7;
             }
-            array[slot / 5,j]++;
-            array[slot / 5,j + 1]++;
+            array[slot / 5, j]++;
+            array[slot / 5, j + 1]++;
         }
         static void adding_course_2_slot(int[,] array, int slot, int i)
         {
@@ -1398,7 +1414,861 @@ namespace ConsoleApp
         //    }
         //    return result;
         //}
+        #endregion
 
+        #region tourselect.c
+        /* Routine for tournament selection, it creates a new_pop from old_pop by performing tournament selection and the crossover */
+        static void selection(Population old_pop, Population new_pop)
+        {
+            int[] a1, a2; //todo: optmizasyon bu bizim misyon.
+            int temp;
+            int i;
+            int rand;
+            Individual parent1, parent2;
+            a1 = new int[popsize];
+            a2 = new int[popsize];
+            for (i = 0; i < popsize; i++)
+            {
+                a1[i] = a2[i] = i;
+            }
+            for (i = 0; i < popsize; i++)
+            {
+                rand = randObj.rnd(i, popsize - 1);
+                temp = a1[rand];
+                a1[rand] = a1[i];
+                a1[i] = temp;
+                rand = randObj.rnd(i, popsize - 1);
+                temp = a2[rand];
+                a2[rand] = a2[i];
+                a2[i] = temp;
+            }
+            for (i = 0; i < popsize; i += 4)
+            {
+                parent1 = tournament(old_pop.ind[a1[i]], old_pop.ind[a1[i + 1]]);
+                parent2 = tournament(old_pop.ind[a1[i + 2]], old_pop.ind[a1[i + 3]]);
+                crossover(parent1, parent2, new_pop.ind[i], new_pop.ind[i + 1]);
+                parent1 = tournament(old_pop.ind[a2[i]], old_pop.ind[a2[i + 1]]);
+                parent2 = tournament(old_pop.ind[a2[i + 2]], old_pop.ind[a2[i + 3]]);
+                crossover(parent1, parent2, new_pop.ind[i + 2], new_pop.ind[i + 3]);
+            }
+
+            return;
+        }
+
+        /* Routine for binary tournament */
+        static Individual tournament(Individual ind1, Individual ind2)
+        {
+            int flag;
+            flag = check_dominance(ind1, ind2);
+            if (flag == 1)
+            {
+                return (ind1);
+            }
+            if (flag == -1)
+            {
+                return (ind2);
+            }
+            if (ind1.crowd_dist > ind2.crowd_dist)
+            {
+                return (ind1);
+            }
+            if (ind2.crowd_dist > ind1.crowd_dist)
+            {
+                return (ind2);
+            }
+            if ((randObj.randomperc()) <= 0.5)
+            {
+                return (ind1);
+            }
+            else
+            {
+                return (ind2);
+            }
+        }
+        #endregion
+
+        #region crossover.c
+        /* Function to cross two individuals */
+        static void crossover(Individual parent1, Individual parent2, Individual child1, Individual child2)
+        {
+            if (nreal != 0)
+            {
+                realcross(parent1, parent2, child1, child2);
+            }
+            if (nbin != 0)
+            {
+                bincross(parent1, parent2, child1, child2);
+            }
+            return;
+        }
+
+        /* Routine for real variable SBX crossover */
+        static void realcross(Individual parent1, Individual parent2, Individual child1, Individual child2)
+        {
+            int i;
+            double rand;
+            double y1, y2, yl, yu;
+            double c1, c2;
+            double alpha, beta, betaq;
+            if (randObj.randomperc() <= pcross_real)
+            {
+                nrealcross++;
+                for (i = 0; i < nreal; i++)
+                {
+                    if (randObj.randomperc() <= 0.5)
+                    {
+                        if (Math.Abs(parent1.xreal[i] - parent2.xreal[i]) > EPS)
+                        {
+                            if (parent1.xreal[i] < parent2.xreal[i])
+                            {
+                                y1 = parent1.xreal[i];
+                                y2 = parent2.xreal[i];
+                            }
+                            else
+                            {
+                                y1 = parent2.xreal[i];
+                                y2 = parent1.xreal[i];
+                            }
+                            yl = min_realvar[i];
+                            yu = max_realvar[i];
+                            rand = randObj.randomperc();
+                            beta = 1.0 + (2.0 * (y1 - yl) / (y2 - y1));
+                            alpha = 2.0 - Math.Pow(beta, -(eta_c + 1.0));
+                            if (rand <= (1.0 / alpha))
+                            {
+                                betaq = Math.Pow((rand * alpha), (1.0 / (eta_c + 1.0)));
+                            }
+                            else
+                            {
+                                betaq = Math.Pow((1.0 / (2.0 - rand * alpha)), (1.0 / (eta_c + 1.0)));
+                            }
+                            c1 = 0.5 * ((y1 + y2) - betaq * (y2 - y1));
+                            beta = 1.0 + (2.0 * (yu - y2) / (y2 - y1));
+                            alpha = 2.0 - Math.Pow(beta, -(eta_c + 1.0));
+                            if (rand <= (1.0 / alpha))
+                            {
+                                betaq = Math.Pow((rand * alpha), (1.0 / (eta_c + 1.0)));
+                            }
+                            else
+                            {
+                                betaq = Math.Pow((1.0 / (2.0 - rand * alpha)), (1.0 / (eta_c + 1.0)));
+                            }
+                            c2 = 0.5 * ((y1 + y2) + betaq * (y2 - y1));
+                            if (c1 < yl)
+                                c1 = yl;
+                            if (c2 < yl)
+                                c2 = yl;
+                            if (c1 > yu)
+                                c1 = yu;
+                            if (c2 > yu)
+                                c2 = yu;
+                            if (randObj.randomperc() <= 0.5)
+                            {
+                                child1.xreal[i] = c2;
+                                child2.xreal[i] = c1;
+                            }
+                            else
+                            {
+                                child1.xreal[i] = c1;
+                                child2.xreal[i] = c2;
+                            }
+                        }
+                        else
+                        {
+                            child1.xreal[i] = parent1.xreal[i];
+                            child2.xreal[i] = parent2.xreal[i];
+                        }
+                    }
+                    else
+                    {
+                        child1.xreal[i] = parent1.xreal[i];
+                        child2.xreal[i] = parent2.xreal[i];
+                    }
+                }
+            }
+            else
+            {
+                for (i = 0; i < nreal; i++)
+                {
+                    child1.xreal[i] = parent1.xreal[i];
+                    child2.xreal[i] = parent2.xreal[i];
+                }
+            }
+            return;
+        }
+
+        /* Routine for two point binary crossover */
+        static void bincross(Individual parent1, Individual parent2, Individual child1, Individual child2)
+        {
+            int i, j;
+            double rand;
+            int temp, site1, site2;
+            for (i = 0; i < nbin; i++)
+            {
+                rand = randObj.randomperc();
+                if (rand <= pcross_bin)
+                {
+                    nbincross++;
+                    site1 = randObj.rnd(0, nbits[i] - 1);
+                    site2 = randObj.rnd(0, nbits[i] - 1);
+                    if (site1 > site2)
+                    {
+                        temp = site1;
+                        site1 = site2;
+                        site2 = temp;
+                    }
+                    for (j = 0; j < site1; j++)
+                    {
+                        child1.gene[i, j] = parent1.gene[i, j];
+                        child2.gene[i, j] = parent2.gene[i, j];
+                    }
+                    for (j = site1; j < site2; j++)
+                    {
+                        child1.gene[i, j] = parent2.gene[i, j];
+                        child2.gene[i, j] = parent1.gene[i, j];
+                    }
+                    for (j = site2; j < nbits[i]; j++)
+                    {
+                        child1.gene[i, j] = parent1.gene[i, j];
+                        child2.gene[i, j] = parent2.gene[i, j];
+                    }
+                }
+                else
+                {
+                    for (j = 0; j < nbits[i]; j++)
+                    {
+                        child1.gene[i, j] = parent1.gene[i, j];
+                        child2.gene[i, j] = parent2.gene[i, j];
+                    }
+                }
+            }
+            return;
+        }
+        #endregion
+
+        #region dominance.c
+        /* Routine for usual non-domination checking
+   It will return the following values
+   1 if a dominates b
+   -1 if b dominates a
+   0 if both a and b are non-dominated */
+        static int check_dominance(Individual a, Individual b)
+        {
+            int i;
+            int flag1;
+            int flag2;
+            flag1 = 0;
+            flag2 = 0;
+            if (a.constr_violation < 0 && b.constr_violation < 0)
+            {
+                if (a.constr_violation > b.constr_violation)
+                {
+                    return (1);
+                }
+                else
+                {
+                    if (a.constr_violation < b.constr_violation)
+                    {
+                        return (-1);
+                    }
+                    else
+                    {
+                        return (0);
+                    }
+                }
+            }
+            else
+            {
+                if (a.constr_violation < 0 && b.constr_violation == 0)
+                {
+                    return (-1);
+                }
+                else
+                {
+                    if (a.constr_violation == 0 && b.constr_violation < 0)
+                    {
+                        return (1);
+                    }
+                    else
+                    {
+                        for (i = 0; i < nobj; i++)
+                        {
+                            if (a.obj[i] < b.obj[i])
+                            {
+                                flag1 = 1;
+
+                            }
+                            else
+                            {
+                                if (a.obj[i] > b.obj[i])
+                                {
+                                    flag2 = 1;
+                                }
+                            }
+                        }
+                        if (flag1 == 1 && flag2 == 0)
+                        {
+                            return (1);
+                        }
+                        else
+                        {
+                            if (flag1 == 0 && flag2 == 1)
+                            {
+                                return (-1);
+                            }
+                            else
+                            {
+                                return (0);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region mutation.c
+        /* Function to perform mutation in a population */
+        static void mutation_pop(Population pop)
+        {
+            int i;
+            for (i = 0; i < popsize; i++)
+            {
+                mutation_ind(pop.ind[i]);
+            }
+            return;
+        }
+
+        /* Function to perform mutation of an individual */
+        static void mutation_ind(Individual ind)
+        {
+            if (nreal != 0)
+            {
+                real_mutate_ind(ind);
+            }
+            if (nbin != 0)
+            {
+                bin_mutate_ind(ind);
+            }
+            return;
+        }
+
+        /* Routine for binary mutation of an individual */
+        static void bin_mutate_ind(Individual ind)
+        {
+            int j, k;
+            double prob;
+            for (j = 0; j < nbin; j++)
+            {
+                for (k = 0; k < nbits[j]; k++)
+                {
+                    prob = randObj.randomperc();
+                    if (prob <= pmut_bin)
+                    {
+                        if (ind.gene[j,k] == 0)
+                        {
+                            ind.gene[j,k] = 1;
+                        }
+                        else
+                        {
+                            ind.gene[j,k] = 0;
+                        }
+                        nbinmut += 1;
+                    }
+                }
+            }
+            return;
+        }
+
+        /* Routine for real polynomial mutation of an individual */
+        static void real_mutate_ind(Individual ind)
+        {
+            int j;
+            double rnd, delta1, delta2, mut_pow, deltaq;
+            double y, yl, yu, val, xy;
+            for (j = 0; j < nreal; j++)
+            {
+                if (randObj.randomperc() <= pmut_real)
+                {
+                    y = ind.xreal[j];
+                    yl = min_realvar[j];
+                    yu = max_realvar[j];
+                    delta1 = (y - yl) / (yu - yl);
+                    delta2 = (yu - y) / (yu - yl);
+                    rnd = randObj.randomperc();
+                    mut_pow = 1.0 / (eta_m + 1.0);
+                    if (rnd <= 0.5)
+                    {
+                        xy = 1.0 - delta1;
+                        val = 2.0 * rnd + (1.0 - 2.0 * rnd) * (Math.Pow(xy, (eta_m + 1.0)));
+                        deltaq = Math.Pow(val, mut_pow) - 1.0;
+                    }
+                    else
+                    {
+                        xy = 1.0 - delta2;
+                        val = 2.0 * (1.0 - rnd) + 2.0 * (rnd - 0.5) * (Math.Pow(xy, (eta_m + 1.0)));
+                        deltaq = 1.0 - (Math.Pow(val, mut_pow));
+                    }
+                    y = y + deltaq * (yu - yl);
+                    if (y < yl)
+                        y = yl;
+                    if (y > yu)
+                        y = yu;
+                    ind.xreal[j] = y;
+                    nrealmut += 1;
+                }
+            }
+            return;
+        }
+        #endregion
+
+        #region report.c
+
+        /* Function to print the information of a population in a file */
+        static void report_pop(Population pop, StreamWriter writer)
+        {
+            int i, j, k;
+            for (i = 0; i < popsize; i++)
+            {
+                for (j = 0; j < nobj; j++)
+                {
+                    writer.Write( $"{pop.ind[i].obj[j].ToString("E")}\t");
+                }
+                if (ncon != 0)
+                {
+                    for (j = 0; j < ncon; j++)
+                    {
+                        writer.Write( $"{pop.ind[i].constr[j].ToString("E")}\t");
+                    }
+                }
+                if (nreal != 0)
+                {
+                    for (j = 0; j < nreal; j++)
+                    {
+                        writer.Write($"{pop.ind[i].xreal[j].ToString("E")}\t");
+                    }
+                }
+                if (nbin != 0)
+                {
+                    for (j = 0; j < nbin; j++)
+                    {
+                        for (k = 0; k < nbits[j]; k++)
+                        {
+                            writer.Write($"{pop.ind[i].gene[j, k]}\t");
+                        }
+                    }
+                }
+                writer.Write( $"{pop.ind[i].constr_violation.ToString("E")}\t" );
+                writer.Write( $"{pop.ind[i].rank}\t" );
+                writer.Write( $"{pop.ind[i].crowd_dist.ToString("E")}\n");
+            }
+            return;
+        }
+
+        /* Function to print the information of feasible and non-dominated population in a file */
+        static void report_feasible(Population pop, StreamWriter writer)
+        {
+            int i, j, k;
+            for (i = 0; i < popsize; i++)
+            {
+                if (pop.ind[i].constr_violation == 0.0 && pop.ind[i].rank == 1)
+                {
+                    for (j = 0; j < nobj; j++)
+                    {
+                        writer.Write($"{pop.ind[i].obj[j].ToString("E")}\t");
+                    }
+                    if (ncon != 0)
+                    {
+                        for (j = 0; j < ncon; j++)
+                        {
+                            writer.Write($"{pop.ind[i].constr[j].ToString("E")}\t");
+                        }
+                    }
+                    if (nreal != 0)
+                    {
+                        for (j = 0; j < nreal; j++)
+                        {
+                            writer.Write($"{pop.ind[i].xreal[j].ToString("E")}\t");
+                        }
+                    }
+                    if (nbin != 0)
+                    {
+                        for (j = 0; j < nbin; j++)
+                        {
+                            for (k = 0; k < nbits[j]; k++)
+                            {
+                                writer.Write($"{pop.ind[i].gene[j,k]}\t");
+                            }
+                        }
+                    }
+                    writer.Write($"{pop.ind[i].constr_violation.ToString("E")}\t" );
+                    writer.Write($"{pop.ind[i].rank}\t" );
+                    writer.Write($"{ pop.ind[i].crowd_dist.ToString("E")}\n");
+                }
+            }
+            return;
+        }
+
+        #endregion
+
+        #region list.c
+        /* Insert an element X into the list at location specified by NODE */
+        static void insert(Lists node, int x)
+        {
+            Lists temp;
+            if (node == null)
+            {
+                Console.WriteLine(" Error!! asked to enter after a null pointer, hence exiting \n");
+                Environment.Exit(1);
+            }
+            temp = new Lists();
+            temp.index = x;
+            temp.child = node.child;
+            temp.parent = node;
+            if (node.child != null)
+            {
+                node.child.parent = temp;
+            }
+            node.child = temp;
+            return;
+        }
+
+        /* Delete the node NODE from the list */
+        static Lists del(Lists node)
+        {
+            Lists temp;
+            if (node == null)
+            {
+                Console.WriteLine(" Error!! asked to enter after a null pointer, hence exiting \n");
+                Environment.Exit(1);
+            }
+            temp = node.parent;
+            temp.child = node.child;
+            if (temp.child != null)
+            {
+                temp.child.parent = temp;
+            }
+            //free(node);
+            return (temp);
+        }
+        #endregion
+
+        #region rank.c
+        /* Function to assign rank and crowding distance to a population of size pop_size*/
+        static void assign_rank_and_crowding_distance(Population new_pop)
+        {
+            int flag;
+            int i;
+            int end;
+            int front_size;
+            int rank = 1;
+            Lists orig;
+            Lists cur;
+            Lists temp1, temp2;
+            orig = new Lists();
+            cur = new Lists();
+
+            front_size = 0;
+            orig.index = -1;
+            orig.parent = null;
+            orig.child = null;
+            cur.index = -1;
+            cur.parent = null;
+            cur.child = null;
+            temp1 = orig;
+            for (i = 0; i < popsize; i++)
+            {
+                insert(temp1, i);
+                temp1 = temp1.child;
+            }
+            do
+            {
+                if (orig.child.child == null)
+                {
+                    new_pop.ind[orig.child.index].rank = rank;
+                    new_pop.ind[orig.child.index].crowd_dist = INF;
+                    break;
+                }
+                temp1 = orig.child;
+                insert(cur, temp1.index);
+                front_size = 1;
+                temp2 = cur.child;
+                temp1 = del(temp1);
+                temp1 = temp1.child;
+                do
+                {
+                    temp2 = cur.child;
+                    do
+                    {
+                        end = 0;
+                        flag = check_dominance((new_pop.ind[temp1.index]), (new_pop.ind[temp2.index]));
+                        if (flag == 1)
+                        {
+                            insert(orig, temp2.index);
+                            temp2 = del(temp2);
+                            front_size--;
+                            temp2 = temp2.child;
+                        }
+                        if (flag == 0)
+                        {
+                            temp2 = temp2.child;
+                        }
+                        if (flag == -1)
+                        {
+                            end = 1;
+                        }
+                    }
+                    while (end != 1 && temp2 != null);
+                    if (flag == 0 || flag == 1)
+                    {
+                        insert(cur, temp1.index);
+                        front_size++;
+                        temp1 = del(temp1);
+                    }
+                    temp1 = temp1.child;
+                }
+                while (temp1 != null);
+                temp2 = cur.child;
+                do
+                {
+                    new_pop.ind[temp2.index].rank = rank;
+                    temp2 = temp2.child;
+                }
+                while (temp2 != null);
+                assign_crowding_distance_list(new_pop, cur.child, front_size);
+                temp2 = cur.child;
+                do
+                {
+                    temp2 = del(temp2);
+                    temp2 = temp2.child;
+                }
+                while (cur.child != null);
+                rank += 1;
+            }
+            while (orig.child != null);
+
+            //free(orig);
+            //free(cur);
+            return;
+        }
+        #endregion
+
+        #region crowddist.c
+        /* Routine to compute crowding distance based on ojbective function values when the population in in the form of a list */
+        static void assign_crowding_distance_list(Population pop, Lists lst, int front_size)
+        {
+            int[][] obj_array;
+            int[] dist;
+            int i, j;
+            Lists temp;
+            temp = lst;
+            if (front_size == 1)
+            {
+                pop.ind[lst.index].crowd_dist = INF;
+                return;
+            }
+            if (front_size == 2)
+            {
+                pop.ind[lst.index].crowd_dist = INF;
+                pop.ind[lst.child.index].crowd_dist = INF;
+                return;
+            }
+            dist = new int[front_size];
+            obj_array = new int[nobj][];
+            //obj_array = (int**)malloc(nobj * sizeof(int*));
+            for (i = 0; i < nobj; i++)
+            {
+                obj_array[i] = new int[front_size];
+            }
+            for (j = 0; j < front_size; j++)
+            {
+                dist[j] = temp.index;
+                temp = temp.child;
+            }
+            assign_crowding_distance(pop, dist, obj_array, front_size);
+            //free(dist);
+            //for (i = 0; i < nobj; i++)
+            //{
+            //    free(obj_array[i]);
+            //}
+            //free(obj_array);
+            return;
+        }
+
+        /* Routine to compute crowding distance based on objective function values when the population in in the form of an array */
+        static void assign_crowding_distance_indices(Population pop, int c1, int c2)
+        {
+            int[][] obj_array;
+            int[] dist;
+            int i, j;
+            int front_size;
+            front_size = c2 - c1 + 1;
+            if (front_size == 1)
+            {
+                pop.ind[c1].crowd_dist = INF;
+                return;
+            }
+            if (front_size == 2)
+            {
+                pop.ind[c1].crowd_dist = INF;
+                pop.ind[c2].crowd_dist = INF;
+                return;
+            }
+            dist = new int[front_size];
+            obj_array = new int[nobj][];
+            //obj_array = (int**)malloc(nobj * sizeof(int*));
+            for (i = 0; i < nobj; i++)
+            {
+                obj_array[i] = new int[front_size];
+            }
+
+            for (j = 0; j < front_size; j++)
+            {
+                dist[j] = c1++;
+            }
+            assign_crowding_distance(pop, dist, obj_array, front_size);
+            //free(dist);
+            //for (i = 0; i < nobj; i++)
+            //{
+            //    free(obj_array[i]);
+            //}
+            //free(obj_array);
+            return;
+        }
+
+        /* Routine to compute crowding distances */
+        static void assign_crowding_distance(Population pop, int[] dist, int[][] obj_array, int front_size)
+        {
+            int i, j;
+            for (i = 0; i < nobj; i++)
+            {
+                for (j = 0; j < front_size; j++)
+                {
+                    obj_array[i][j] = dist[j];
+                }
+                quicksort_front_obj(pop, i, obj_array[i], front_size);
+            }
+            for (j = 0; j < front_size; j++)
+            {
+                pop.ind[dist[j]].crowd_dist = 0.0;
+            }
+            for (i = 0; i < nobj; i++)
+            {
+                pop.ind[obj_array[i][0]].crowd_dist = INF;
+            }
+            for (i = 0; i < nobj; i++)
+            {
+                for (j = 1; j < front_size - 1; j++)
+                {
+                    if (pop.ind[obj_array[i][j]].crowd_dist != INF)
+                    {
+                        if (pop.ind[obj_array[i][front_size - 1]].obj[i] == pop.ind[obj_array[i][0]].obj[i])
+                        {
+                            pop.ind[obj_array[i][j]].crowd_dist += 0.0;
+                        }
+                        else
+                        {
+                            pop.ind[obj_array[i][j]].crowd_dist += (pop.ind[obj_array[i][j + 1]].obj[i] - pop.ind[obj_array[i][j - 1]].obj[i]) / (pop.ind[obj_array[i][front_size - 1]].obj[i] - pop.ind[obj_array[i][0]].obj[i]);
+                        }
+                    }
+                }
+            }
+            for (j = 0; j < front_size; j++)
+            {
+                if (pop.ind[dist[j]].crowd_dist != INF)
+                {
+                    pop.ind[dist[j]].crowd_dist = (pop.ind[dist[j]].crowd_dist) / nobj;
+                }
+            }
+            return;
+        }
+        #endregion
+
+        #region sort.c
+        /* Randomized quick sort routine to sort a population based on a particular objective chosen */
+        static void quicksort_front_obj(Population pop, int objcount, int[] obj_array, int obj_array_size)
+        {
+            q_sort_front_obj(pop, objcount, obj_array, 0, obj_array_size - 1);
+            return;
+        }
+
+        /* Actual implementation of the randomized quick sort used to sort a population based on a particular objective chosen */
+        static void q_sort_front_obj(Population pop, int objcount, int[] obj_array, int left, int right)
+        {
+            int index;
+            int temp;
+            int i, j;
+            double pivot;
+            if (left < right)
+            {
+                index = randObj.rnd(left, right);
+                temp = obj_array[right];
+                obj_array[right] = obj_array[index];
+                obj_array[index] = temp;
+                pivot = pop.ind[obj_array[right]].obj[objcount];
+                i = left - 1;
+                for (j = left; j < right; j++)
+                {
+                    if (pop.ind[obj_array[j]].obj[objcount] <= pivot)
+                    {
+                        i += 1;
+                        temp = obj_array[j];
+                        obj_array[j] = obj_array[i];
+                        obj_array[i] = temp;
+                    }
+                }
+                index = i + 1;
+                temp = obj_array[index];
+                obj_array[index] = obj_array[right];
+                obj_array[right] = temp;
+                q_sort_front_obj(pop, objcount, obj_array, left, index - 1);
+                q_sort_front_obj(pop, objcount, obj_array, index + 1, right);
+            }
+            return;
+        }
+
+        /* Randomized quick sort routine to sort a population based on crowding distance */
+        static void quicksort_dist(Population pop, int[] dist, int front_size)
+        {
+            q_sort_dist(pop, dist, 0, front_size - 1);
+            return;
+        }
+
+        /* Actual implementation of the randomized quick sort used to sort a population based on crowding distance */
+        static void q_sort_dist(Population pop, int[] dist, int left, int right)
+        {
+            int index;
+            int temp;
+            int i, j;
+            double pivot;
+            if (left < right)
+            {
+                index = randObj.rnd(left, right);
+                temp = dist[right];
+                dist[right] = dist[index];
+                dist[index] = temp;
+                pivot = pop.ind[dist[right]].crowd_dist;
+                i = left - 1;
+                for (j = left; j < right; j++)
+                {
+                    if (pop.ind[dist[j]].crowd_dist <= pivot)
+                    {
+                        i += 1;
+                        temp = dist[j];
+                        dist[j] = dist[i];
+                        dist[i] = temp;
+                    }
+                }
+                index = i + 1;
+                temp = dist[index];
+                dist[index] = dist[right];
+                dist[right] = temp;
+                q_sort_dist(pop, dist, left, index - 1);
+                q_sort_dist(pop, dist, index + 1, right);
+            }
+            return;
+        }
+        #endregion
 
     }
 }
