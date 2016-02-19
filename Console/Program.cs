@@ -42,6 +42,15 @@ namespace ConsoleApp
 
         static rand rnd = new rand();
 
+        static int teacher_list_size = 0;
+
+        static List<int[,]> scheduling = new List<int[,]>(8); //8 dönem, 5 gün, 9 ders            
+        static int[,] lab_scheduling = new int[5, 9]; // labda dönem tutulmuyor 
+        static string[] teacher_list = new string[70]; //todo: dub hocalar olabiliyor.
+        static int[,] meeting = new int[5, 9]; // bölüm hocalarının ortak meeting saatleri.
+        static string[] record_list1 = new string[2];
+        static CourseDetail[] course_list;
+
         static void Main(string[] args)
         {
             if (args.Length < 1)
@@ -63,13 +72,11 @@ namespace ConsoleApp
             }
 
 
+            for(int i= 0; i < 8; i++)
+            {
+                scheduling.Add( new int[5, 9] );
+            }
 
-
-            int[,,] scheduling = new int[8, 5, 9]; //8 dönem, 5 gün, 9 ders            
-            int[,] lab_scheduling = new int[5, 9]; // labda dönem tutulmuyor 
-            string[] teacher_list = new string[70];
-            int[,] meeting = new int[5, 9]; // bölüm hocalarının ortak meeting saatleri.
-            string[] record_list1 = new string[2];
 
             Population parent_pop;
             Population child_pop;
@@ -125,7 +132,7 @@ namespace ConsoleApp
                         for (int k = 0; k < 5; k++)
                         {
                             //fscanf(input_collective, "%d", scheduling[i][k][j]);
-                            scheduling[i, k, j] = int.Parse(parts[k]);
+                            scheduling[i][ k, j] = int.Parse(parts[k]);
                         }
                     }
                     line = reader.ReadLine(); //trailing \n
@@ -168,10 +175,10 @@ namespace ConsoleApp
 
             #region scan course list
             reader = new StreamReader(input_file);
-            int teacher_list_size = 0;
+
             line = reader.ReadLine();
             int course_count = int.Parse(line); //43 gibi bir sayı dönüyor
-            CourseDetail[] course_list = new CourseDetail[course_count]; //corse list için alan al.
+            course_list = new CourseDetail[course_count]; //corse list için alan al.
             Console.WriteLine($"SIZE: {course_count} \n");
 
             for (int course_ID = 0; course_ID < course_count; course_ID++)
@@ -579,7 +586,7 @@ namespace ConsoleApp
                 writer5.WriteLine($" Probability of crossover of binary variable = {pcross_bin}");
                 writer5.WriteLine($" Probability of mutation of binary variable = {pmut_bin}");
             }
-            writer5.Write($" Seed for random number generator = {seed}" );
+            writer5.Write($" Seed for random number generator = {seed}");
             bitlength = 0;
             if (nbin != 0)
             {
@@ -609,22 +616,22 @@ namespace ConsoleApp
 
 
 
-            parent_pop = new Population(popsize,nreal,nbin, maxnbit, nobj,ncon); // (population*)malloc(sizeof(population));
-            child_pop = new Population(popsize,nreal,nbin, maxnbit, nobj,ncon); // (population*)malloc(sizeof(population));
+            parent_pop = new Population(popsize, nreal, nbin, maxnbit, nobj, ncon); // (population*)malloc(sizeof(population));
+            child_pop = new Population(popsize, nreal, nbin, maxnbit, nobj, ncon); // (population*)malloc(sizeof(population));
             mixed_pop = new Population(popsize, nreal, nbin, maxnbit, nobj, ncon); // (population*)malloc(sizeof(population));
-            //allocate_memory_pop(parent_pop, popsize);
-            //allocate_memory_pop(child_pop, popsize);
-            //allocate_memory_pop(mixed_pop, 2 * popsize);
+                                                                                   //allocate_memory_pop(parent_pop, popsize);
+                                                                                   //allocate_memory_pop(child_pop, popsize);
+                                                                                   //allocate_memory_pop(mixed_pop, 2 * popsize);
 
-            
+
             rnd.randomize();
             initialize_pop(parent_pop);
             Console.WriteLine(" Initialization done, now performing first generation");
 
 
 
-            //decode_pop(parent_pop);
-            //evaluate_pop(parent_pop);
+            decode_pop(parent_pop);
+            evaluate_pop(parent_pop);
             //assign_rank_and_crowding_distance(parent_pop);
             //report_pop(parent_pop, fpt1);
             //fprintf(fpt4, "# gen = 1\n");
@@ -747,16 +754,651 @@ namespace ConsoleApp
                     {
                         if (rnd.randomperc() <= 0.5)
                         {
-                            ind.gene[j,k] = 0;
+                            ind.gene[j, k] = 0;
                         }
                         else
                         {
-                            ind.gene[j,k] = 1;
+                            ind.gene[j, k] = 1;
                         }
                     }
                 }
             }
             return;
         }
+
+        /* Function to decode a population to find out the binary variable values based on its bit pattern */
+        static void decode_pop(Population pop)
+        {
+            int i;
+            if (nbin != 0)
+            {
+                for (i = 0; i < popsize; i++)
+                {
+                    decode_ind(pop.ind[i]);
+                }
+            }
+            return;
+        }
+
+        /* Function to decode an individual to find out the binary variable values based on its bit pattern */
+        static void decode_ind(Individual ind)
+        {
+            int j, k;
+            int sum;
+            if (nbin != 0)
+            {
+                for (j = 0; j < nbin; j++)
+                {
+                    sum = 0;
+                    for (k = 0; k < nbits[j]; k++)
+                    {
+                        if (ind.gene[j, k] == 1)
+                        {
+                            sum += (int)Math.Pow(2, nbits[j] - 1 - k);
+                        }
+                    }
+                    ind.xbin[j] = min_binvar[j] + (double)sum * (max_binvar[j] - min_binvar[j]) / (double)(Math.Pow(2, nbits[j]) - 1);
+                }
+            }
+            return;
+        }
+
+        /* Routine to evaluate objective function values and constraints for a population */
+        static void evaluate_pop(Population pop)
+        {
+            for (int i = 0; i < popsize; i++)
+            {
+                evaluate_ind(pop.ind[i]);
+            }
+            return;
+        }
+
+        /* Routine to evaluate objective function values and constraints for an individual */
+        static void evaluate_ind(Individual ind)
+        {
+            test_problem(ind.xreal, ind.xbin, ind.gene, ind.obj, ind.constr);
+            if (ncon == 0)
+            {
+                ind.constr_violation = 0.0;
+            }
+            else
+            {
+                ind.constr_violation = 0.0;
+                for (int j = 0; j < ncon; j++)
+                {
+                    if (ind.constr[j] < 0.0)
+                    {
+                        ind.constr_violation += ind.constr[j];
+                    }
+                }
+            }
+            return;
+        }
+
+        static void test_problem(double[] xreal, double[] xbin, int[,] gene, double[] obj, double[] constr)
+        {
+            // todo fix fix these stuff. dinamik olmamalı bunlar her seferinde? emin degilim...
+            // en azından pop kadar kere yaratılmalı? pop içine taşınabilir?
+            int sum, i, j, k;
+            List<int[,]> teacher_scheduling_counter = new List<int[,]>(50); //todo teacher no kadar...
+            for (i = 0; i < 50; i++)
+            {
+                teacher_scheduling_counter.Add( new int[5, 9]);
+            }
+            int teacher_index = 0;
+            int[,] lab_counter = new int[5, 9];
+            List<int[,]> scheduling_only_CSE = new List<int[,]>(8);
+            for (i = 0; i < 8; i++)
+            {
+                scheduling_only_CSE.Add(new int[5, 9]);
+            }
+            int[,] elective_courses = new int[5, 9];
+            obj[0] = 0;
+            obj[1] = 0;
+            obj[2] = 0;
+
+            /*reset scheduling, tearchers_scheduling and lab_scheduling*/
+            for (i = 0; i < teacher_list_size; ++i)
+            {
+                copy_array(teacher_scheduling_counter[i], meeting);
+            }
+            //for (j = 0; j < 8; j++) //c#'da int init'te hep 0
+            //{
+            //    reset(scheduling_only_CSE[j]);
+            //}
+            //reset(elective_courses);
+
+            copy_array(lab_counter, lab_scheduling);       /*copy diaconate lab lessons*/
+            for (j = 0; j < nbin; j++)
+            {
+                for (i = 0; i < teacher_list_size; i++)
+                {
+                    if (teacher_list[i].Equals(course_list[j].teacher))
+                    {
+                        teacher_index = i;
+                        break;
+                    }
+                }
+                sum = (int)xbin[j];
+
+                if (course_list[j].duration == 1)
+                {
+                    if (course_list[j].elective == 0)
+                    {
+                        adding_course_1_slot(scheduling_only_CSE[course_list[j].semester - 1], sum, j);
+                    }
+                    else if (course_list[j].elective == 1)
+                    {
+                        adding_course_1_slot(elective_courses, sum, j);
+                    }
+
+                    adding_course_1_slot(teacher_scheduling_counter[teacher_index], sum);
+                    if (course_list[j].type == 1)
+                    {
+                        for (k = 0; k < course_list[j].labHour; k++)
+                        {
+                            adding_course_1_slot(lab_counter, sum);
+                        }
+                    }
+                }
+                else if (course_list[j].duration == 2)
+                {
+                    if (course_list[j].elective == 0)
+                    {
+                        adding_course_2_slot(scheduling_only_CSE[course_list[j].semester - 1], sum, j);
+                    }
+                    else if (course_list[j].elective == 1)
+                    {
+                        adding_course_2_slot(elective_courses, sum, j);
+                    }
+
+                    adding_course_2_slot(teacher_scheduling_counter[teacher_index], sum);
+                    if (course_list[j].type == 1)
+                    {
+                        for (k = 0; k < course_list[j].labHour; k++)
+                        {
+                            adding_course_2_slot(lab_counter, sum);
+                        }
+                    }
+                }
+                else if (course_list[j].duration == 3)
+                {
+                    if (course_list[j].elective == 0)
+                    {
+                        adding_course_3_slot(scheduling_only_CSE[course_list[j].semester - 1], sum, j);
+                    }
+                    else if (course_list[j].elective == 1)
+                    {
+                        adding_course_3_slot(elective_courses, sum, j);
+                    }
+
+                    adding_course_3_slot(teacher_scheduling_counter[teacher_index], sum);
+                    if (course_list[j].type == 1)
+                    {
+                        for (k = 0; k < course_list[j].labHour; k++)
+                        {
+                            adding_course_3_slot(lab_counter, sum);
+                        }
+                    }
+                }
+            }
+
+            ////+TODO   dönem ici dekanlik/bolum dersi cakismasi
+            //for (j = 0; j < 8; j++)
+            //{
+            //    obj[0] += calculate_collision2(scheduling_only_CSE[j], scheduling[j], 0);           /*collision of CSE&fac courses in semester*/
+            //}
+            ////+TODO	 donem ici bolum dersi cakismasi
+            //for (j = 0; j < 8; j++)
+            //{
+            //    obj[0] += calculate_collision1(scheduling_only_CSE[j], 1);                          /*collision of only CSE courses in semester*/
+            //}
+            ////+TODO	dönemler arasi dekanlik/bolum dersi cakismasi--------------buna bak tekrar
+            //for (j = 1; j < 8; j++)
+            //{
+            //    /*1-2  2-3  3-4  4-5  5-6  6-7  7-8
+            //    2-1  3-2  4-3  5-4  6-5  7-6  8-7*/
+            //    obj[1] += calculate_collision2(scheduling_only_CSE[j - 1], scheduling[j], 0);           /*consecutive CSE&faculty courses*/
+            //    obj[1] += calculate_collision2(scheduling_only_CSE[j], scheduling[j - 1], 0);           /*consecutive CSE&faculty courses*/
+            //}
+            ////+TODO	dönemler arası CSE çakışmaları
+            //for (j = 1; j < 8; j++)
+            //{
+            //    obj[1] += calculate_collision7(scheduling_only_CSE[j - 1], scheduling_only_CSE[j], 0);  /*consecutive only CSE courses*/
+            //}
+            ////+TODO	aynı saatte 3'ten fazla lab olmaması lazim
+            //obj[0] += calculate_collision1(lab_counter, 4);                                         /*# of lab at most 4*/
+            //for (j = 0; j < teacher_list_size; j++)
+            //{
+            //    if (strcmp(teacher_list[j], "ASSISTANT") != 0)
+            //    {
+            //        //+TODO	og. gor. aynı saatte baska dersinin olmaması
+            //        obj[0] += calculate_collision1(teacher_scheduling_counter[j], 1);               /*teacher course collision*/
+            //                                                                                        //+TODO	og. gor. gunluk 4 saatten fazla pespese dersinin olmamasi
+            //        obj[2] += calculate_collision3(teacher_scheduling_counter[j], 4);           /*teacher have at most 4 consective lesson per day*/
+            //                                                                                    //+TODO	og. gor. boş gununun olması
+            //        obj[2] += calculate_collision4(teacher_scheduling_counter[j]);                  /* teacher have free day*/
+            //    }
+            //}
+            ////+TODO	lab ve lecture farklı günlerde olsun
+            //for (j = 0; j < 8; j++)
+            //{
+            //    obj[2] += calculate_collision6(scheduling_only_CSE[j]);                             /*lab lecture hours must be in seperate day*/
+            //}
+            ////+TODO	lab miktarı kadar lab_scheduling'i artır
+            ////+TODO	seçmeliler için ayrı tablo tutup ayrı fonksiyonlarla çakışmaları kontrol et.
+            ////+TODO	secmelilerin hangi donemlere eklenecegi ve hangi donemlerle cakismamasi istendiği?
+            //obj[0] += calculate_collision1(elective_courses, 1);                            /*elective courses*/
+            //obj[2] += calculate_collision2(elective_courses, scheduling[5], 0);             /*elective+faculty courses in semester(consecutive)*/
+            //obj[2] += calculate_collision2(elective_courses, scheduling[6], 0);             /*elective+faculty courses in semester*/
+            //obj[2] += calculate_collision2(elective_courses, scheduling[7], 0);             /*elective+faculty courses in semester*/
+            //obj[1] += calculate_collision7(scheduling_only_CSE[5], elective_courses, 0);    /*CSE+elective courses(consecutive)*/
+            //obj[0] += calculate_collision7(scheduling_only_CSE[6], elective_courses, 0);    /*CSE+elective courses*/
+            //obj[0] += calculate_collision7(scheduling_only_CSE[7], elective_courses, 0);    /*CSE+elective courses*/
+            //                                                                                //+TODO	toplanti saatleri hocaların tablosuna da eklensin
+            //                                                                                //TODO	dekanlık derslerinin sectionları
+            //                                                                                //+TODO	obj[2] kontrol et.
+            //return;
+        }
+
+
+        /* Reset ith semester table*/
+        static void reset(int[,] array)
+        {
+            int i, j;
+            for (i = 0; i < 5; i++)
+            {
+                for (j = 0; j < 9; j++)
+                {
+                    array[i, j] = 0;
+                }
+            }
+        }
+
+        /* Copy second array to first array*/
+        static void copy_array(int[,] array2, int[,] array1)
+        {
+            Array.Copy(array1, array2, 5 * 9);
+            //int i, j;
+            //for (i = 0; i < 5; i++)
+            //{
+            //    for (j = 0; j < 9; j++)
+            //    {
+            //        array[i][j] = array1[i][j];
+            //    }
+            //}
+        }
+
+
+
+
+        /* filling scheduling table for 1-hour class by using slot number 
+        9-10	-	-	-	-	-
+        10-11	-	-	-	-	-
+        11-12	0	5	10	15	20
+        12-13	1	6	11	16	21
+        13-14	2	7	12	17	22
+        14-15	-	-	-	-	-
+        15-16	-	-	-	-	-
+        16-17	3	8	13	18	23
+        17-18	4	9	14	19	24
+        */
+        static void adding_course_1_slot(int[,] array, int slot)
+        {
+            if (slot % 5 < 3)
+                array[slot / 5, (slot % 5) + 2]++;
+            else
+                array[slot / 5, (slot % 5) + 4]++;
+        }
+        static void adding_course_1_slot(int[,] array, int slot, int i)
+        {
+            if (slot % 5 < 3)
+                array[slot / 5, (slot % 5) + 2] = i;
+            else
+                array[slot / 5, (slot % 5) + 4] = i;
+        }
+        /*///////////////////////////////////////////////////////*/
+        /* filling scheduling table for 2-hour class by using slot number 
+        9-10	0	5	10	15	20
+        10-11	-	-	-	-	-
+        11-12	1	6	11	16	21
+        12-13	2	7	12	17	22
+        13-14	-	-	-	-	-
+        14-15	3	8	13	18	23
+        15-16	-	-	-	-	-
+        16-17	4	9	14	19	24
+        17-18	-	-	-	-	-
+        */
+        static void adding_course_2_slot(int[,] array, int slot)
+        {
+            int j = 0;
+            if (slot % 5 == 0)
+            {
+                j = 0;
+            }
+            if (slot % 5 == 1)
+            {
+                j = 2;
+            }
+            if (slot % 5 == 2)
+            {
+                j = 3;
+            }
+            if (slot % 5 == 3)
+            {
+                j = 5;
+            }
+            if (slot % 5 == 4)
+            {
+                j = 7;
+            }
+            array[slot / 5,j]++;
+            array[slot / 5,j + 1]++;
+        }
+        static void adding_course_2_slot(int[,] array, int slot, int i)
+        {
+            int j = 0;
+            if (slot % 5 == 0)
+            {
+                j = 0;
+            }
+            if (slot % 5 == 1)
+            {
+                j = 2;
+            }
+            if (slot % 5 == 2)
+            {
+                j = 3;
+            }
+            if (slot % 5 == 3)
+            {
+                j = 5;
+            }
+            if (slot % 5 == 4)
+            {
+                j = 7;
+            }
+            array[slot / 5, j] = i;
+            array[slot / 5, j + 1] = i;
+        }
+        /*///////////////////////////////////////////////////////*/
+        /* filling scheduling table for 3-hour class by using slot number 
+        9-10	0	4	8	12	16
+        10-11	-	-	-	-	-
+        11-12	1	5	9	13	17
+        12-13	-	-	-	-	-
+        13-14	2	6	10	14	18
+        14-15	3	7	11	15	19
+        15-16	-	-	-	-	-
+        16-17	-	-	-	-	-
+        17-18	-	-	-	-	-
+        */
+        static void adding_course_3_slot(int[,] array, int slot)
+        {
+            int j = 0;
+            if (slot % 4 == 0)
+            {
+                j = 0;
+            }
+            if (slot % 4 == 1)
+            {
+                j = 2;
+            }
+            if (slot % 4 == 2)
+            {
+                j = 4;
+            }
+            if (slot % 4 == 3)
+            {
+                j = 5;
+            }
+            array[slot / 4, j]++;
+            array[slot / 4, j + 1]++;
+            array[slot / 4, j + 2]++;
+        }
+        static void adding_course_3_slot(int[,] array, int slot, int i)
+        {
+            int j = 0;
+            if (slot % 4 == 0)
+            {
+                j = 0;
+            }
+            if (slot % 4 == 1)
+            {
+                j = 2;
+            }
+            if (slot % 4 == 2)
+            {
+                j = 4;
+            }
+            if (slot % 4 == 3)
+            {
+                j = 5;
+            }
+            array[slot / 4, j] = i;
+            array[slot / 4, j + 1] = i;
+            array[slot / 4, j + 2] = i;
+        }
+
+
+
+
+        ///*///////////////////////////////////////////////////////*/
+        ///* collision of CSE courses at the same time*/
+        //static int calculate_collision1(int[,] array, int minimum_collision)
+        //{
+        //    int i, j, result = 0;
+        //    for (i = 0; i < 5; i++)
+        //    {
+        //        for (j = 0; j < 9; j++)
+        //        {
+        //            if (array[i,j] > minimum_collision)
+        //            {
+        //                result += array[i,j] - 1;
+        //            }
+        //        }
+        //    }
+        //    return result;
+        //}
+        ////static int calculate_collision1(int[,] array, int minimum_collision)
+        ////{
+        ////    int i, j, result = 0;
+        ////    for (i = 0; i < 5; i++)
+        ////    {
+        ////        for (j = 0; j < 9; j++)
+        ////        {
+        ////            if ((int)array[i,j].size() > minimum_collision)
+        ////            {
+        ////                result += array[i,j].size() - 1;
+        ////            }
+        ////        }
+        ////    }
+        ////    return result;
+        ////}
+        ///*///////////////////////////////////////////////////////*/
+        ///* collision of CSE courses -1 0(calculate_collision1) +1 semester*/
+        ///*
+        //int calculate_collision2(int array1[5][9],int array2[5][9], int minimum_collision){
+        //    int i,j, result=0;
+        //    for(i=0; i<5; i++){
+        //        for(j=0; j<9; j++){
+        //            if(array1[i][j] > minimum_collision && array2[i][j] > minimum_collision){
+        //                result++;
+        //            }
+        //        }
+        //    }
+        //    return result;
+        //}
+        //*/
+        //static int calculate_collision2(int[,] array1, int[,] array2, int minimum_collision)
+        //{
+        //    int i, j, result = 0;
+        //    for (i = 0; i < 5; i++)
+        //    {
+        //        for (j = 0; j < 9; j++)
+        //        {
+        //            if ((int)array1[i,j] > minimum_collision && array2[i,j] > minimum_collision)
+        //            {
+        //                result += array1[i,j] + array2[i,j] - 1;
+        //            }
+        //        }
+        //    }
+        //    return result;
+        //}
+        // /*///////////////////////////////////////////////////////*/
+        ///*count consecutive 4(can be changed) hour for teachers table*/
+        //static int calculate_collision3(int array[5][9], int max_consecutive_hour)
+        //{
+        //    int counter;
+        //    int i, j, result = 0;
+        //    for (i = 0; i < 5; i++)
+        //    {
+        //        counter = 0;
+        //        for (j = 0; j < 9; j++)
+        //        {
+        //            if (array[i][j] > 0)
+        //            {
+        //                counter++;
+        //            }
+        //            else {
+        //                counter = 0;
+        //            }
+        //            if (counter >= max_consecutive_hour)
+        //            {
+        //                result++;
+        //            }
+        //        }
+        //    }
+        //    return result;
+        //}
+        ///*///////////////////////////////////////////////////////*/
+        ///* if 1 day (or more) whole day is empty for teachers table 
+        //    return 0 
+        //    else return 1*/
+        //static int calculate_collision4(int array[5][9])
+        //{
+        //    int i, j, counter, tmp = 0;
+        //    for (i = 0; i < 5; i++)
+        //    {
+        //        counter = 0;
+        //        for (j = 0; j < 9; j++)
+        //        {
+        //            if (array[i][j] > 0)
+        //            {
+        //                counter = 0;
+        //                break;
+        //            }
+        //            else
+        //                counter++;
+        //        }
+        //        if (counter == 9)
+        //            tmp++;
+        //    }
+        //    if (tmp == 0)
+        //        return 1;
+        //    else
+        //        return 0;
+        //}
+        ///*///////////////////////////////////////////////////////*/
+        ///*if lecture and lab have been at the day slot return result;
+        //else 0; */
+        //static int calculate_collision5(int array[5][9], int array1[5][9])
+        //{
+        //    int i, j, k, result = 0;
+        //    for (i = 0; i < 5; i++)
+        //    {
+        //        for (j = 0; j < 9; j++)
+        //        {
+        //            if (array[i][j] > 0)
+        //            {
+        //                for (k = j; k < 9; k++)
+        //                {
+        //                    if (array1[i][k] > 0)
+        //                    {
+        //                        result++;
+        //                        break;
+        //                    }
+        //                }
+        //                break;
+        //            }
+        //            if (array1[i][j] > 0)
+        //            {
+        //                for (k = j; k < 9; k++)
+        //                {
+        //                    if (array[i][k] > 0)
+        //                    {
+        //                        result++;
+        //                        break;
+        //                    }
+        //                }
+        //                break;
+        //            }
+        //        }
+        //    }
+        //    return result;
+        //}
+        ///*///////////////////////////////////////////////////////*/
+        //static int calculate_collision6(vector<int> array[5][9])
+        //{
+        //    int result = 0, i, j, k, type1, type2;
+        //    vector<int> day;
+        //    for (i = 0; i < 5; i++)
+        //    {
+        //        for (j = 0; j < 9; j++)
+        //        {
+        //            for (k = 0; k < (int)array[i][j].size(); k++)
+        //            {
+        //                day.push_back(array[i][j][k]);
+        //            }
+        //        }
+        //        for (j = 0; j < (int)day.size(); j++)
+        //        {
+        //            for (k = 0; k < (int)day.size(); k++)
+        //            {
+        //                if (j != k && strcmp(course_list[j].code, course_list[k].code) == 0)
+        //                {
+        //                    //result++;
+        //                    type1 = course_list[j].type;
+        //                    type2 = course_list[k].type;
+        //                    if (type1 != type2 && type1 + type2 <= 1)
+        //                    {
+        //                        result++;
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        day.clear();
+        //    }
+        //    return result;
+        //}
+        ///*///////////////////////////////////////////////////////*/
+        //static int calculate_collision7(int[,] array1, int[,] array2, int minimum_collision)
+        //{
+        //    int i, j, k, l, result = 0;
+        //    for (i = 0; i < 5; i++)
+        //    {
+        //        for (j = 0; j < 9; j++)
+        //        {
+        //            if ((int)array1[i,j]> minimum_collision && (int)array2[i,j] > minimum_collision)
+        //            {
+
+        //                for (k = 0; k < (int)array2[i,j]; k++)
+        //                {
+        //                    for (l = 0; l < (int)array1[i,j].size(); l++)
+        //                    {
+        //                        if (!is_prerequisite(array1[i][j][l], array2[i][j][k]))
+        //                        {
+        //                            result++;
+        //                        }
+        //                    }
+        //                }
+
+        //            }
+        //        }
+        //    }
+        //    return result;
+        //}
+
+
     }
 }
