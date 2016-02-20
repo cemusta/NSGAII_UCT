@@ -625,7 +625,7 @@ namespace ConsoleApp
 
             parent_pop = new Population(popsize, nreal, nbin, maxnbit, nobj, ncon); // (population*)malloc(sizeof(population));
             child_pop = new Population(popsize, nreal, nbin, maxnbit, nobj, ncon); // (population*)malloc(sizeof(population));
-            mixed_pop = new Population(popsize, nreal, nbin, maxnbit, nobj, ncon); // (population*)malloc(sizeof(population));
+            mixed_pop = new Population(popsize*2, nreal, nbin, maxnbit, nobj, ncon); // (population*)malloc(sizeof(population));
                                                                                    //allocate_memory_pop(parent_pop, popsize);
                                                                                    //allocate_memory_pop(child_pop, popsize);
                                                                                    //allocate_memory_pop(mixed_pop, 2 * popsize);
@@ -645,7 +645,10 @@ namespace ConsoleApp
             report_pop(parent_pop, writer4);
             Console.WriteLine(" gen = 1");
             //fflush(stdout);
-            //if (choice != 0) onthefly_display(parent_pop, gp, 1);
+            if (choice != 0)
+            {
+                //onthefly_display(parent_pop, gp, 1);
+            }
             writer1.Flush();
             writer2.Flush();
             writer3.Flush();
@@ -659,15 +662,16 @@ namespace ConsoleApp
                 mutation_pop(child_pop);
                 decode_pop(child_pop);
                 evaluate_pop(child_pop);
-                //merge(parent_pop, child_pop, mixed_pop);
-                //fill_nondominated_sort(mixed_pop, parent_pop);
+                merge(parent_pop, child_pop, mixed_pop);
+                fill_nondominated_sort(mixed_pop, parent_pop);
 
-                ///* Comment following four lines if information for all
-                //generations is not desired, it will speed up the execution */
+                /* Comment following four lines if information for all
+                generations is not desired, it will speed up the execution */
                 ///*fprintf(fpt4,"# gen = %d\n",i);
                 //report_pop(parent_pop,fpt4);
                 //fflush(fpt4);*/
-                //if (choice != 0) onthefly_display(parent_pop, gp, i);
+                //if (choice != 0)
+                //    onthefly_display(parent_pop, gp, i);
                 Console.WriteLine($" gen = {i}");
             }
 
@@ -1765,13 +1769,13 @@ namespace ConsoleApp
                     prob = randObj.randomperc();
                     if (prob <= pmut_bin)
                     {
-                        if (ind.gene[j,k] == 0)
+                        if (ind.gene[j, k] == 0)
                         {
-                            ind.gene[j,k] = 1;
+                            ind.gene[j, k] = 1;
                         }
                         else
                         {
-                            ind.gene[j,k] = 0;
+                            ind.gene[j, k] = 0;
                         }
                         nbinmut += 1;
                     }
@@ -1832,13 +1836,13 @@ namespace ConsoleApp
             {
                 for (j = 0; j < nobj; j++)
                 {
-                    writer.Write( $"{pop.ind[i].obj[j].ToString("E")}\t");
+                    writer.Write($"{pop.ind[i].obj[j].ToString("E")}\t");
                 }
                 if (ncon != 0)
                 {
                     for (j = 0; j < ncon; j++)
                     {
-                        writer.Write( $"{pop.ind[i].constr[j].ToString("E")}\t");
+                        writer.Write($"{pop.ind[i].constr[j].ToString("E")}\t");
                     }
                 }
                 if (nreal != 0)
@@ -1858,9 +1862,9 @@ namespace ConsoleApp
                         }
                     }
                 }
-                writer.Write( $"{pop.ind[i].constr_violation.ToString("E")}\t" );
-                writer.Write( $"{pop.ind[i].rank}\t" );
-                writer.Write( $"{pop.ind[i].crowd_dist.ToString("E")}\n");
+                writer.Write($"{pop.ind[i].constr_violation.ToString("E")}\t");
+                writer.Write($"{pop.ind[i].rank}\t");
+                writer.Write($"{pop.ind[i].crowd_dist.ToString("E")}\n");
             }
             return;
         }
@@ -1897,12 +1901,12 @@ namespace ConsoleApp
                         {
                             for (k = 0; k < nbits[j]; k++)
                             {
-                                writer.Write($"{pop.ind[i].gene[j,k]}\t");
+                                writer.Write($"{pop.ind[i].gene[j, k]}\t");
                             }
                         }
                     }
-                    writer.Write($"{pop.ind[i].constr_violation.ToString("E")}\t" );
-                    writer.Write($"{pop.ind[i].rank}\t" );
+                    writer.Write($"{pop.ind[i].constr_violation.ToString("E")}\t");
+                    writer.Write($"{pop.ind[i].rank}\t");
                     writer.Write($"{ pop.ind[i].crowd_dist.ToString("E")}\n");
                 }
             }
@@ -2268,6 +2272,254 @@ namespace ConsoleApp
             }
             return;
         }
+        #endregion
+
+        #region merge.c
+
+        /* Routine to merge two populations into one */
+        static void merge(Population pop1, Population pop2, Population pop3)
+        {
+            int i, k;
+            for (i = 0; i < popsize; i++)
+            {
+                copy_ind(pop1.ind[i], pop3.ind[i]);
+            }
+            for (i = 0, k = popsize; i < popsize; i++, k++)
+            {
+                copy_ind(pop2.ind[i], pop3.ind[k]);
+            }
+            return;
+        }
+
+        /* Routine to copy an individual 'ind1' into another individual 'ind2' */
+        static void copy_ind(Individual ind1, Individual ind2)
+        {
+            int i, j;
+            ind2.rank = ind1.rank;
+            ind2.constr_violation = ind1.constr_violation;
+            ind2.crowd_dist = ind1.crowd_dist;
+            if (nreal != 0)
+            {
+                for (i = 0; i < nreal; i++)
+                {
+                    ind2.xreal[i] = ind1.xreal[i];
+                }
+            }
+            if (nbin != 0)
+            {
+                for (i = 0; i < nbin; i++)
+                {
+                    ind2.xbin[i] = ind1.xbin[i];
+                    for (j = 0; j < nbits[i]; j++)
+                    {
+                        ind2.gene[i, j] = ind1.gene[i, j];
+                    }
+                }
+            }
+            for (i = 0; i < nobj; i++)
+            {
+                ind2.obj[i] = ind1.obj[i];
+            }
+            if (ncon != 0)
+            {
+                for (i = 0; i < ncon; i++)
+                {
+                    ind2.constr[i] = ind1.constr[i];
+                }
+            }
+            return;
+        }
+
+        #endregion
+
+        #region fillnds.c
+
+        /* Routine to perform non-dominated sorting */
+        static void fill_nondominated_sort(Population mixed_pop, Population new_pop)
+        {
+            int flag;
+            int i, j;
+            int end;
+            int front_size;
+            int archieve_size;
+            int rank = 1;
+            Lists pool;
+            Lists elite;
+            Lists temp1, temp2;
+            pool = new Lists();
+            elite = new Lists();
+            front_size = 0;
+            archieve_size = 0;
+            pool.index = -1;
+            pool.parent = null;
+            pool.child = null;
+            elite.index = -1;
+            elite.parent = null;
+            elite.child = null;
+            temp1 = pool;
+            for (i = 0; i < 2 * popsize; i++)
+            {
+                insert(temp1, i);
+                temp1 = temp1.child;
+            }
+            i = 0;
+            do
+            {
+                temp1 = pool.child;
+                insert(elite, temp1.index);
+                front_size = 1;
+                temp2 = elite.child;
+                temp1 = del(temp1);
+                temp1 = temp1.child;
+                do
+                {
+                    temp2 = elite.child;
+                    if (temp1 == null)
+                    {
+                        break;
+                    }
+                    do
+                    {
+                        end = 0;
+                        flag = check_dominance(mixed_pop.ind[temp1.index], mixed_pop.ind[temp2.index]);
+                        if (flag == 1)
+                        {
+                            insert(pool, temp2.index);
+                            temp2 = del(temp2);
+                            front_size--;
+                            temp2 = temp2.child;
+                        }
+                        if (flag == 0)
+                        {
+                            temp2 = temp2.child;
+                        }
+                        if (flag == -1)
+                        {
+                            end = 1;
+                        }
+                    }
+                    while (end != 1 && temp2 != null);
+                    if (flag == 0 || flag == 1)
+                    {
+                        insert(elite, temp1.index);
+                        front_size++;
+                        temp1 = del(temp1);
+                    }
+                    temp1 = temp1.child;
+                }
+                while (temp1 != null);
+                temp2 = elite.child;
+                j = i;
+                if ((archieve_size + front_size) <= popsize)
+                {
+                    do
+                    {
+                        copy_ind(mixed_pop.ind[temp2.index], new_pop.ind[i]);
+                        new_pop.ind[i].rank = rank;
+                        archieve_size += 1;
+                        temp2 = temp2.child;
+                        i += 1;
+                    }
+                    while (temp2 != null);
+                    assign_crowding_distance_indices(new_pop, j, i - 1);
+                    rank += 1;
+                }
+                else
+                {
+                    crowding_fill(mixed_pop, new_pop, i, front_size, elite);
+                    archieve_size = popsize;
+                    for (j = i; j < popsize; j++)
+                    {
+                        new_pop.ind[j].rank = rank;
+                    }
+                }
+                temp2 = elite.child;
+                do
+                {
+                    temp2 = del(temp2);
+                    temp2 = temp2.child;
+                }
+                while (elite.child != null);
+            }
+            while (archieve_size < popsize);
+            //while (pool != null)
+            //{
+            //    temp1 = pool;
+            //    pool = pool.child;
+            //    free(temp1);
+            //}
+            //while (elite != null)
+            //{
+            //    temp1 = elite;
+            //    elite = elite.child;
+            //    free(temp1);
+            //}
+            return;
+        }
+
+        /* Routine to fill a population with individuals in the decreasing order of crowding distance */
+        static void crowding_fill(Population mixed_pop, Population new_pop, int count, int front_size, Lists elite)
+        {
+            int[] dist;
+            Lists temp;
+            int i, j;
+            assign_crowding_distance_list(mixed_pop, elite.child, front_size);
+            dist = new int[front_size];
+            temp = elite.child;
+            for (j = 0; j < front_size; j++)
+            {
+                dist[j] = temp.index;
+                temp = temp.child;
+            }
+            quicksort_dist(mixed_pop, dist, front_size);
+            for (i = count, j = front_size - 1; i < popsize; i++, j--)
+            {
+                copy_ind(mixed_pop.ind[dist[j]], new_pop.ind[i]);
+            }
+            //free(dist);
+            return;
+        }
+
+        #endregion
+
+        #region display.c
+        ///* Function to display the current population for the subsequent generation */
+        //void onthefly_display(Population pop, FILE* gp, int ii)
+        //{
+        //    int i;
+        //    int flag;
+        //    FILE* fpt;
+        //    fpt = fopen("plot.out", "w");
+        //    flag = 0;
+        //    for (i = 0; i < popsize; i++)
+        //    {
+        //        if (pop.ind[i].constr_violation == 0)
+        //        {
+        //            if (choice != 3)
+        //                fprintf(fpt, "%e\t%e\n", pop.ind[i].obj[obj1 - 1], pop.ind[i].obj[obj2 - 1]);
+        //            else
+        //                fprintf(fpt, "%e\t%e\t%e\n", pop.ind[i].obj[obj1 - 1], pop.ind[i].obj[obj2 - 1], pop.ind[i].obj[obj3 - 1]);
+        //            fflush(fpt);
+        //            flag = 1;
+        //        }
+        //    }
+        //    if (flag == 0)
+        //    {
+        //        Console.WriteLine(" No feasible soln in this pop, hence no display");
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine(" printing gnuplot");
+        //        if (choice != 3)
+        //            fprintf(gp, "set title 'Generation #%d'\n unset key\n plot 'plot.out' w points pointtype 6 pointsize 1\n", ii);
+        //        else
+        //            fprintf(gp, "set title 'Generation #%d'\n set view %d,%d\n unset key\n splot 'plot.out' w points pointtype 6 pointsize 1\n", ii, angle1, angle2);
+        //        fflush(gp);
+        //    }
+        //    fclose(fpt);
+        //    return;
+        //}
+
         #endregion
 
     }
