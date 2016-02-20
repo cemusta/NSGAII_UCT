@@ -1,5 +1,4 @@
 # NSGAII_UCT
-NSGAII for UCT
 
 For basic usage, put all of the sample data into bin folder and start application with following command line:
 
