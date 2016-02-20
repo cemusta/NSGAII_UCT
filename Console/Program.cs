@@ -227,7 +227,7 @@ namespace ConsoleApp
             Console.WriteLine($"teacher size: {teacher_list_size}");
             #endregion
 
-
+            #region scan preqeuiste courses
             prerequisteList = new List<List<string>>(course_count);
             for (int i = 0; i < course_count; i++)
             {
@@ -253,7 +253,9 @@ namespace ConsoleApp
                     }
                 }
             }
+            #endregion
 
+            #region init file writers
             StreamWriter writer1 = new StreamWriter(fpt1);
             StreamWriter writer2 = new StreamWriter(fpt2);
             StreamWriter writer3 = new StreamWriter(fpt3);
@@ -271,7 +273,7 @@ namespace ConsoleApp
             writer3.Flush();
             writer4.Flush();
             writer5.Flush();
-
+            #endregion
 
             #region problem relevant parameter inputs
 
@@ -569,7 +571,7 @@ namespace ConsoleApp
             Console.WriteLine("\n Input data successfully entered, now performing initialization \n");
             #endregion
 
-
+            #region write down starting params into file
 
             writer5.WriteLine($" Population size = {popsize}");
             writer5.WriteLine($" Number of generations = {ngen}");
@@ -621,25 +623,25 @@ namespace ConsoleApp
             nbincross = 0;
             nrealcross = 0;
 
-
             writer1.Flush();
             writer2.Flush();
             writer3.Flush();
             writer4.Flush();
             writer5.Flush();
 
+            #endregion
 
-
-            parent_pop = new Population(popsize, nreal, nbin, maxnbit, nobj, ncon); // (population*)malloc(sizeof(population));
-            child_pop = new Population(popsize, nreal, nbin, maxnbit, nobj, ncon); // (population*)malloc(sizeof(population));
-            mixed_pop = new Population(popsize * 2, nreal, nbin, maxnbit, nobj, ncon); // (population*)malloc(sizeof(population));
-                                                                                       //allocate_memory_pop(parent_pop, popsize);
-                                                                                       //allocate_memory_pop(child_pop, popsize);
-                                                                                       //allocate_memory_pop(mixed_pop, 2 * popsize);
+            #region first population
+            parent_pop = new Population(popsize, nreal, nbin, maxnbit, nobj, ncon);
+            // (population*)malloc(sizeof(population));
+            child_pop = new Population(popsize, nreal, nbin, maxnbit, nobj, ncon);
+            // (population*)malloc(sizeof(population));
+            mixed_pop = new Population(popsize * 2, nreal, nbin, maxnbit, nobj, ncon);
+            // (population*)malloc(sizeof(population));
 
 
             randObj.randomize();
-            initialize_pop(parent_pop);
+            initialize_population(parent_pop);
             Console.WriteLine(" Initialization done, now performing first generation");
 
 
@@ -662,7 +664,9 @@ namespace ConsoleApp
             writer4.Flush();
             writer5.Flush();
 
+            #endregion
 
+            #region generation loop
             for (int i = 2; i <= ngen; i++)
             {
                 selection(parent_pop, child_pop);
@@ -684,9 +688,9 @@ namespace ConsoleApp
 
                 Console.WriteLine($" gen = {i}");
             }
+            #endregion
 
-
-
+            #region prepare final reports
             Console.WriteLine($" Generations finished, now reporting solutions");
             report_pop(parent_pop, writer2);
             report_feasible(parent_pop, writer3);
@@ -701,7 +705,9 @@ namespace ConsoleApp
                 writer5.WriteLine($" Number of crossover of binary variable = {nbincross}");
                 writer5.WriteLine($" Number of mutation of binary variable = {nbinmut}");
             }
-            //fflush(stdout);
+            #endregion
+
+            #region close files
             writer1.Flush();
             writer2.Flush();
             writer3.Flush();
@@ -723,6 +729,7 @@ namespace ConsoleApp
             input_labs.Close();
             meeting_file.Close();
             prerequisite.Close();
+            #endregion
 
             Console.WriteLine("\n Routine successfully exited \n");
 
@@ -731,17 +738,17 @@ namespace ConsoleApp
 
         #region initialize.c
         /* Function to initialize a population randomly */
-        static void initialize_pop(Population pop)
+        static void initialize_population(Population pop)
         {
             for (int i = 0; i < popsize; i++)
             {
-                initialize_ind(pop.indList[i]);
+                initialize_individual(pop.indList[i]);
             }
             return;
         }
 
         /* Function to initialize an individual randomly */
-        static void initialize_ind(Individual ind)
+        static void initialize_individual(Individual ind)
         {
             int j, k;
             if (nreal != 0)
