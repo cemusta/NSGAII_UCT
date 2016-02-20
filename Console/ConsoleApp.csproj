@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GnuPlot.cs" />
     <Compile Include="Models\CourseDetail.cs" />
     <Compile Include="Models\Individual.cs" />
     <Compile Include="Models\Lists.cs" />
