@@ -999,13 +999,13 @@ namespace ConsoleApp
                 if (!(teacher_list[j].Equals("ASSISTANT")))
                 {
                     //+TODO	og. gor. aynı saatte baska dersinin olmaması
-                    obj[0] += calculate_collision1(teacher_scheduling_counter[j], 1);               
+                    obj[0] += calculate_collision1(teacher_scheduling_counter[j], 1);
                     /*teacher course collision*/
                     //+TODO	og. gor. gunluk 4 saatten fazla pespese dersinin olmamasi
-                    obj[2] += calculate_collision3(teacher_scheduling_counter[j], 4);           
-                    /*teacher have at most 4 consective lesson per day*/               
+                    obj[2] += calculate_collision3(teacher_scheduling_counter[j], 4);
+                    /*teacher have at most 4 consective lesson per day*/
                     //+TODO	og. gor. boş gununun olması
-                    obj[2] += calculate_collision4(teacher_scheduling_counter[j]);                  
+                    obj[2] += calculate_collision4(teacher_scheduling_counter[j]);
                     /* teacher have free day*/
                 }
             }
@@ -2503,56 +2503,35 @@ namespace ConsoleApp
         ///* Function to display the current population for the subsequent generation */
         static void onthefly_display(Population pop, int genNo)
         {
-            int i;
-            int flag;
-            //FILE* fpt;
-            //fpt = fopen("plot.out", "w");
-            flag = 1;
-            //for (i = 0; i < popsize; i++) //prep file
-            //{
-            //    if (pop.ind[i].constr_violation == 0)
-            //    {
-            //        if (choice != 3) //2d
-            //            fprintf(fpt, "%e\t%e\n", pop.ind[i].obj[obj1 - 1], pop.ind[i].obj[obj2 - 1]);
-            //        else //3d
-            //            fprintf(fpt, "%e\t%e\t%e\n", pop.ind[i].obj[obj1 - 1], pop.ind[i].obj[obj2 - 1], pop.ind[i].obj[obj3 - 1]);
-            //        fflush(fpt);
-            //        flag = 1;
-            //    }
-            //} 
-
-
-            if (flag == 0)
+            Console.WriteLine(" printing gnuplot");
+            if (choice != 3)
             {
-                Console.WriteLine(" No feasible soln in this pop, hence no display");
+                var Xr = new double[popsize];
+                var Yr = new double[popsize];
+
+                for (int x = 0; x < popsize; x++)
+                {
+                    Xr[x] = pop.indList[x].obj[obj1 - 1];
+                    Yr[x] = pop.indList[x].obj[obj2 - 1];
+                }
+
+                GnuPlot.Plot(Xr, Yr, $"title 'Generation #{genNo}' pt 1");
             }
             else
             {
-                Console.WriteLine(" printing gnuplot");
-                if (choice != 3)
+                var Xr = new double[popsize];
+                var Yr = new double[popsize];
+                var Zr = new double[popsize];
+
+                for (int x = 0; x < popsize; x++)
                 {
-
-                    GnuPlot.Plot("set title 'Generation #%d");
+                    Xr[x] = pop.indList[x].obj[obj1 - 1];
+                    Yr[x] = pop.indList[x].obj[obj2 - 1];
+                    Zr[x] = pop.indList[x].obj[obj3 - 1];
                 }
-                //fprintf(gp, "set title 'Generation #%d'\n unset key\n plot 'plot.out' w points pointtype 6 pointsize 1\n", genNo);
-                else
-                {
-                    var Xr = new double[popsize];
-                    var Yr = new double[popsize];
 
-                    for (int x = 0; x < popsize; x++)
-                    {
-                        Xr[x] = pop.indList[x].obj[obj1 - 1];
-                        Yr[x] = pop.indList[x].obj[obj2 - 1];
-                    }
-
-                    GnuPlot.Plot(Xr, Yr, $"title 'Generation #{genNo}' pt 1");
-                }
-                //fprintf(gp, "set title 'Generation #%d'\n set view %d,%d\n unset key\n splot 'plot.out' w points pointtype 6 pointsize 1\n", genNo, angle1, angle2);
-                //fflush(gp);
+                GnuPlot.SPlot(Xr, Yr, Zr, $"title 'Generation #{genNo}' with points pointtype 8 lc rgb 'blue'");
             }
-            //fclose(fpt);
-            return;
         }
 
         //void onthefly_display(Population pop, FILE* gp, int ii)
