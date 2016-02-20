@@ -10,6 +10,7 @@ namespace ConsoleApp
 {
     class Program
     {
+        #region Variable 
         static double INF = 1.0e14;
         static double EPS = 1.0e-14;
         static double E = 2.71828182845905;
@@ -59,7 +60,8 @@ namespace ConsoleApp
         static string[] record_list1 = new string[2];
         static CourseDetail[] course_list;
 
-        static List<List<string>> vec1;
+        static List<List<string>> prerequisteList;
+        #endregion
 
         static void Main(string[] args)
         {
@@ -90,12 +92,9 @@ namespace ConsoleApp
                 scheduling.Add(new int[5, 9]);
             }
 
-
             Population parent_pop;
             Population child_pop;
             Population mixed_pop;
-
-
 
             // Output files:
 
@@ -229,10 +228,10 @@ namespace ConsoleApp
             #endregion
 
 
-            vec1 = new List<List<string>>(course_count);
+            prerequisteList = new List<List<string>>(course_count);
             for (int i = 0; i < course_count; i++)
             {
-                vec1.Add(new List<string>());
+                prerequisteList.Add(new List<string>());
             }
 
             reader = new StreamReader(prerequisite);
@@ -250,7 +249,7 @@ namespace ConsoleApp
                 {
                     if (course_list[i].code == record_list1[0])
                     {
-                        vec1[i].Add(record_list1[1]);
+                        prerequisteList[i].Add(record_list1[1]);
                     }
                 }
             }
@@ -572,7 +571,6 @@ namespace ConsoleApp
 
 
 
-
             writer5.WriteLine($" Population size = {popsize}");
             writer5.WriteLine($" Number of generations = {ngen}");
             writer5.WriteLine($" Number of objective functions = {nobj}");
@@ -647,7 +645,7 @@ namespace ConsoleApp
 
 
             decode_pop(parent_pop);
-            evaluate_pop(parent_pop);
+            evaluate_population(parent_pop);
             assign_rank_and_crowding_distance(parent_pop);
             report_pop(parent_pop, writer1);
             writer4.WriteLine("# gen = 1");
@@ -670,7 +668,7 @@ namespace ConsoleApp
                 selection(parent_pop, child_pop);
                 mutation_pop(child_pop);
                 decode_pop(child_pop);
-                evaluate_pop(child_pop);
+                evaluate_population(child_pop);
                 merge(parent_pop, child_pop, mixed_pop);
                 fill_nondominated_sort(mixed_pop, parent_pop);
 
@@ -737,7 +735,7 @@ namespace ConsoleApp
         {
             for (int i = 0; i < popsize; i++)
             {
-                initialize_ind(pop.ind[i]);
+                initialize_ind(pop.indList[i]);
             }
             return;
         }
@@ -783,7 +781,7 @@ namespace ConsoleApp
             {
                 for (i = 0; i < popsize; i++)
                 {
-                    decode_ind(pop.ind[i]);
+                    decode_ind(pop.indList[i]);
                 }
             }
             return;
@@ -815,17 +813,17 @@ namespace ConsoleApp
 
         #region eval.c
         /* Routine to evaluate objective function values and constraints for a population */
-        static void evaluate_pop(Population pop)
+        static void evaluate_population(Population pop)
         {
             for (int i = 0; i < popsize; i++)
             {
-                evaluate_ind(pop.ind[i]);
+                evaluate_individual(pop.indList[i]);
             }
             return;
         }
 
         /* Routine to evaluate objective function values and constraints for an individual */
-        static void evaluate_ind(Individual ind)
+        static void evaluate_individual(Individual ind)
         {
             test_problem(ind.xreal, ind.xbin, ind.gene, ind.obj, ind.constr);
             if (ncon == 0)
@@ -874,11 +872,11 @@ namespace ConsoleApp
                 }
             }
             List<int>[,] elective_courses = new List<int>[5, 9];
-            for ( i = 0; i < 5; i++)
+            for (i = 0; i < 5; i++)
             {
                 for (j = 0; j < 9; j++)
                 {
-                    elective_courses[i,j] = new List<int>();
+                    elective_courses[i, j] = new List<int>();
                 }
             }
             obj[0] = 0;
@@ -1001,11 +999,14 @@ namespace ConsoleApp
                 if (!(teacher_list[j].Equals("ASSISTANT")))
                 {
                     //+TODO	og. gor. aynı saatte baska dersinin olmaması
-                    obj[0] += calculate_collision1(teacher_scheduling_counter[j], 1);               /*teacher course collision*/
-                                                                                                    //+TODO	og. gor. gunluk 4 saatten fazla pespese dersinin olmamasi
-                    obj[2] += calculate_collision3(teacher_scheduling_counter[j], 4);           /*teacher have at most 4 consective lesson per day*/
-                                                                                                //+TODO	og. gor. boş gununun olması
-                    obj[2] += calculate_collision4(teacher_scheduling_counter[j]);                  /* teacher have free day*/
+                    obj[0] += calculate_collision1(teacher_scheduling_counter[j], 1);               
+                    /*teacher course collision*/
+                    //+TODO	og. gor. gunluk 4 saatten fazla pespese dersinin olmamasi
+                    obj[2] += calculate_collision3(teacher_scheduling_counter[j], 4);           
+                    /*teacher have at most 4 consective lesson per day*/               
+                    //+TODO	og. gor. boş gununun olması
+                    obj[2] += calculate_collision4(teacher_scheduling_counter[j]);                  
+                    /* teacher have free day*/
                 }
             }
             //+TODO	lab ve lecture farklı günlerde olsun
@@ -1079,9 +1080,9 @@ namespace ConsoleApp
         static void adding_course_1_slot(List<int>[,] array, int slot, int i)
         {
             if (slot % 5 < 3)
-                array[slot / 5,(slot % 5) + 2].Add(i);
+                array[slot / 5, (slot % 5) + 2].Add(i);
             else
-                array[slot / 5,(slot % 5) + 4].Add(i);
+                array[slot / 5, (slot % 5) + 4].Add(i);
         }
         /*///////////////////////////////////////////////////////*/
         /* filling scheduling table for 2-hour class by using slot number 
@@ -1144,8 +1145,8 @@ namespace ConsoleApp
             {
                 j = 7;
             }
-            array[slot / 5,j].Add(i);
-            array[slot / 5,j + 1].Add(i);
+            array[slot / 5, j].Add(i);
+            array[slot / 5, j + 1].Add(i);
         }
         /*///////////////////////////////////////////////////////*/
         /* filling scheduling table for 3-hour class by using slot number 
@@ -1201,25 +1202,23 @@ namespace ConsoleApp
             {
                 j = 5;
             }
-            array[slot / 4,j].Add(i);
-            array[slot / 4,j + 1].Add(i);
-            array[slot / 4,j + 2].Add(i);
+            array[slot / 4, j].Add(i);
+            array[slot / 4, j + 1].Add(i);
+            array[slot / 4, j + 2].Add(i);
         }
-
 
         static bool is_prerequisite(int pre_index_of_course_list, int post_index_of_course_list)
         {
             int i;
-            for (i = 0; i < vec1[post_index_of_course_list].Count; i++)
+            for (i = 0; i < prerequisteList[post_index_of_course_list].Count; i++)
             {
-                if (vec1[post_index_of_course_list][i] == course_list[pre_index_of_course_list].code)
+                if (prerequisteList[post_index_of_course_list][i] == course_list[pre_index_of_course_list].code)
                 {
                     return true;
                 }
             }
             return false;
         }
-
 
         /* collision of CSE courses at the same time*/
         static int calculate_collision1(int[,] array, int minimum_collision)
@@ -1244,9 +1243,9 @@ namespace ConsoleApp
             {
                 for (j = 0; j < 9; j++)
                 {
-                    if (array[i,j].Count > minimum_collision)
+                    if (array[i, j].Count > minimum_collision)
                     {
-                        result += array[i,j].Count - 1;
+                        result += array[i, j].Count - 1;
                     }
                 }
             }
@@ -1278,9 +1277,9 @@ namespace ConsoleApp
             {
                 for (j = 0; j < 9; j++)
                 {
-                    if ((int)array1[i,j].Count > minimum_collision && array2[i,j] > minimum_collision)
+                    if ((int)array1[i, j].Count > minimum_collision && array2[i, j] > minimum_collision)
                     {
-                        result += array1[i,j].Count + array2[i,j] - 1;
+                        result += array1[i, j].Count + array2[i, j] - 1;
                     }
                 }
             }
@@ -1384,16 +1383,16 @@ namespace ConsoleApp
             {
                 for (j = 0; j < 9; j++)
                 {
-                    for (k = 0; k < (int)array[i,j].Count; k++)
+                    for (k = 0; k < (int)array[i, j].Count; k++)
                     {
-                        day.Add(array[i,j][k]);
+                        day.Add(array[i, j][k]);
                     }
                 }
                 for (j = 0; j < (int)day.Count; j++)
                 {
                     for (k = 0; k < (int)day.Count; k++)
                     {
-                        if (j != k && course_list[j].code.Equals( course_list[k].code))
+                        if (j != k && course_list[j].code.Equals(course_list[k].code))
                         {
                             //result++;
                             type1 = course_list[j].type;
@@ -1417,14 +1416,14 @@ namespace ConsoleApp
             {
                 for (j = 0; j < 9; j++)
                 {
-                    if ((int)array1[i,j].Count > minimum_collision && (int)array2[i,j].Count > minimum_collision)
+                    if ((int)array1[i, j].Count > minimum_collision && (int)array2[i, j].Count > minimum_collision)
                     {
 
-                        for (k = 0; k < (int)array2[i,j].Count; k++)
+                        for (k = 0; k < (int)array2[i, j].Count; k++)
                         {
-                            for (l = 0; l < (int)array1[i,j].Count; l++)
+                            for (l = 0; l < (int)array1[i, j].Count; l++)
                             {
-                                if (!is_prerequisite(array1[i,j][l], array2[i,j][k]))
+                                if (!is_prerequisite(array1[i, j][l], array2[i, j][k]))
                                 {
                                     result++;
                                 }
@@ -1442,7 +1441,7 @@ namespace ConsoleApp
         /* Routine for tournament selection, it creates a new_pop from old_pop by performing tournament selection and the crossover */
         static void selection(Population old_pop, Population new_pop)
         {
-            int[] a1, a2; //todo: optmizasyon bu bizim misyon.
+            int[] a1, a2; //todo: optmizasyon
             int temp;
             int i;
             int rand;
@@ -1466,12 +1465,12 @@ namespace ConsoleApp
             }
             for (i = 0; i < popsize; i += 4)
             {
-                parent1 = tournament(old_pop.ind[a1[i]], old_pop.ind[a1[i + 1]]);
-                parent2 = tournament(old_pop.ind[a1[i + 2]], old_pop.ind[a1[i + 3]]);
-                crossover(parent1, parent2, new_pop.ind[i], new_pop.ind[i + 1]);
-                parent1 = tournament(old_pop.ind[a2[i]], old_pop.ind[a2[i + 1]]);
-                parent2 = tournament(old_pop.ind[a2[i + 2]], old_pop.ind[a2[i + 3]]);
-                crossover(parent1, parent2, new_pop.ind[i + 2], new_pop.ind[i + 3]);
+                parent1 = tournament(old_pop.indList[a1[i]], old_pop.indList[a1[i + 1]]);
+                parent2 = tournament(old_pop.indList[a1[i + 2]], old_pop.indList[a1[i + 3]]);
+                crossover(parent1, parent2, new_pop.indList[i], new_pop.indList[i + 1]);
+                parent1 = tournament(old_pop.indList[a2[i]], old_pop.indList[a2[i + 1]]);
+                parent2 = tournament(old_pop.indList[a2[i + 2]], old_pop.indList[a2[i + 3]]);
+                crossover(parent1, parent2, new_pop.indList[i + 2], new_pop.indList[i + 3]);
             }
 
             return;
@@ -1756,7 +1755,7 @@ namespace ConsoleApp
             int i;
             for (i = 0; i < popsize; i++)
             {
-                mutation_ind(pop.ind[i]);
+                mutation_ind(pop.indList[i]);
             }
             return;
         }
@@ -1854,20 +1853,20 @@ namespace ConsoleApp
             {
                 for (j = 0; j < nobj; j++)
                 {
-                    writer.Write($"{pop.ind[i].obj[j].ToString("E")}\t");
+                    writer.Write($"{pop.indList[i].obj[j].ToString("E")}\t");
                 }
                 if (ncon != 0)
                 {
                     for (j = 0; j < ncon; j++)
                     {
-                        writer.Write($"{pop.ind[i].constr[j].ToString("E")}\t");
+                        writer.Write($"{pop.indList[i].constr[j].ToString("E")}\t");
                     }
                 }
                 if (nreal != 0)
                 {
                     for (j = 0; j < nreal; j++)
                     {
-                        writer.Write($"{pop.ind[i].xreal[j].ToString("E")}\t");
+                        writer.Write($"{pop.indList[i].xreal[j].ToString("E")}\t");
                     }
                 }
                 if (nbin != 0)
@@ -1876,13 +1875,13 @@ namespace ConsoleApp
                     {
                         for (k = 0; k < nbits[j]; k++)
                         {
-                            writer.Write($"{pop.ind[i].gene[j, k]}\t");
+                            writer.Write($"{pop.indList[i].gene[j, k]}\t");
                         }
                     }
                 }
-                writer.Write($"{pop.ind[i].constr_violation.ToString("E")}\t");
-                writer.Write($"{pop.ind[i].rank}\t");
-                writer.Write($"{pop.ind[i].crowd_dist.ToString("E")}\n");
+                writer.Write($"{pop.indList[i].constr_violation.ToString("E")}\t");
+                writer.Write($"{pop.indList[i].rank}\t");
+                writer.Write($"{pop.indList[i].crowd_dist.ToString("E")}\n");
             }
             return;
         }
@@ -1893,24 +1892,24 @@ namespace ConsoleApp
             int i, j, k;
             for (i = 0; i < popsize; i++)
             {
-                if (pop.ind[i].constr_violation == 0.0 && pop.ind[i].rank == 1)
+                if (pop.indList[i].constr_violation == 0.0 && pop.indList[i].rank == 1)
                 {
                     for (j = 0; j < nobj; j++)
                     {
-                        writer.Write($"{pop.ind[i].obj[j].ToString("E")}\t");
+                        writer.Write($"{pop.indList[i].obj[j].ToString("E")}\t");
                     }
                     if (ncon != 0)
                     {
                         for (j = 0; j < ncon; j++)
                         {
-                            writer.Write($"{pop.ind[i].constr[j].ToString("E")}\t");
+                            writer.Write($"{pop.indList[i].constr[j].ToString("E")}\t");
                         }
                     }
                     if (nreal != 0)
                     {
                         for (j = 0; j < nreal; j++)
                         {
-                            writer.Write($"{pop.ind[i].xreal[j].ToString("E")}\t");
+                            writer.Write($"{pop.indList[i].xreal[j].ToString("E")}\t");
                         }
                     }
                     if (nbin != 0)
@@ -1919,13 +1918,13 @@ namespace ConsoleApp
                         {
                             for (k = 0; k < nbits[j]; k++)
                             {
-                                writer.Write($"{pop.ind[i].gene[j, k]}\t");
+                                writer.Write($"{pop.indList[i].gene[j, k]}\t");
                             }
                         }
                     }
-                    writer.Write($"{pop.ind[i].constr_violation.ToString("E")}\t");
-                    writer.Write($"{pop.ind[i].rank}\t");
-                    writer.Write($"{ pop.ind[i].crowd_dist.ToString("E")}\n");
+                    writer.Write($"{pop.indList[i].constr_violation.ToString("E")}\t");
+                    writer.Write($"{pop.indList[i].rank}\t");
+                    writer.Write($"{ pop.indList[i].crowd_dist.ToString("E")}\n");
                 }
             }
             return;
@@ -2007,8 +2006,8 @@ namespace ConsoleApp
             {
                 if (orig.child.child == null)
                 {
-                    new_pop.ind[orig.child.index].rank = rank;
-                    new_pop.ind[orig.child.index].crowd_dist = INF;
+                    new_pop.indList[orig.child.index].rank = rank;
+                    new_pop.indList[orig.child.index].crowd_dist = INF;
                     break;
                 }
                 temp1 = orig.child;
@@ -2023,7 +2022,7 @@ namespace ConsoleApp
                     do
                     {
                         end = 0;
-                        flag = check_dominance((new_pop.ind[temp1.index]), (new_pop.ind[temp2.index]));
+                        flag = check_dominance((new_pop.indList[temp1.index]), (new_pop.indList[temp2.index]));
                         if (flag == 1)
                         {
                             insert(orig, temp2.index);
@@ -2053,7 +2052,7 @@ namespace ConsoleApp
                 temp2 = cur.child;
                 do
                 {
-                    new_pop.ind[temp2.index].rank = rank;
+                    new_pop.indList[temp2.index].rank = rank;
                     temp2 = temp2.child;
                 }
                 while (temp2 != null);
@@ -2086,13 +2085,13 @@ namespace ConsoleApp
             temp = lst;
             if (front_size == 1)
             {
-                pop.ind[lst.index].crowd_dist = INF;
+                pop.indList[lst.index].crowd_dist = INF;
                 return;
             }
             if (front_size == 2)
             {
-                pop.ind[lst.index].crowd_dist = INF;
-                pop.ind[lst.child.index].crowd_dist = INF;
+                pop.indList[lst.index].crowd_dist = INF;
+                pop.indList[lst.child.index].crowd_dist = INF;
                 return;
             }
             dist = new int[front_size];
@@ -2127,13 +2126,13 @@ namespace ConsoleApp
             front_size = c2 - c1 + 1;
             if (front_size == 1)
             {
-                pop.ind[c1].crowd_dist = INF;
+                pop.indList[c1].crowd_dist = INF;
                 return;
             }
             if (front_size == 2)
             {
-                pop.ind[c1].crowd_dist = INF;
-                pop.ind[c2].crowd_dist = INF;
+                pop.indList[c1].crowd_dist = INF;
+                pop.indList[c2].crowd_dist = INF;
                 return;
             }
             dist = new int[front_size];
@@ -2172,34 +2171,34 @@ namespace ConsoleApp
             }
             for (j = 0; j < front_size; j++)
             {
-                pop.ind[dist[j]].crowd_dist = 0.0;
+                pop.indList[dist[j]].crowd_dist = 0.0;
             }
             for (i = 0; i < nobj; i++)
             {
-                pop.ind[obj_array[i][0]].crowd_dist = INF;
+                pop.indList[obj_array[i][0]].crowd_dist = INF;
             }
             for (i = 0; i < nobj; i++)
             {
                 for (j = 1; j < front_size - 1; j++)
                 {
-                    if (pop.ind[obj_array[i][j]].crowd_dist != INF)
+                    if (pop.indList[obj_array[i][j]].crowd_dist != INF)
                     {
-                        if (pop.ind[obj_array[i][front_size - 1]].obj[i] == pop.ind[obj_array[i][0]].obj[i])
+                        if (pop.indList[obj_array[i][front_size - 1]].obj[i] == pop.indList[obj_array[i][0]].obj[i])
                         {
-                            pop.ind[obj_array[i][j]].crowd_dist += 0.0;
+                            pop.indList[obj_array[i][j]].crowd_dist += 0.0;
                         }
                         else
                         {
-                            pop.ind[obj_array[i][j]].crowd_dist += (pop.ind[obj_array[i][j + 1]].obj[i] - pop.ind[obj_array[i][j - 1]].obj[i]) / (pop.ind[obj_array[i][front_size - 1]].obj[i] - pop.ind[obj_array[i][0]].obj[i]);
+                            pop.indList[obj_array[i][j]].crowd_dist += (pop.indList[obj_array[i][j + 1]].obj[i] - pop.indList[obj_array[i][j - 1]].obj[i]) / (pop.indList[obj_array[i][front_size - 1]].obj[i] - pop.indList[obj_array[i][0]].obj[i]);
                         }
                     }
                 }
             }
             for (j = 0; j < front_size; j++)
             {
-                if (pop.ind[dist[j]].crowd_dist != INF)
+                if (pop.indList[dist[j]].crowd_dist != INF)
                 {
-                    pop.ind[dist[j]].crowd_dist = (pop.ind[dist[j]].crowd_dist) / nobj;
+                    pop.indList[dist[j]].crowd_dist = (pop.indList[dist[j]].crowd_dist) / nobj;
                 }
             }
             return;
@@ -2227,11 +2226,11 @@ namespace ConsoleApp
                 temp = obj_array[right];
                 obj_array[right] = obj_array[index];
                 obj_array[index] = temp;
-                pivot = pop.ind[obj_array[right]].obj[objcount];
+                pivot = pop.indList[obj_array[right]].obj[objcount];
                 i = left - 1;
                 for (j = left; j < right; j++)
                 {
-                    if (pop.ind[obj_array[j]].obj[objcount] <= pivot)
+                    if (pop.indList[obj_array[j]].obj[objcount] <= pivot)
                     {
                         i += 1;
                         temp = obj_array[j];
@@ -2269,11 +2268,11 @@ namespace ConsoleApp
                 temp = dist[right];
                 dist[right] = dist[index];
                 dist[index] = temp;
-                pivot = pop.ind[dist[right]].crowd_dist;
+                pivot = pop.indList[dist[right]].crowd_dist;
                 i = left - 1;
                 for (j = left; j < right; j++)
                 {
-                    if (pop.ind[dist[j]].crowd_dist <= pivot)
+                    if (pop.indList[dist[j]].crowd_dist <= pivot)
                     {
                         i += 1;
                         temp = dist[j];
@@ -2300,11 +2299,11 @@ namespace ConsoleApp
             int i, k;
             for (i = 0; i < popsize; i++)
             {
-                copy_ind(pop1.ind[i], pop3.ind[i]);
+                copy_ind(pop1.indList[i], pop3.indList[i]);
             }
             for (i = 0, k = popsize; i < popsize; i++, k++)
             {
-                copy_ind(pop2.ind[i], pop3.ind[k]);
+                copy_ind(pop2.indList[i], pop3.indList[k]);
             }
             return;
         }
@@ -2399,7 +2398,7 @@ namespace ConsoleApp
                     do
                     {
                         end = 0;
-                        flag = check_dominance(mixed_pop.ind[temp1.index], mixed_pop.ind[temp2.index]);
+                        flag = check_dominance(mixed_pop.indList[temp1.index], mixed_pop.indList[temp2.index]);
                         if (flag == 1)
                         {
                             insert(pool, temp2.index);
@@ -2432,8 +2431,8 @@ namespace ConsoleApp
                 {
                     do
                     {
-                        copy_ind(mixed_pop.ind[temp2.index], new_pop.ind[i]);
-                        new_pop.ind[i].rank = rank;
+                        copy_ind(mixed_pop.indList[temp2.index], new_pop.indList[i]);
+                        new_pop.indList[i].rank = rank;
                         archieve_size += 1;
                         temp2 = temp2.child;
                         i += 1;
@@ -2448,7 +2447,7 @@ namespace ConsoleApp
                     archieve_size = popsize;
                     for (j = i; j < popsize; j++)
                     {
-                        new_pop.ind[j].rank = rank;
+                        new_pop.indList[j].rank = rank;
                     }
                 }
                 temp2 = elite.child;
@@ -2492,7 +2491,7 @@ namespace ConsoleApp
             quicksort_dist(mixed_pop, dist, front_size);
             for (i = count, j = front_size - 1; i < popsize; i++, j--)
             {
-                copy_ind(mixed_pop.ind[dist[j]], new_pop.ind[i]);
+                copy_ind(mixed_pop.indList[dist[j]], new_pop.indList[i]);
             }
             //free(dist);
             return;
@@ -2543,8 +2542,8 @@ namespace ConsoleApp
 
                     for (int x = 0; x < popsize; x++)
                     {
-                        Xr[x] = pop.ind[x].obj[obj1 - 1];
-                        Yr[x] = pop.ind[x].obj[obj2 - 1];
+                        Xr[x] = pop.indList[x].obj[obj1 - 1];
+                        Yr[x] = pop.indList[x].obj[obj2 - 1];
                     }
 
                     GnuPlot.Plot(Xr, Yr, $"title 'Generation #{genNo}' pt 1");

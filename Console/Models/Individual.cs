@@ -27,10 +27,6 @@
             if (ncon != 0)
                 constr = new double[ncon];
         }
-        //double* xreal;
-        //int** gene;
-        //double* xbin;
-        //double* obj;
-        //double* constr;
+
     }
 }

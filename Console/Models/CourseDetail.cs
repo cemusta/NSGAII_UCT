@@ -8,7 +8,7 @@
         public int labHour { get; set; }
         public int elective { get; set; }
 
-        public CourseDetail(string teacher, string code, int type, int semester, int duration, int labHour, int elective) {
+        public CourseDetail(string code, string teacher,  int type, int semester, int duration, int labHour, int elective) {
             this.code = code;
             this.teacher = teacher;
             this.type = type;
