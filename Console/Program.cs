@@ -855,6 +855,7 @@ namespace ConsoleApp
         #region problemdef.c
         static void test_problem(double[] xreal, double[] xbin, int[,] gene, double[] obj, double[] constr)
         {
+            #region init variables
             // todo fix fix these stuff. dinamik olmamalı bunlar her seferinde? emin degilim...
             // en azından pop kadar kere yaratılmalı? pop içine taşınabilir?
             int sum, i, j, k;
@@ -886,32 +887,34 @@ namespace ConsoleApp
                     elective_courses[i, j] = new List<int>();
                 }
             }
+
             obj[0] = 0;
             obj[1] = 0;
             obj[2] = 0;
 
-            /*reset scheduling, tearchers_scheduling and lab_scheduling*/
+            //reset scheduling, tearchers_scheduling and lab_scheduling
             for (i = 0; i < teacher_list_size; ++i)
             {
                 copy_array(teacher_scheduling_counter[i], meeting);
             }
-            //for (j = 0; j < 8; j++) //c#'da int init'te hep 0
-            //{
-            //    reset(scheduling_only_CSE[j]);
-            //}
-            //reset(elective_courses);
 
-            copy_array(lab_counter, lab_scheduling);       /*copy diaconate lab lessons*/
-            for (j = 0; j < nbin; j++)
+            //copy diaconate lab lessons
+            copy_array(lab_counter, lab_scheduling);
+            #endregion
+
+            #region fill variables
+            for (j = 0; j < nbin; j++) //ders syaisi kadar.
             {
                 for (i = 0; i < teacher_list_size; i++)
                 {
                     if (teacher_list[i].Equals(course_list[j].teacher))
                     {
-                        teacher_index = i;
+                        teacher_index = i;  //todo: hashlist'e veya dict.'e çevirebiliriz?
                         break;
                     }
-                }
+                } //ögretmen indeksini buluyor.
+
+
                 sum = (int)xbin[j];
 
                 if (course_list[j].duration == 1)
@@ -975,11 +978,13 @@ namespace ConsoleApp
                     }
                 }
             }
+            #endregion
 
             //+TODO   dönem ici dekanlik/bolum dersi cakismasi
             for (j = 0; j < 8; j++)
             {
-                obj[0] += calculate_collision2(scheduling_only_CSE[j], scheduling[j], 0);           /*collision of CSE&fac courses in semester*/
+                //collision of CSE&fac courses in semester
+                obj[0] += calculate_collision2(scheduling_only_CSE[j], scheduling[j], 0);
             }
             //+TODO	 donem ici bolum dersi cakismasi
             for (j = 0; j < 8; j++)
@@ -989,10 +994,10 @@ namespace ConsoleApp
             //+TODO	dönemler arasi dekanlik/bolum dersi cakismasi--------------buna bak tekrar
             for (j = 1; j < 8; j++)
             {
-                /*1-2  2-3  3-4  4-5  5-6  6-7  7-8
-                2-1  3-2  4-3  5-4  6-5  7-6  8-7*/
-                obj[1] += calculate_collision2(scheduling_only_CSE[j - 1], scheduling[j], 0);           /*consecutive CSE&faculty courses*/
-                obj[1] += calculate_collision2(scheduling_only_CSE[j], scheduling[j - 1], 0);           /*consecutive CSE&faculty courses*/
+                // 1-2  2-3  3-4  4-5  5-6  6-7  7-8
+                // 2-1  3-2  4-3  5-4  6-5  7-6  8-7     consecutive CSE&faculty courses
+                obj[1] += calculate_collision2(scheduling_only_CSE[j - 1], scheduling[j], 0);  //cse derslerini bir sonraki dönem ile     
+                obj[1] += calculate_collision2(scheduling_only_CSE[j], scheduling[j - 1], 0);  //cse derslerini bir önceki dönem ile               
             }
             //+TODO	dönemler arası CSE çakışmaları
             for (j = 1; j < 8; j++)
@@ -1000,7 +1005,9 @@ namespace ConsoleApp
                 obj[1] += calculate_collision7(scheduling_only_CSE[j - 1], scheduling_only_CSE[j], 0);  /*consecutive only CSE courses*/
             }
             //+TODO	aynı saatte 3'ten fazla lab olmaması lazim
-            obj[0] += calculate_collision1(lab_counter, 4);                                         /*# of lab at most 4*/
+            obj[0] += calculate_collision1(lab_counter, 4);
+            //# of lab at most 4 //todo: make input param.
+
             for (j = 0; j < teacher_list_size; j++)
             {
                 if (!(teacher_list[j].Equals("ASSISTANT")))
@@ -1019,7 +1026,7 @@ namespace ConsoleApp
             //+TODO	lab ve lecture farklı günlerde olsun
             for (j = 0; j < 8; j++)
             {
-                obj[2] += calculate_collision6(scheduling_only_CSE[j]);                             /*lab lecture hours must be in seperate day*/
+                obj[2] += calculate_collision6(scheduling_only_CSE[j]);    /*lab lecture hours must be in seperate day*/
             }
             //+TODO	lab miktarı kadar lab_scheduling'i artır
             //+TODO	seçmeliler için ayrı tablo tutup ayrı fonksiyonlarla çakışmaları kontrol et.
@@ -1031,10 +1038,9 @@ namespace ConsoleApp
             obj[1] += calculate_collision7(scheduling_only_CSE[5], elective_courses, 0);    /*CSE+elective courses(consecutive)*/
             obj[0] += calculate_collision7(scheduling_only_CSE[6], elective_courses, 0);    /*CSE+elective courses*/
             obj[0] += calculate_collision7(scheduling_only_CSE[7], elective_courses, 0);    /*CSE+elective courses*/
-                                                                                            //+TODO	toplanti saatleri hocaların tablosuna da eklensin
-                                                                                            //TODO	dekanlık derslerinin sectionları
-                                                                                            //+TODO	obj[2] kontrol et.
-            return;
+            //+TODO	toplanti saatleri hocaların tablosuna da eklensin
+            //TODO	dekanlık derslerinin sectionları??
+            //+TODO	obj[2] kontrol et.
         }
         #endregion
 
@@ -2522,7 +2528,10 @@ namespace ConsoleApp
                     Yr[x] = pop.indList[x].obj[obj2 - 1];
                 }
 
-                GnuPlot.Plot(Xr, Yr, $"title 'Generation #{genNo}' pt 1");
+                GnuPlot.Plot(Xr, Yr, $"title 'Generation #{genNo} of {ngen}' pt 1");
+                GnuPlot.Set($"xlabel \"obj[{obj1 - 1}]\"");
+                GnuPlot.Set($"ylabel \"obj[{obj2 - 1}]\"");
+
             }
             else
             {
@@ -2537,45 +2546,12 @@ namespace ConsoleApp
                     Zr[x] = pop.indList[x].obj[obj3 - 1];
                 }
 
-                GnuPlot.SPlot(Xr, Yr, Zr, $"title 'Generation #{genNo}' with points pointtype 8 lc rgb 'blue'");
+                GnuPlot.SPlot(Xr, Yr, Zr, $"title 'Generation #{genNo} of {ngen}' with points pointtype 8 lc rgb 'blue'");
+                GnuPlot.Set($"xlabel \"obj[{obj1-1}]\"");
+                GnuPlot.Set($"ylabel \"obj[{obj2-1}]\"");
+                GnuPlot.Set($"zlabel \"obj[{obj3-1}]\"");
             }
         }
-
-        //void onthefly_display(Population pop, FILE* gp, int ii)
-        //{
-        //    int i;
-        //    int flag;
-        //    FILE* fpt;
-        //    fpt = fopen("plot.out", "w");
-        //    flag = 0;
-        //    for (i = 0; i < popsize; i++)
-        //    {
-        //        if (pop.ind[i].constr_violation == 0)
-        //        {
-        //            if (choice != 3)
-        //                fprintf(fpt, "%e\t%e\n", pop.ind[i].obj[obj1 - 1], pop.ind[i].obj[obj2 - 1]);
-        //            else
-        //                fprintf(fpt, "%e\t%e\t%e\n", pop.ind[i].obj[obj1 - 1], pop.ind[i].obj[obj2 - 1], pop.ind[i].obj[obj3 - 1]);
-        //            fflush(fpt);
-        //            flag = 1;
-        //        }
-        //    }
-        //    if (flag == 0)
-        //    {
-        //        Console.WriteLine(" No feasible soln in this pop, hence no display");
-        //    }
-        //    else
-        //    {
-        //        Console.WriteLine(" printing gnuplot");
-        //        if (choice != 3)
-        //            fprintf(gp, "set title 'Generation #%d'\n unset key\n plot 'plot.out' w points pointtype 6 pointsize 1\n", ii);
-        //        else
-        //            fprintf(gp, "set title 'Generation #%d'\n set view %d,%d\n unset key\n splot 'plot.out' w points pointtype 6 pointsize 1\n", ii, angle1, angle2);
-        //        fflush(gp);
-        //    }
-        //    fclose(fpt);
-        //    return;
-        //}
 
         #endregion
 
