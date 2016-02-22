@@ -13,9 +13,6 @@ namespace ConsoleApp
         #region Variable 
         static double INF = 1.0e14;
         static double EPS = 1.0e-14;
-        static double E = 2.71828182845905;
-        static double PI = 3.14159265358979;
-        static string GNUPLOT_COMMAND = "gnuplot -persist";
 
         static int nreal;
         static int nbin;
@@ -49,7 +46,7 @@ namespace ConsoleApp
         static int angle1;
         static int angle2;
 
-        static rand randObj = new rand();
+        static Randomization _randomizationObj = new Randomization();
 
         static int teacher_list_size = 0;
 
@@ -211,7 +208,7 @@ namespace ConsoleApp
                 int j;
                 for (j = 0; j < course_ID; j++)
                 {
-                    if (course_list[j].teacher == parts[1])
+                    if (course_list[j].Teacher == parts[1])
                     {
                         break; //niye?
                     }
@@ -247,7 +244,7 @@ namespace ConsoleApp
 
                 for (int i = 0; i < course_count; i++)
                 {
-                    if (course_list[i].code == record_list1[0])
+                    if (course_list[i].Code == record_list1[0])
                     {
                         prerequisteList[i].Add(record_list1[1]);
                     }
@@ -640,7 +637,7 @@ namespace ConsoleApp
             // (population*)malloc(sizeof(population));
 
 
-            randObj.randomize();
+            _randomizationObj.Randomize();
             initialize_population(parent_pop);
             Console.WriteLine(" Initialization done, now performing first generation");
 
@@ -742,7 +739,7 @@ namespace ConsoleApp
         {
             for (int i = 0; i < popsize; i++)
             {
-                initialize_individual(pop.indList[i]);
+                initialize_individual(pop.IndList[i]);
             }
             return;
         }
@@ -755,7 +752,7 @@ namespace ConsoleApp
             {
                 for (j = 0; j < nreal; j++)
                 {
-                    ind.xreal[j] = randObj.rndreal(min_realvar[j], max_realvar[j]);
+                    ind.Xreal[j] = _randomizationObj.RandomDouble(min_realvar[j], max_realvar[j]);
                 }
             }
             if (nbin != 0)
@@ -764,13 +761,13 @@ namespace ConsoleApp
                 {
                     for (k = 0; k < nbits[j]; k++)
                     {
-                        if (randObj.randomperc() <= 0.5)
+                        if (_randomizationObj.RandomPercent() <= 0.5)
                         {
-                            ind.gene[j, k] = 0;
+                            ind.Gene[j, k] = 0;
                         }
                         else
                         {
-                            ind.gene[j, k] = 1;
+                            ind.Gene[j, k] = 1;
                         }
                     }
                 }
@@ -788,7 +785,7 @@ namespace ConsoleApp
             {
                 for (i = 0; i < popsize; i++)
                 {
-                    decode_ind(pop.indList[i]);
+                    decode_ind(pop.IndList[i]);
                 }
             }
             return;
@@ -806,12 +803,12 @@ namespace ConsoleApp
                     sum = 0;
                     for (k = 0; k < nbits[j]; k++)
                     {
-                        if (ind.gene[j, k] == 1)
+                        if (ind.Gene[j, k] == 1)
                         {
                             sum += (int)Math.Pow(2, nbits[j] - 1 - k);
                         }
                     }
-                    ind.xbin[j] = min_binvar[j] + (double)sum * (max_binvar[j] - min_binvar[j]) / (double)(Math.Pow(2, nbits[j]) - 1);
+                    ind.Xbin[j] = min_binvar[j] + (double)sum * (max_binvar[j] - min_binvar[j]) / (double)(Math.Pow(2, nbits[j]) - 1);
                 }
             }
             return;
@@ -824,7 +821,7 @@ namespace ConsoleApp
         {
             for (int i = 0; i < popsize; i++)
             {
-                evaluate_individual(pop.indList[i]);
+                evaluate_individual(pop.IndList[i]);
             }
             return;
         }
@@ -832,19 +829,19 @@ namespace ConsoleApp
         /* Routine to evaluate objective function values and constraints for an individual */
         static void evaluate_individual(Individual ind)
         {
-            test_problem(ind.xreal, ind.xbin, ind.gene, ind.obj, ind.constr);
+            test_problem(ind.Xreal, ind.Xbin, ind.Gene, ind.Obj, ind.Constr);
             if (ncon == 0)
             {
-                ind.constr_violation = 0.0;
+                ind.ConstrViolation = 0.0;
             }
             else
             {
-                ind.constr_violation = 0.0;
+                ind.ConstrViolation = 0.0;
                 for (int j = 0; j < ncon; j++)
                 {
-                    if (ind.constr[j] < 0.0)
+                    if (ind.Constr[j] < 0.0)
                     {
-                        ind.constr_violation += ind.constr[j];
+                        ind.ConstrViolation += ind.Constr[j];
                     }
                 }
             }
@@ -907,7 +904,7 @@ namespace ConsoleApp
             {
                 for (i = 0; i < teacher_list_size; i++)
                 {
-                    if (teacher_list[i].Equals(course_list[j].teacher))
+                    if (teacher_list[i].Equals(course_list[j].Teacher))
                     {
                         teacher_index = i;  //todo: hashlist'e veya dict.'e çevirebiliriz?
                         break;
@@ -917,61 +914,61 @@ namespace ConsoleApp
 
                 sum = (int)xbin[j];
 
-                if (course_list[j].duration == 1)
+                if (course_list[j].Duration == 1)
                 {
-                    if (course_list[j].elective == 0)
+                    if (course_list[j].Elective == 0)
                     {
-                        adding_course_1_slot(scheduling_only_CSE[course_list[j].semester - 1], sum, j);
+                        adding_course_1_slot(scheduling_only_CSE[course_list[j].Semester - 1], sum, j);
                     }
-                    else if (course_list[j].elective == 1)
+                    else if (course_list[j].Elective == 1)
                     {
                         adding_course_1_slot(elective_courses, sum, j);
                     }
 
                     adding_course_1_slot(teacher_scheduling_counter[teacher_index], sum);
-                    if (course_list[j].type == 1)
+                    if (course_list[j].Type == 1)
                     {
-                        for (k = 0; k < course_list[j].labHour; k++)
+                        for (k = 0; k < course_list[j].LabHour; k++)
                         {
                             adding_course_1_slot(lab_counter, sum);
                         }
                     }
                 }
-                else if (course_list[j].duration == 2)
+                else if (course_list[j].Duration == 2)
                 {
-                    if (course_list[j].elective == 0)
+                    if (course_list[j].Elective == 0)
                     {
-                        adding_course_2_slot(scheduling_only_CSE[course_list[j].semester - 1], sum, j);
+                        adding_course_2_slot(scheduling_only_CSE[course_list[j].Semester - 1], sum, j);
                     }
-                    else if (course_list[j].elective == 1)
+                    else if (course_list[j].Elective == 1)
                     {
                         adding_course_2_slot(elective_courses, sum, j);
                     }
 
                     adding_course_2_slot(teacher_scheduling_counter[teacher_index], sum);
-                    if (course_list[j].type == 1)
+                    if (course_list[j].Type == 1)
                     {
-                        for (k = 0; k < course_list[j].labHour; k++)
+                        for (k = 0; k < course_list[j].LabHour; k++)
                         {
                             adding_course_2_slot(lab_counter, sum);
                         }
                     }
                 }
-                else if (course_list[j].duration == 3)
+                else if (course_list[j].Duration == 3)
                 {
-                    if (course_list[j].elective == 0)
+                    if (course_list[j].Elective == 0)
                     {
-                        adding_course_3_slot(scheduling_only_CSE[course_list[j].semester - 1], sum, j);
+                        adding_course_3_slot(scheduling_only_CSE[course_list[j].Semester - 1], sum, j);
                     }
-                    else if (course_list[j].elective == 1)
+                    else if (course_list[j].Elective == 1)
                     {
                         adding_course_3_slot(elective_courses, sum, j);
                     }
 
                     adding_course_3_slot(teacher_scheduling_counter[teacher_index], sum);
-                    if (course_list[j].type == 1)
+                    if (course_list[j].Type == 1)
                     {
-                        for (k = 0; k < course_list[j].labHour; k++)
+                        for (k = 0; k < course_list[j].LabHour; k++)
                         {
                             adding_course_3_slot(lab_counter, sum);
                         }
@@ -1225,7 +1222,7 @@ namespace ConsoleApp
             int i;
             for (i = 0; i < prerequisteList[post_index_of_course_list].Count; i++)
             {
-                if (prerequisteList[post_index_of_course_list][i] == course_list[pre_index_of_course_list].code)
+                if (prerequisteList[post_index_of_course_list][i] == course_list[pre_index_of_course_list].Code)
                 {
                     return true;
                 }
@@ -1405,11 +1402,11 @@ namespace ConsoleApp
                 {
                     for (k = 0; k < (int)day.Count; k++)
                     {
-                        if (j != k && course_list[j].code.Equals(course_list[k].code))
+                        if (j != k && course_list[j].Code.Equals(course_list[k].Code))
                         {
                             //result++;
-                            type1 = course_list[j].type;
-                            type2 = course_list[k].type;
+                            type1 = course_list[j].Type;
+                            type2 = course_list[k].Type;
                             if (type1 != type2 && type1 + type2 <= 1)
                             {
                                 result++;
@@ -1467,23 +1464,23 @@ namespace ConsoleApp
             }
             for (i = 0; i < popsize; i++)
             {
-                rand = randObj.rnd(i, popsize - 1);
+                rand = _randomizationObj.RandomInteger(i, popsize - 1);
                 temp = a1[rand];
                 a1[rand] = a1[i];
                 a1[i] = temp;
-                rand = randObj.rnd(i, popsize - 1);
+                rand = _randomizationObj.RandomInteger(i, popsize - 1);
                 temp = a2[rand];
                 a2[rand] = a2[i];
                 a2[i] = temp;
             }
             for (i = 0; i < popsize; i += 4)
             {
-                parent1 = tournament(old_pop.indList[a1[i]], old_pop.indList[a1[i + 1]]);
-                parent2 = tournament(old_pop.indList[a1[i + 2]], old_pop.indList[a1[i + 3]]);
-                crossover(parent1, parent2, new_pop.indList[i], new_pop.indList[i + 1]);
-                parent1 = tournament(old_pop.indList[a2[i]], old_pop.indList[a2[i + 1]]);
-                parent2 = tournament(old_pop.indList[a2[i + 2]], old_pop.indList[a2[i + 3]]);
-                crossover(parent1, parent2, new_pop.indList[i + 2], new_pop.indList[i + 3]);
+                parent1 = tournament(old_pop.IndList[a1[i]], old_pop.IndList[a1[i + 1]]);
+                parent2 = tournament(old_pop.IndList[a1[i + 2]], old_pop.IndList[a1[i + 3]]);
+                crossover(parent1, parent2, new_pop.IndList[i], new_pop.IndList[i + 1]);
+                parent1 = tournament(old_pop.IndList[a2[i]], old_pop.IndList[a2[i + 1]]);
+                parent2 = tournament(old_pop.IndList[a2[i + 2]], old_pop.IndList[a2[i + 3]]);
+                crossover(parent1, parent2, new_pop.IndList[i + 2], new_pop.IndList[i + 3]);
             }
 
             return;
@@ -1502,15 +1499,15 @@ namespace ConsoleApp
             {
                 return (ind2);
             }
-            if (ind1.crowd_dist > ind2.crowd_dist)
+            if (ind1.CrowdDist > ind2.CrowdDist)
             {
                 return (ind1);
             }
-            if (ind2.crowd_dist > ind1.crowd_dist)
+            if (ind2.CrowdDist > ind1.CrowdDist)
             {
                 return (ind2);
             }
-            if ((randObj.randomperc()) <= 0.5)
+            if ((_randomizationObj.RandomPercent()) <= 0.5)
             {
                 return (ind1);
             }
@@ -1544,28 +1541,28 @@ namespace ConsoleApp
             double y1, y2, yl, yu;
             double c1, c2;
             double alpha, beta, betaq;
-            if (randObj.randomperc() <= pcross_real)
+            if (_randomizationObj.RandomPercent() <= pcross_real)
             {
                 nrealcross++;
                 for (i = 0; i < nreal; i++)
                 {
-                    if (randObj.randomperc() <= 0.5)
+                    if (_randomizationObj.RandomPercent() <= 0.5)
                     {
-                        if (Math.Abs(parent1.xreal[i] - parent2.xreal[i]) > EPS)
+                        if (Math.Abs(parent1.Xreal[i] - parent2.Xreal[i]) > EPS)
                         {
-                            if (parent1.xreal[i] < parent2.xreal[i])
+                            if (parent1.Xreal[i] < parent2.Xreal[i])
                             {
-                                y1 = parent1.xreal[i];
-                                y2 = parent2.xreal[i];
+                                y1 = parent1.Xreal[i];
+                                y2 = parent2.Xreal[i];
                             }
                             else
                             {
-                                y1 = parent2.xreal[i];
-                                y2 = parent1.xreal[i];
+                                y1 = parent2.Xreal[i];
+                                y2 = parent1.Xreal[i];
                             }
                             yl = min_realvar[i];
                             yu = max_realvar[i];
-                            rand = randObj.randomperc();
+                            rand = _randomizationObj.RandomPercent();
                             beta = 1.0 + (2.0 * (y1 - yl) / (y2 - y1));
                             alpha = 2.0 - Math.Pow(beta, -(eta_c + 1.0));
                             if (rand <= (1.0 / alpha))
@@ -1596,27 +1593,27 @@ namespace ConsoleApp
                                 c1 = yu;
                             if (c2 > yu)
                                 c2 = yu;
-                            if (randObj.randomperc() <= 0.5)
+                            if (_randomizationObj.RandomPercent() <= 0.5)
                             {
-                                child1.xreal[i] = c2;
-                                child2.xreal[i] = c1;
+                                child1.Xreal[i] = c2;
+                                child2.Xreal[i] = c1;
                             }
                             else
                             {
-                                child1.xreal[i] = c1;
-                                child2.xreal[i] = c2;
+                                child1.Xreal[i] = c1;
+                                child2.Xreal[i] = c2;
                             }
                         }
                         else
                         {
-                            child1.xreal[i] = parent1.xreal[i];
-                            child2.xreal[i] = parent2.xreal[i];
+                            child1.Xreal[i] = parent1.Xreal[i];
+                            child2.Xreal[i] = parent2.Xreal[i];
                         }
                     }
                     else
                     {
-                        child1.xreal[i] = parent1.xreal[i];
-                        child2.xreal[i] = parent2.xreal[i];
+                        child1.Xreal[i] = parent1.Xreal[i];
+                        child2.Xreal[i] = parent2.Xreal[i];
                     }
                 }
             }
@@ -1624,8 +1621,8 @@ namespace ConsoleApp
             {
                 for (i = 0; i < nreal; i++)
                 {
-                    child1.xreal[i] = parent1.xreal[i];
-                    child2.xreal[i] = parent2.xreal[i];
+                    child1.Xreal[i] = parent1.Xreal[i];
+                    child2.Xreal[i] = parent2.Xreal[i];
                 }
             }
             return;
@@ -1639,12 +1636,12 @@ namespace ConsoleApp
             int temp, site1, site2;
             for (i = 0; i < nbin; i++)
             {
-                rand = randObj.randomperc();
+                rand = _randomizationObj.RandomPercent();
                 if (rand <= pcross_bin)
                 {
                     nbincross++;
-                    site1 = randObj.rnd(0, nbits[i] - 1);
-                    site2 = randObj.rnd(0, nbits[i] - 1);
+                    site1 = _randomizationObj.RandomInteger(0, nbits[i] - 1);
+                    site2 = _randomizationObj.RandomInteger(0, nbits[i] - 1);
                     if (site1 > site2)
                     {
                         temp = site1;
@@ -1653,26 +1650,26 @@ namespace ConsoleApp
                     }
                     for (j = 0; j < site1; j++)
                     {
-                        child1.gene[i, j] = parent1.gene[i, j];
-                        child2.gene[i, j] = parent2.gene[i, j];
+                        child1.Gene[i, j] = parent1.Gene[i, j];
+                        child2.Gene[i, j] = parent2.Gene[i, j];
                     }
                     for (j = site1; j < site2; j++)
                     {
-                        child1.gene[i, j] = parent2.gene[i, j];
-                        child2.gene[i, j] = parent1.gene[i, j];
+                        child1.Gene[i, j] = parent2.Gene[i, j];
+                        child2.Gene[i, j] = parent1.Gene[i, j];
                     }
                     for (j = site2; j < nbits[i]; j++)
                     {
-                        child1.gene[i, j] = parent1.gene[i, j];
-                        child2.gene[i, j] = parent2.gene[i, j];
+                        child1.Gene[i, j] = parent1.Gene[i, j];
+                        child2.Gene[i, j] = parent2.Gene[i, j];
                     }
                 }
                 else
                 {
                     for (j = 0; j < nbits[i]; j++)
                     {
-                        child1.gene[i, j] = parent1.gene[i, j];
-                        child2.gene[i, j] = parent2.gene[i, j];
+                        child1.Gene[i, j] = parent1.Gene[i, j];
+                        child2.Gene[i, j] = parent2.Gene[i, j];
                     }
                 }
             }
@@ -1693,15 +1690,15 @@ namespace ConsoleApp
             int flag2;
             flag1 = 0;
             flag2 = 0;
-            if (a.constr_violation < 0 && b.constr_violation < 0)
+            if (a.ConstrViolation < 0 && b.ConstrViolation < 0)
             {
-                if (a.constr_violation > b.constr_violation)
+                if (a.ConstrViolation > b.ConstrViolation)
                 {
                     return (1);
                 }
                 else
                 {
-                    if (a.constr_violation < b.constr_violation)
+                    if (a.ConstrViolation < b.ConstrViolation)
                     {
                         return (-1);
                     }
@@ -1713,13 +1710,13 @@ namespace ConsoleApp
             }
             else
             {
-                if (a.constr_violation < 0 && b.constr_violation == 0)
+                if (a.ConstrViolation < 0 && b.ConstrViolation == 0)
                 {
                     return (-1);
                 }
                 else
                 {
-                    if (a.constr_violation == 0 && b.constr_violation < 0)
+                    if (a.ConstrViolation == 0 && b.ConstrViolation < 0)
                     {
                         return (1);
                     }
@@ -1727,14 +1724,14 @@ namespace ConsoleApp
                     {
                         for (i = 0; i < nobj; i++)
                         {
-                            if (a.obj[i] < b.obj[i])
+                            if (a.Obj[i] < b.Obj[i])
                             {
                                 flag1 = 1;
 
                             }
                             else
                             {
-                                if (a.obj[i] > b.obj[i])
+                                if (a.Obj[i] > b.Obj[i])
                                 {
                                     flag2 = 1;
                                 }
@@ -1768,7 +1765,7 @@ namespace ConsoleApp
             int i;
             for (i = 0; i < popsize; i++)
             {
-                mutation_ind(pop.indList[i]);
+                mutation_ind(pop.IndList[i]);
             }
             return;
         }
@@ -1796,16 +1793,16 @@ namespace ConsoleApp
             {
                 for (k = 0; k < nbits[j]; k++)
                 {
-                    prob = randObj.randomperc();
+                    prob = _randomizationObj.RandomPercent();
                     if (prob <= pmut_bin)
                     {
-                        if (ind.gene[j, k] == 0)
+                        if (ind.Gene[j, k] == 0)
                         {
-                            ind.gene[j, k] = 1;
+                            ind.Gene[j, k] = 1;
                         }
                         else
                         {
-                            ind.gene[j, k] = 0;
+                            ind.Gene[j, k] = 0;
                         }
                         nbinmut += 1;
                     }
@@ -1822,14 +1819,14 @@ namespace ConsoleApp
             double y, yl, yu, val, xy;
             for (j = 0; j < nreal; j++)
             {
-                if (randObj.randomperc() <= pmut_real)
+                if (_randomizationObj.RandomPercent() <= pmut_real)
                 {
-                    y = ind.xreal[j];
+                    y = ind.Xreal[j];
                     yl = min_realvar[j];
                     yu = max_realvar[j];
                     delta1 = (y - yl) / (yu - yl);
                     delta2 = (yu - y) / (yu - yl);
-                    rnd = randObj.randomperc();
+                    rnd = _randomizationObj.RandomPercent();
                     mut_pow = 1.0 / (eta_m + 1.0);
                     if (rnd <= 0.5)
                     {
@@ -1848,7 +1845,7 @@ namespace ConsoleApp
                         y = yl;
                     if (y > yu)
                         y = yu;
-                    ind.xreal[j] = y;
+                    ind.Xreal[j] = y;
                     nrealmut += 1;
                 }
             }
@@ -1866,20 +1863,20 @@ namespace ConsoleApp
             {
                 for (j = 0; j < nobj; j++)
                 {
-                    writer.Write($"{pop.indList[i].obj[j].ToString("E")}\t");
+                    writer.Write($"{pop.IndList[i].Obj[j].ToString("E")}\t");
                 }
                 if (ncon != 0)
                 {
                     for (j = 0; j < ncon; j++)
                     {
-                        writer.Write($"{pop.indList[i].constr[j].ToString("E")}\t");
+                        writer.Write($"{pop.IndList[i].Constr[j].ToString("E")}\t");
                     }
                 }
                 if (nreal != 0)
                 {
                     for (j = 0; j < nreal; j++)
                     {
-                        writer.Write($"{pop.indList[i].xreal[j].ToString("E")}\t");
+                        writer.Write($"{pop.IndList[i].Xreal[j].ToString("E")}\t");
                     }
                 }
                 if (nbin != 0)
@@ -1888,13 +1885,13 @@ namespace ConsoleApp
                     {
                         for (k = 0; k < nbits[j]; k++)
                         {
-                            writer.Write($"{pop.indList[i].gene[j, k]}\t");
+                            writer.Write($"{pop.IndList[i].Gene[j, k]}\t");
                         }
                     }
                 }
-                writer.Write($"{pop.indList[i].constr_violation.ToString("E")}\t");
-                writer.Write($"{pop.indList[i].rank}\t");
-                writer.Write($"{pop.indList[i].crowd_dist.ToString("E")}\n");
+                writer.Write($"{pop.IndList[i].ConstrViolation.ToString("E")}\t");
+                writer.Write($"{pop.IndList[i].Rank}\t");
+                writer.Write($"{pop.IndList[i].CrowdDist.ToString("E")}\n");
             }
             return;
         }
@@ -1905,24 +1902,24 @@ namespace ConsoleApp
             int i, j, k;
             for (i = 0; i < popsize; i++)
             {
-                if (pop.indList[i].constr_violation == 0.0 && pop.indList[i].rank == 1)
+                if (pop.IndList[i].ConstrViolation == 0.0 && pop.IndList[i].Rank == 1)
                 {
                     for (j = 0; j < nobj; j++)
                     {
-                        writer.Write($"{pop.indList[i].obj[j].ToString("E")}\t");
+                        writer.Write($"{pop.IndList[i].Obj[j].ToString("E")}\t");
                     }
                     if (ncon != 0)
                     {
                         for (j = 0; j < ncon; j++)
                         {
-                            writer.Write($"{pop.indList[i].constr[j].ToString("E")}\t");
+                            writer.Write($"{pop.IndList[i].Constr[j].ToString("E")}\t");
                         }
                     }
                     if (nreal != 0)
                     {
                         for (j = 0; j < nreal; j++)
                         {
-                            writer.Write($"{pop.indList[i].xreal[j].ToString("E")}\t");
+                            writer.Write($"{pop.IndList[i].Xreal[j].ToString("E")}\t");
                         }
                     }
                     if (nbin != 0)
@@ -1931,13 +1928,13 @@ namespace ConsoleApp
                         {
                             for (k = 0; k < nbits[j]; k++)
                             {
-                                writer.Write($"{pop.indList[i].gene[j, k]}\t");
+                                writer.Write($"{pop.IndList[i].Gene[j, k]}\t");
                             }
                         }
                     }
-                    writer.Write($"{pop.indList[i].constr_violation.ToString("E")}\t");
-                    writer.Write($"{pop.indList[i].rank}\t");
-                    writer.Write($"{ pop.indList[i].crowd_dist.ToString("E")}\n");
+                    writer.Write($"{pop.IndList[i].ConstrViolation.ToString("E")}\t");
+                    writer.Write($"{pop.IndList[i].Rank}\t");
+                    writer.Write($"{ pop.IndList[i].CrowdDist.ToString("E")}\n");
                 }
             }
             return;
@@ -2019,8 +2016,8 @@ namespace ConsoleApp
             {
                 if (orig.child.child == null)
                 {
-                    new_pop.indList[orig.child.index].rank = rank;
-                    new_pop.indList[orig.child.index].crowd_dist = INF;
+                    new_pop.IndList[orig.child.index].Rank = rank;
+                    new_pop.IndList[orig.child.index].CrowdDist = INF;
                     break;
                 }
                 temp1 = orig.child;
@@ -2035,7 +2032,7 @@ namespace ConsoleApp
                     do
                     {
                         end = 0;
-                        flag = check_dominance((new_pop.indList[temp1.index]), (new_pop.indList[temp2.index]));
+                        flag = check_dominance((new_pop.IndList[temp1.index]), (new_pop.IndList[temp2.index]));
                         if (flag == 1)
                         {
                             insert(orig, temp2.index);
@@ -2065,7 +2062,7 @@ namespace ConsoleApp
                 temp2 = cur.child;
                 do
                 {
-                    new_pop.indList[temp2.index].rank = rank;
+                    new_pop.IndList[temp2.index].Rank = rank;
                     temp2 = temp2.child;
                 }
                 while (temp2 != null);
@@ -2098,13 +2095,13 @@ namespace ConsoleApp
             temp = lst;
             if (front_size == 1)
             {
-                pop.indList[lst.index].crowd_dist = INF;
+                pop.IndList[lst.index].CrowdDist = INF;
                 return;
             }
             if (front_size == 2)
             {
-                pop.indList[lst.index].crowd_dist = INF;
-                pop.indList[lst.child.index].crowd_dist = INF;
+                pop.IndList[lst.index].CrowdDist = INF;
+                pop.IndList[lst.child.index].CrowdDist = INF;
                 return;
             }
             dist = new int[front_size];
@@ -2139,13 +2136,13 @@ namespace ConsoleApp
             front_size = c2 - c1 + 1;
             if (front_size == 1)
             {
-                pop.indList[c1].crowd_dist = INF;
+                pop.IndList[c1].CrowdDist = INF;
                 return;
             }
             if (front_size == 2)
             {
-                pop.indList[c1].crowd_dist = INF;
-                pop.indList[c2].crowd_dist = INF;
+                pop.IndList[c1].CrowdDist = INF;
+                pop.IndList[c2].CrowdDist = INF;
                 return;
             }
             dist = new int[front_size];
@@ -2184,34 +2181,34 @@ namespace ConsoleApp
             }
             for (j = 0; j < front_size; j++)
             {
-                pop.indList[dist[j]].crowd_dist = 0.0;
+                pop.IndList[dist[j]].CrowdDist = 0.0;
             }
             for (i = 0; i < nobj; i++)
             {
-                pop.indList[obj_array[i][0]].crowd_dist = INF;
+                pop.IndList[obj_array[i][0]].CrowdDist = INF;
             }
             for (i = 0; i < nobj; i++)
             {
                 for (j = 1; j < front_size - 1; j++)
                 {
-                    if (pop.indList[obj_array[i][j]].crowd_dist != INF)
+                    if (pop.IndList[obj_array[i][j]].CrowdDist != INF)
                     {
-                        if (pop.indList[obj_array[i][front_size - 1]].obj[i] == pop.indList[obj_array[i][0]].obj[i])
+                        if (pop.IndList[obj_array[i][front_size - 1]].Obj[i] == pop.IndList[obj_array[i][0]].Obj[i])
                         {
-                            pop.indList[obj_array[i][j]].crowd_dist += 0.0;
+                            pop.IndList[obj_array[i][j]].CrowdDist += 0.0;
                         }
                         else
                         {
-                            pop.indList[obj_array[i][j]].crowd_dist += (pop.indList[obj_array[i][j + 1]].obj[i] - pop.indList[obj_array[i][j - 1]].obj[i]) / (pop.indList[obj_array[i][front_size - 1]].obj[i] - pop.indList[obj_array[i][0]].obj[i]);
+                            pop.IndList[obj_array[i][j]].CrowdDist += (pop.IndList[obj_array[i][j + 1]].Obj[i] - pop.IndList[obj_array[i][j - 1]].Obj[i]) / (pop.IndList[obj_array[i][front_size - 1]].Obj[i] - pop.IndList[obj_array[i][0]].Obj[i]);
                         }
                     }
                 }
             }
             for (j = 0; j < front_size; j++)
             {
-                if (pop.indList[dist[j]].crowd_dist != INF)
+                if (pop.IndList[dist[j]].CrowdDist != INF)
                 {
-                    pop.indList[dist[j]].crowd_dist = (pop.indList[dist[j]].crowd_dist) / nobj;
+                    pop.IndList[dist[j]].CrowdDist = (pop.IndList[dist[j]].CrowdDist) / nobj;
                 }
             }
             return;
@@ -2235,15 +2232,15 @@ namespace ConsoleApp
             double pivot;
             if (left < right)
             {
-                index = randObj.rnd(left, right);
+                index = _randomizationObj.RandomInteger(left, right);
                 temp = obj_array[right];
                 obj_array[right] = obj_array[index];
                 obj_array[index] = temp;
-                pivot = pop.indList[obj_array[right]].obj[objcount];
+                pivot = pop.IndList[obj_array[right]].Obj[objcount];
                 i = left - 1;
                 for (j = left; j < right; j++)
                 {
-                    if (pop.indList[obj_array[j]].obj[objcount] <= pivot)
+                    if (pop.IndList[obj_array[j]].Obj[objcount] <= pivot)
                     {
                         i += 1;
                         temp = obj_array[j];
@@ -2277,15 +2274,15 @@ namespace ConsoleApp
             double pivot;
             if (left < right)
             {
-                index = randObj.rnd(left, right);
+                index = _randomizationObj.RandomInteger(left, right);
                 temp = dist[right];
                 dist[right] = dist[index];
                 dist[index] = temp;
-                pivot = pop.indList[dist[right]].crowd_dist;
+                pivot = pop.IndList[dist[right]].CrowdDist;
                 i = left - 1;
                 for (j = left; j < right; j++)
                 {
-                    if (pop.indList[dist[j]].crowd_dist <= pivot)
+                    if (pop.IndList[dist[j]].CrowdDist <= pivot)
                     {
                         i += 1;
                         temp = dist[j];
@@ -2312,11 +2309,11 @@ namespace ConsoleApp
             int i, k;
             for (i = 0; i < popsize; i++)
             {
-                copy_ind(pop1.indList[i], pop3.indList[i]);
+                copy_ind(pop1.IndList[i], pop3.IndList[i]);
             }
             for (i = 0, k = popsize; i < popsize; i++, k++)
             {
-                copy_ind(pop2.indList[i], pop3.indList[k]);
+                copy_ind(pop2.IndList[i], pop3.IndList[k]);
             }
             return;
         }
@@ -2325,36 +2322,36 @@ namespace ConsoleApp
         static void copy_ind(Individual ind1, Individual ind2)
         {
             int i, j;
-            ind2.rank = ind1.rank;
-            ind2.constr_violation = ind1.constr_violation;
-            ind2.crowd_dist = ind1.crowd_dist;
+            ind2.Rank = ind1.Rank;
+            ind2.ConstrViolation = ind1.ConstrViolation;
+            ind2.CrowdDist = ind1.CrowdDist;
             if (nreal != 0)
             {
                 for (i = 0; i < nreal; i++)
                 {
-                    ind2.xreal[i] = ind1.xreal[i];
+                    ind2.Xreal[i] = ind1.Xreal[i];
                 }
             }
             if (nbin != 0)
             {
                 for (i = 0; i < nbin; i++)
                 {
-                    ind2.xbin[i] = ind1.xbin[i];
+                    ind2.Xbin[i] = ind1.Xbin[i];
                     for (j = 0; j < nbits[i]; j++)
                     {
-                        ind2.gene[i, j] = ind1.gene[i, j];
+                        ind2.Gene[i, j] = ind1.Gene[i, j];
                     }
                 }
             }
             for (i = 0; i < nobj; i++)
             {
-                ind2.obj[i] = ind1.obj[i];
+                ind2.Obj[i] = ind1.Obj[i];
             }
             if (ncon != 0)
             {
                 for (i = 0; i < ncon; i++)
                 {
-                    ind2.constr[i] = ind1.constr[i];
+                    ind2.Constr[i] = ind1.Constr[i];
                 }
             }
             return;
@@ -2411,7 +2408,7 @@ namespace ConsoleApp
                     do
                     {
                         end = 0;
-                        flag = check_dominance(mixed_pop.indList[temp1.index], mixed_pop.indList[temp2.index]);
+                        flag = check_dominance(mixed_pop.IndList[temp1.index], mixed_pop.IndList[temp2.index]);
                         if (flag == 1)
                         {
                             insert(pool, temp2.index);
@@ -2444,8 +2441,8 @@ namespace ConsoleApp
                 {
                     do
                     {
-                        copy_ind(mixed_pop.indList[temp2.index], new_pop.indList[i]);
-                        new_pop.indList[i].rank = rank;
+                        copy_ind(mixed_pop.IndList[temp2.index], new_pop.IndList[i]);
+                        new_pop.IndList[i].Rank = rank;
                         archieve_size += 1;
                         temp2 = temp2.child;
                         i += 1;
@@ -2460,7 +2457,7 @@ namespace ConsoleApp
                     archieve_size = popsize;
                     for (j = i; j < popsize; j++)
                     {
-                        new_pop.indList[j].rank = rank;
+                        new_pop.IndList[j].Rank = rank;
                     }
                 }
                 temp2 = elite.child;
@@ -2504,7 +2501,7 @@ namespace ConsoleApp
             quicksort_dist(mixed_pop, dist, front_size);
             for (i = count, j = front_size - 1; i < popsize; i++, j--)
             {
-                copy_ind(mixed_pop.indList[dist[j]], new_pop.indList[i]);
+                copy_ind(mixed_pop.IndList[dist[j]], new_pop.IndList[i]);
             }
             //free(dist);
             return;
@@ -2524,8 +2521,8 @@ namespace ConsoleApp
 
                 for (int x = 0; x < popsize; x++)
                 {
-                    Xr[x] = pop.indList[x].obj[obj1 - 1];
-                    Yr[x] = pop.indList[x].obj[obj2 - 1];
+                    Xr[x] = pop.IndList[x].Obj[obj1 - 1];
+                    Yr[x] = pop.IndList[x].Obj[obj2 - 1];
                 }
 
                 GnuPlot.Plot(Xr, Yr, $"title 'Generation #{genNo} of {ngen}' pt 1");
@@ -2541,9 +2538,9 @@ namespace ConsoleApp
 
                 for (int x = 0; x < popsize; x++)
                 {
-                    Xr[x] = pop.indList[x].obj[obj1 - 1];
-                    Yr[x] = pop.indList[x].obj[obj2 - 1];
-                    Zr[x] = pop.indList[x].obj[obj3 - 1];
+                    Xr[x] = pop.IndList[x].Obj[obj1 - 1];
+                    Yr[x] = pop.IndList[x].Obj[obj2 - 1];
+                    Zr[x] = pop.IndList[x].Obj[obj3 - 1];
                 }
 
                 GnuPlot.SPlot(Xr, Yr, Zr, $"title 'Generation #{genNo} of {ngen}' with points pointtype 8 lc rgb 'blue'");
