@@ -17,5 +17,8 @@
             this.labHour = labHour;
             this.elective = elective;
         }
+
+
+
     }
 }

@@ -105,7 +105,7 @@ namespace ConsoleApp
             var fpt5 = File.OpenWrite("params.out");
 
             //Input files:
-            FileStream input_file;
+            FileStream courseListFilestream;
             FileStream input_collective;
             FileStream input_labs;
             FileStream meeting_file;
@@ -113,7 +113,7 @@ namespace ConsoleApp
 
             try  //todo better input handling
             {
-                input_file = File.OpenRead("course_list.csv");
+                courseListFilestream = File.OpenRead("course_list.csv");
                 input_collective = File.OpenRead("scheduling.in");
                 input_labs = File.OpenRead("lab_list.in");
                 meeting_file = File.OpenRead("Meeting.txt");
@@ -185,7 +185,7 @@ namespace ConsoleApp
             #endregion
 
             #region scan course list
-            reader = new StreamReader(input_file);
+            reader = new StreamReader(courseListFilestream);
 
             line = reader.ReadLine();
             int course_count = int.Parse(line); //43 gibi bir sayı dönüyor
@@ -724,7 +724,7 @@ namespace ConsoleApp
             fpt4.Close();
             fpt5.Close();
 
-            input_file.Close();
+            courseListFilestream.Close();
             input_collective.Close();
             input_labs.Close();
             meeting_file.Close();
