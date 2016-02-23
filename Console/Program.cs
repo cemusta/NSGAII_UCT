@@ -11,53 +11,57 @@ namespace ConsoleApp
     class Program
     {
         #region Variable 
-        static double INF = 1.0e14;
-        static double EPS = 1.0e-14;
+        public static double INF = 1.0e14;
+        public static double EPS = 1.0e-14;
 
-        static int nreal;
-        static int nbin;
-        static int maxnbit = 0;
-        static int nobj;
-        static int ncon;
-        static int popsize;
-        static double pcross_real = 0;
-        static double pcross_bin = 0;
-        static double pmut_real = 0;
-        static double pmut_bin = 0;
-        static double eta_c = 0;
-        static double eta_m = 0;
-        static int ngen;
-        static int nbinmut;
-        static int nrealmut;
-        static int nbincross;
-        static int nrealcross;
+        public static int RealVariableCount;
+        public static int BinaryVariableCount;
+        public static int MaxBitCount;
+        public static int ObjectiveCount;
+        public static int ConstraintCount;
+        public static int PopulationSize;
+        public static double RealCrossoverProbability;
+        public static double BinaryCrossoverProbability;
+        public static double RealMutationProbability;
+        public static double BinaryMutationProbability;
+        public static double CrossoverDistributionIndex;
+        public static double MutationDistributionIndex;
+        public static int GenCount;
 
-        static int[] nbits = new int[50];
-        static double[] min_realvar = new double[50];
-        static double[] max_realvar = new double[50];
-        static double[] min_binvar = new double[50];
-        static double[] max_binvar = new double[50];
 
-        static int bitlength;
-        static int choice;
-        static int obj1;
-        static int obj2;
-        static int obj3;
-        static int angle1;
-        static int angle2;
+        public static int BinaryMutationCount;      //for reporting only.
+        public static int RealMutationCount;        //for reporting only
+        public static int BinaryCrossoverCount;     //for reporting only
+        public static int RealCrossoverCount;       //for reporting only
+        public static int TotalBinaryBitLength;     //for reporting only
 
-        static Randomization _randomizationObj = new Randomization();
 
-        static int teacher_list_size = 0;
+        public static int[] nbits = new int[50];
+        public static double[] min_realvar = new double[50];
+        public static double[] max_realvar = new double[50];
+        public static double[] min_binvar = new double[50];
+        public static double[] max_binvar = new double[50];
 
-        static List<int[,]> scheduling = new List<int[,]>(8); //8 dönem, 5 gün, 9 ders            
-        static int[,] lab_scheduling = new int[5, 9]; // labda dönem tutulmuyor 
-        static string[] teacher_list = new string[70]; //todo: dub hocalar olabiliyor.
-        static int[,] meeting = new int[5, 9]; // bölüm hocalarının ortak meeting saatleri.
-        static string[] record_list1 = new string[2];
-        static CourseDetail[] course_list;
+        public static int GnuplotChoice;
+        public static int GnuplotObjective1;
+        public static int GnuplotObjective2;
+        public static int GnuplotObjective3;
+        public static int GnuplotAngle1;
+        public static int GnuplotAngle2;
 
-        static List<List<string>> prerequisteList;
+
+        public static readonly Randomization RandomizationObj = new Randomization();
+
+        public static int TeacherListSize = 0;
+
+        public static readonly List<int[,]> Scheduling = new List<int[,]>(8); //8 dönem, 5 gün, 9 ders            
+        public static readonly int[,] LabScheduling = new int[5, 9]; // labda dönem tutulmuyor 
+        public static readonly string[] TeacherList = new string[70]; //todo: dub hocalar olabiliyor.
+        public static readonly int[,] Meeting = new int[5, 9]; // bölüm hocalarının ortak meeting saatleri.
+        public static readonly string[] RecordList1 = new string[2];
+        public static CourseDetail[] CourseList;
+
+        public static List<List<string>> PrerequisteList;
         #endregion
 
         static void Main(string[] args)
@@ -86,12 +90,12 @@ namespace ConsoleApp
 
             for (int i = 0; i < 8; i++)
             {
-                scheduling.Add(new int[5, 9]);
+                Scheduling.Add(new int[5, 9]);
             }
 
-            Population parent_pop;
-            Population child_pop;
-            Population mixed_pop;
+            Population parentPopulation;
+            Population childPopulation;
+            Population mixedPopulation;
 
             // Output files:
 
@@ -102,19 +106,19 @@ namespace ConsoleApp
             var fpt5 = File.OpenWrite("params.out");
 
             //Input files:
-            FileStream courseListFilestream;
-            FileStream input_collective;
-            FileStream input_labs;
-            FileStream meeting_file;
-            FileStream prerequisite;
+            FileStream courseListFile;
+            FileStream inputSchedulingFile;
+            FileStream inputLabsFile;
+            FileStream meetingFile;
+            FileStream prerequisiteFile;
 
             try  //todo better input handling
             {
-                courseListFilestream = File.OpenRead("course_list.csv");
-                input_collective = File.OpenRead("scheduling.in");
-                input_labs = File.OpenRead("lab_list.in");
-                meeting_file = File.OpenRead("Meeting.txt");
-                prerequisite = File.OpenRead("Onkosul-list.csv");
+                courseListFile = File.OpenRead("course_list.csv");
+                inputSchedulingFile = File.OpenRead("scheduling.in");
+                inputLabsFile = File.OpenRead("lab_list.in");
+                meetingFile = File.OpenRead("Meeting.txt");
+                prerequisiteFile = File.OpenRead("Onkosul-list.csv");
             }
             catch (FileNotFoundException ex)
             {
@@ -126,7 +130,7 @@ namespace ConsoleApp
 
             #region scan input collective
             Console.WriteLine("scanning input collective\n");
-            StreamReader reader = new StreamReader(input_collective);
+            StreamReader reader = new StreamReader(inputSchedulingFile);
             //var parts = input_collective.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             string line;
             try
@@ -136,14 +140,14 @@ namespace ConsoleApp
                     for (int j = 0; j < 9; j++)
                     {
                         line = reader.ReadLine();
-                        var parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         for (int k = 0; k < 5; k++)
                         {
                             //fscanf(input_collective, "%d", scheduling[i][k][j]);
-                            scheduling[i][k, j] = int.Parse(parts[k]);
+                            Scheduling[i][k, j] = int.Parse(parts[k]);
                         }
                     }
-                    line = reader.ReadLine(); //trailing \n
+                    reader.ReadLine(); //trailing \n
                 }
             }
             catch (Exception ex)
@@ -155,46 +159,46 @@ namespace ConsoleApp
 
             #region scan lab schedule
             Console.WriteLine("scanning lab scheduling\n");
-            reader = new StreamReader(input_labs);
+            reader = new StreamReader(inputLabsFile);
             for (int j = 0; j < 9; j++)
             {
                 line = reader.ReadLine();
-                var parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 for (int k = 0; k < 5; k++)
                 {
-                    lab_scheduling[k, j] = int.Parse(parts[k]);
+                    LabScheduling[k, j] = int.Parse(parts[k]);
                 }
             }
             #endregion
 
             #region scan meeting file
             Console.WriteLine("scanning meeting file\n");
-            reader = new StreamReader(meeting_file);
+            reader = new StreamReader(meetingFile);
             for (int j = 0; j < 9; j++)
             {
                 line = reader.ReadLine();
-                var parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 for (int k = 0; k < 5; k++)
                 {
-                    meeting[k, j] = int.Parse(parts[k]);
+                    Meeting[k, j] = int.Parse(parts[k]);
                 }
             }
             #endregion
 
             #region scan course list
-            reader = new StreamReader(courseListFilestream);
+            reader = new StreamReader(courseListFile);
 
             line = reader.ReadLine();
-            int course_count = int.Parse(line); //43 gibi bir sayı dönüyor
-            course_list = new CourseDetail[course_count]; //corse list için alan al.
-            Console.WriteLine($"SIZE: {course_count} \n");
+            int courseCount = int.Parse(line); //43 gibi bir sayı dönüyor
+            CourseList = new CourseDetail[courseCount]; //corse list için alan al.
+            Console.WriteLine($"SIZE: {courseCount} \n");
 
-            for (int course_ID = 0; course_ID < course_count; course_ID++)
+            for (int courseId = 0; courseId < courseCount; courseId++)
             {
                 line = reader.ReadLine();
                 //Console.WriteLine($"{line}\n");
 
-                var parts = line.Split(new char[] { ';' });
+                var parts = line.Split(';');
                 // token = strtok(record, ";");
 
                 for (int i = 0; i < parts.Length; i++)
@@ -203,35 +207,35 @@ namespace ConsoleApp
                 }
                 Console.WriteLine();
 
-                course_list[course_ID] = new CourseDetail(parts[0], parts[1], int.Parse(parts[2]), int.Parse(parts[3]), int.Parse(parts[4]), int.Parse(parts[5]), int.Parse(parts[6]));
+                CourseList[courseId] = new CourseDetail(parts[0], parts[1], int.Parse(parts[2]), int.Parse(parts[3]), int.Parse(parts[4]), int.Parse(parts[5]), int.Parse(parts[6]));
 
                 int j;
-                for (j = 0; j < course_ID; j++)
+                for (j = 0; j < courseId; j++)
                 {
-                    if (course_list[j].Teacher == parts[1])
+                    if (CourseList[j].Teacher == parts[1])
                     {
                         break; //niye?
                     }
                 }
 
-                if (j == course_ID)
+                if (j == courseId)
                 {
-                    teacher_list[teacher_list_size] = parts[1];
-                    teacher_list_size++;
+                    TeacherList[TeacherListSize] = parts[1];
+                    TeacherListSize++;
                 }
 
             }
-            Console.WriteLine($"teacher size: {teacher_list_size}");
+            Console.WriteLine($"teacher size: {TeacherListSize}");
             #endregion
 
             #region scan preqeuiste courses
-            prerequisteList = new List<List<string>>(course_count);
-            for (int i = 0; i < course_count; i++)
+            PrerequisteList = new List<List<string>>(courseCount);
+            for (int i = 0; i < courseCount; i++)
             {
-                prerequisteList.Add(new List<string>());
+                PrerequisteList.Add(new List<string>());
             }
 
-            reader = new StreamReader(prerequisite);
+            reader = new StreamReader(prerequisiteFile);
 
             while ((line = reader.ReadLine()) != null)
             {
@@ -239,14 +243,14 @@ namespace ConsoleApp
 
                 for (int i = 0; i < parts.Length; i++)
                 {
-                    record_list1[i] = parts[i]; //todo: burası ancak 2 olabilir yoksa çakacak...
+                    RecordList1[i] = parts[i]; //todo: burası ancak 2 olabilir yoksa çakacak...
                 }
 
-                for (int i = 0; i < course_count; i++)
+                for (int i = 0; i < courseCount; i++)
                 {
-                    if (course_list[i].Code == record_list1[0])
+                    if (CourseList[i].Code == RecordList1[0])
                     {
-                        prerequisteList[i].Add(record_list1[1]);
+                        PrerequisteList[i].Add(RecordList1[1]);
                     }
                 }
             }
@@ -279,65 +283,65 @@ namespace ConsoleApp
             Console.WriteLine(" Enter the problem relevant and algorithm relevant parameters ... ");
             Console.WriteLine(" Enter the population size (a multiple of 4) : ");
             consoleIn = Console.ReadLine();
-            popsize = int.Parse(consoleIn);
-            if (popsize < 4 || (popsize % 4) != 0)
+            PopulationSize = int.Parse(consoleIn);
+            if (PopulationSize < 4 || PopulationSize % 4 != 0)
             {
-                Console.WriteLine($" population size read is : {popsize}");
+                Console.WriteLine($" population size read is : {PopulationSize}");
                 Console.WriteLine(" Wrong population size entered, hence exiting \n");
                 return;
             }
 
             Console.WriteLine(" Enter the number of generations : ");
             consoleIn = Console.ReadLine();
-            ngen = int.Parse(consoleIn);
-            if (ngen < 1)
+            GenCount = int.Parse(consoleIn);
+            if (GenCount < 1)
             {
-                Console.WriteLine($" number of generations read is : {ngen}");
+                Console.WriteLine($" number of generations read is : {GenCount}");
                 Console.WriteLine(" Wrong nuber of generations entered, hence exiting \n");
                 return;
             }
 
             Console.WriteLine(" Enter the number of objectives : ");
             consoleIn = Console.ReadLine();
-            nobj = int.Parse(consoleIn);
-            if (nobj < 1)
+            ObjectiveCount = int.Parse(consoleIn);
+            if (ObjectiveCount < 1)
             {
-                Console.WriteLine($" number of objectives entered is : {nobj}");
+                Console.WriteLine($" number of objectives entered is : {ObjectiveCount}");
                 Console.WriteLine(" Wrong number of objectives entered, hence exiting \n");
                 return;
             }
 
             Console.WriteLine("\n Enter the number of constraints : ");
             consoleIn = Console.ReadLine();
-            ncon = int.Parse(consoleIn);
-            if (ncon < 0)
+            ConstraintCount = int.Parse(consoleIn);
+            if (ConstraintCount < 0)
             {
-                Console.WriteLine($" number of constraints entered is : {ncon}");
+                Console.WriteLine($" number of constraints entered is : {ConstraintCount}");
                 Console.WriteLine(" Wrong number of constraints enetered, hence exiting \n");
                 return;
             }
 
             Console.WriteLine("\n Enter the number of real variables : ");
             consoleIn = Console.ReadLine();
-            nreal = int.Parse(consoleIn);
-            if (nreal < 0)
+            RealVariableCount = int.Parse(consoleIn);
+            if (RealVariableCount < 0)
             {
-                Console.WriteLine($" number of real variables entered is : {nreal}");
+                Console.WriteLine($" number of real variables entered is : {RealVariableCount}");
                 Console.WriteLine(" Wrong number of variables entered, hence exiting \n");
                 return;
             }
 
 
-            if (nreal != 0)
+            if (RealVariableCount != 0)
             {
-                min_realvar = new double[nreal];
-                max_realvar = new double[nreal];
-                for (int i = 0; i < nreal; i++)
+                min_realvar = new double[RealVariableCount];
+                max_realvar = new double[RealVariableCount];
+                for (int i = 0; i < RealVariableCount; i++)
                 {
-                    Console.WriteLine($" Enter the lower limit of real variable %d : ", i + 1);
+                    Console.WriteLine($" Enter the lower limit of real variable {i + 1} : ");
                     consoleIn = Console.ReadLine();
                     min_realvar[i] = double.Parse(consoleIn);
-                    Console.WriteLine($" Enter the upper limit of real variable %d : ", i + 1);
+                    Console.WriteLine($" Enter the upper limit of real variable {i + 1} : ");
                     consoleIn = Console.ReadLine();
                     max_realvar[i] = double.Parse(consoleIn);
                     if (max_realvar[i] <= min_realvar[i])
@@ -346,39 +350,39 @@ namespace ConsoleApp
                         return;
                     }
                 }
-                Console.WriteLine(" Enter the probability of crossover of real variable (0.6-1.0) : ");
+                Console.WriteLine(" Enter the probability of Crossover of real variable (0.6-1.0) : ");
                 consoleIn = Console.ReadLine();
-                pcross_real = double.Parse(consoleIn);
-                if (pcross_real < 0.0 || pcross_real > 1.0)
+                RealCrossoverProbability = double.Parse(consoleIn);
+                if (RealCrossoverProbability < 0.0 || RealCrossoverProbability > 1.0)
                 {
-                    Console.WriteLine($" Probability of crossover entered is : {pcross_real}");
-                    Console.WriteLine(" Entered value of probability of crossover of real variables is out of bounds, hence exiting \n");
+                    Console.WriteLine($" Probability of crossover entered is : {RealCrossoverProbability}");
+                    Console.WriteLine(" Entered value of probability of Crossover of real variables is out of bounds, hence exiting \n");
                     return;
                 }
-                Console.WriteLine(" Enter the probablity of mutation of real variables (1/nreal) : ");
+                Console.WriteLine(" Enter the probablity of mutation of real variables (1/RealVariableCount) : ");
                 consoleIn = Console.ReadLine();
-                pmut_real = double.Parse(consoleIn);
-                if (pmut_real < 0.0 || pmut_real > 1.0)
+                RealMutationProbability = double.Parse(consoleIn);
+                if (RealMutationProbability < 0.0 || RealMutationProbability > 1.0)
                 {
-                    Console.WriteLine($" Probability of mutation entered is : {pmut_real}");
+                    Console.WriteLine($" Probability of mutation entered is : {RealMutationProbability}");
                     Console.WriteLine(" Entered value of probability of mutation of real variables is out of bounds, hence exiting \n");
                     return;
                 }
-                Console.WriteLine(" Enter the value of distribution index for crossover (5-20): ");
+                Console.WriteLine(" Enter the value of distribution index for Crossover (5-20): ");
                 consoleIn = Console.ReadLine();
-                eta_c = double.Parse(consoleIn);
-                if (eta_c <= 0)
+                CrossoverDistributionIndex = double.Parse(consoleIn);
+                if (CrossoverDistributionIndex <= 0)
                 {
-                    Console.WriteLine($" The value entered is : {eta_c}");
-                    Console.WriteLine(" Wrong value of distribution index for crossover entered, hence exiting \n");
+                    Console.WriteLine($" The value entered is : {CrossoverDistributionIndex}");
+                    Console.WriteLine(" Wrong value of distribution index for Crossover entered, hence exiting \n");
                     return;
                 }
                 Console.WriteLine(" Enter the value of distribution index for mutation (5-50): ");
                 consoleIn = Console.ReadLine();
-                eta_m = double.Parse(consoleIn);
-                if (eta_m <= 0)
+                MutationDistributionIndex = double.Parse(consoleIn);
+                if (MutationDistributionIndex <= 0)
                 {
-                    Console.WriteLine($" The value entered is : {eta_m}");
+                    Console.WriteLine($" The value entered is : {MutationDistributionIndex}");
                     Console.WriteLine(" Wrong value of distribution index for mutation entered, hence exiting \n");
                     return;
                 }
@@ -386,36 +390,36 @@ namespace ConsoleApp
 
             Console.WriteLine(" Enter the number of binary variables : ");
             consoleIn = Console.ReadLine();
-            nbin = int.Parse(consoleIn);
-            if (nbin < 0)
+            BinaryVariableCount = int.Parse(consoleIn);
+            if (BinaryVariableCount < 0)
             {
-                Console.WriteLine($" number of binary variables entered is : {nbin}");
+                Console.WriteLine($" number of binary variables entered is : {BinaryVariableCount}");
                 Console.WriteLine(" Wrong number of binary variables entered, hence exiting \n");
                 return;
             }
-            if (nbin != 0)
+            if (BinaryVariableCount != 0)
             {
-                nbits = new int[nbin];
-                min_binvar = new double[nbin];
-                max_binvar = new double[nbin];
-                for (int i = 0; i < nbin; i++)
+                nbits = new int[BinaryVariableCount];
+                min_binvar = new double[BinaryVariableCount];
+                max_binvar = new double[BinaryVariableCount];
+                for (int i = 0; i < BinaryVariableCount; i++)
                 {
-                    Console.WriteLine($" Enter the number of bits for binary variable {i + 1} : ");
+                    Console.WriteLine($" Enter the number of bits for binary variable {i + 1} :");
                     consoleIn = Console.ReadLine();
                     var parts = consoleIn.Split(new char[] { ' ' });
                     nbits[i] = int.Parse(parts[0]);
-                    if (nbits[i] > maxnbit)
-                        maxnbit = nbits[i];
+                    if (nbits[i] > MaxBitCount)
+                        MaxBitCount = nbits[i];
                     if (nbits[i] < 1)
                     {
                         Console.WriteLine(" Wrong number of bits for binary variable entered, hence exiting");
                         return;
                     }
-                    Console.WriteLine($" Enter the lower limit of binary variable {i + 1}  : ");
+                    Console.WriteLine($" Enter the lower limit of binary variable {i + 1} :");
                     //consoleIn = Console.ReadLine();
                     min_binvar[i] = double.Parse(parts[1]);
 
-                    Console.WriteLine($" Enter the upper limit of binary variable {i + 1}  : ");
+                    Console.WriteLine($" Enter the upper limit of binary variable {i + 1} :");
                     //consoleIn = Console.ReadLine();
                     max_binvar[i] = double.Parse(parts[2]);
                     if (max_binvar[i] <= min_binvar[i])
@@ -424,28 +428,28 @@ namespace ConsoleApp
                         return;
                     }
                 }
-                Console.WriteLine(" Enter the probability of crossover of binary variable (0.6-1.0): ");
+                Console.WriteLine(" Enter the probability of Crossover of binary variable (0.6-1.0): ");
                 consoleIn = Console.ReadLine().Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator)
                     .Replace(",", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
-                pcross_bin = double.Parse(consoleIn);
-                if (pcross_bin < 0.0 || pcross_bin > 1.0)
+                BinaryCrossoverProbability = double.Parse(consoleIn);
+                if (BinaryCrossoverProbability < 0.0 || BinaryCrossoverProbability > 1.0)
                 {
-                    Console.WriteLine($" Probability of crossover entered is : {pcross_bin}");
-                    Console.WriteLine(" Entered value of probability of crossover of binary variables is out of bounds, hence exiting \n");
+                    Console.WriteLine($" Probability of crossover entered is : {BinaryCrossoverProbability}");
+                    Console.WriteLine(" Entered value of probability of Crossover of binary variables is out of bounds, hence exiting \n");
                     return;
                 }
                 Console.WriteLine(" Enter the probability of mutation of binary variables (1/nbits): ");
                 consoleIn = Console.ReadLine().Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator)
                     .Replace(",", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
-                pmut_bin = double.Parse(consoleIn);
-                if (pmut_bin < 0.0 || pmut_bin > 1.0)
+                BinaryMutationProbability = double.Parse(consoleIn);
+                if (BinaryMutationProbability < 0.0 || BinaryMutationProbability > 1.0)
                 {
-                    Console.WriteLine($" Probability of mutation entered is :  {pmut_bin}");
+                    Console.WriteLine($" Probability of mutation entered is :  {BinaryMutationProbability}");
                     Console.WriteLine(" Entered value of probability  of mutation of binary variables is out of bounds, hence exiting \n");
                     return;
                 }
             }
-            if (nreal == 0 && nbin == 0)
+            if (RealVariableCount == 0 && BinaryVariableCount == 0)
             {
                 Console.WriteLine("\n Number of real as well as binary variables, both are zero, hence exiting \n");
                 return;
@@ -453,111 +457,104 @@ namespace ConsoleApp
 
             Console.WriteLine(" Do you want to use gnuplot to display the results realtime (0 for NO) (1 for yes) : ");
             consoleIn = Console.ReadLine();
-            choice = int.Parse(consoleIn);
-            if (choice != 0 && choice != 1)
+            GnuplotChoice = int.Parse(consoleIn);
+            if (GnuplotChoice != 0 && GnuplotChoice != 1)
             {
-                Console.WriteLine($" Entered the wrong choice, hence exiting, choice entered was {choice}\n");
+                Console.WriteLine($" Entered the wrong choice, hence exiting, choice entered was {GnuplotChoice}\n");
                 return;
             }
-            if (choice == 1)
+            if (GnuplotChoice == 1)
             {
-                //object gp = null;  // _popen(GNUPLOT_COMMAND, "w");
-                //if (gp == null)
-                //{
-                //    Console.WriteLine(" Could not open a pipe to gnuplot, check the definition of GNUPLOT_COMMAND in file global.h\n");
-                //    Console.WriteLine(" Edit the string to suit your system configuration and rerun the program\n");
-                //    return;
-                //}
-                if (nobj == 2)
+                if (ObjectiveCount == 2)
                 {
                     Console.WriteLine(" Enter the objective for X axis display : ");
                     consoleIn = Console.ReadLine();
-                    obj1 = int.Parse(consoleIn);
-                    if (obj1 < 1 || obj1 > nobj)
+                    GnuplotObjective1 = int.Parse(consoleIn);
+                    if (GnuplotObjective1 < 1 || GnuplotObjective1 > ObjectiveCount)
                     {
-                        Console.WriteLine($" Wrong value of X objective entered, value entered was {obj1}\n");
+                        Console.WriteLine($" Wrong value of X objective entered, value entered was {GnuplotObjective1}\n");
                         return;
                     }
                     Console.WriteLine(" Enter the objective for Y axis display : ");
                     consoleIn = Console.ReadLine();
-                    obj2 = int.Parse(consoleIn);
-                    if (obj2 < 1 || obj2 > nobj)
+                    GnuplotObjective2 = int.Parse(consoleIn);
+                    if (GnuplotObjective2 < 1 || GnuplotObjective2 > ObjectiveCount)
                     {
-                        Console.WriteLine($" Wrong value of Y objective entered, value entered was {obj2}\n");
+                        Console.WriteLine($" Wrong value of Y objective entered, value entered was {GnuplotObjective2}\n");
                         return;
                     }
-                    obj3 = -1;
+                    GnuplotObjective3 = -1;
                 }
                 else
                 {
                     Console.WriteLine(" #obj > 2, 2D display or a 3D display ?, enter 2 for 2D and 3 for 3D :");
 
                     consoleIn = Console.ReadLine();
-                    choice = int.Parse(consoleIn);
-                    if (choice != 2 && choice != 3)
+                    GnuplotChoice = int.Parse(consoleIn);
+                    if (GnuplotChoice != 2 && GnuplotChoice != 3)
                     {
-                        Console.WriteLine($" Entered the wrong choice, hence exiting, choice entered was {choice}\n");
+                        Console.WriteLine($" Entered the wrong choice, hence exiting, choice entered was {GnuplotChoice}\n");
                         return;
                     }
-                    if (choice == 2)
+                    if (GnuplotChoice == 2)
                     {
                         Console.WriteLine(" Enter the objective for X axis display : ");
                         consoleIn = Console.ReadLine();
-                        obj1 = int.Parse(consoleIn);
-                        if (obj1 < 1 || obj1 > nobj)
+                        GnuplotObjective1 = int.Parse(consoleIn);
+                        if (GnuplotObjective1 < 1 || GnuplotObjective1 > ObjectiveCount)
                         {
-                            Console.WriteLine($" Wrong value of X objective entered, value entered was {obj1}\n");
+                            Console.WriteLine($" Wrong value of X objective entered, value entered was {GnuplotObjective1}\n");
                             return;
                         }
                         Console.WriteLine(" Enter the objective for Y axis display : ");
                         consoleIn = Console.ReadLine();
-                        obj2 = int.Parse(consoleIn);
-                        if (obj2 < 1 || obj2 > nobj)
+                        GnuplotObjective2 = int.Parse(consoleIn);
+                        if (GnuplotObjective2 < 1 || GnuplotObjective2 > ObjectiveCount)
                         {
-                            Console.WriteLine($" Wrong value of Y objective entered, value entered was {obj2}\n");
+                            Console.WriteLine($" Wrong value of Y objective entered, value entered was {GnuplotObjective2}\n");
                             return;
                         }
-                        obj3 = -1;
+                        GnuplotObjective3 = -1;
                     }
                     else
                     {
                         Console.WriteLine(" Enter the objective for X axis display : ");
                         consoleIn = Console.ReadLine();
-                        obj1 = int.Parse(consoleIn);
-                        if (obj1 < 1 || obj1 > nobj)
+                        GnuplotObjective1 = int.Parse(consoleIn);
+                        if (GnuplotObjective1 < 1 || GnuplotObjective1 > ObjectiveCount)
                         {
-                            Console.WriteLine($" Wrong value of X objective entered, value entered was {obj1}\n");
+                            Console.WriteLine($" Wrong value of X objective entered, value entered was {GnuplotObjective1}\n");
                             return;
                         }
                         Console.WriteLine(" Enter the objective for Y axis display : ");
                         consoleIn = Console.ReadLine();
-                        obj2 = int.Parse(consoleIn);
-                        if (obj2 < 1 || obj2 > nobj)
+                        GnuplotObjective2 = int.Parse(consoleIn);
+                        if (GnuplotObjective2 < 1 || GnuplotObjective2 > ObjectiveCount)
                         {
-                            Console.WriteLine($" Wrong value of Y objective entered, value entered was {obj2}\n");
+                            Console.WriteLine($" Wrong value of Y objective entered, value entered was {GnuplotObjective2}\n");
                             return;
                         }
                         Console.WriteLine(" Enter the objective for Z axis display : ");
                         consoleIn = Console.ReadLine();
-                        obj3 = int.Parse(consoleIn);
-                        if (obj3 < 1 || obj3 > nobj)
+                        GnuplotObjective3 = int.Parse(consoleIn);
+                        if (GnuplotObjective3 < 1 || GnuplotObjective3 > ObjectiveCount)
                         {
-                            Console.WriteLine($" Wrong value of Z objective entered, value entered was {obj3}\n");
+                            Console.WriteLine($" Wrong value of Z objective entered, value entered was {GnuplotObjective3}\n");
                             return;
                         }
                         Console.WriteLine(" You have chosen 3D display, hence location of eye required \n");
                         Console.WriteLine(" Enter the first angle (an integer in the range 0-180) (if not known, enter 60) :");
                         consoleIn = Console.ReadLine();
-                        angle1 = int.Parse(consoleIn);
-                        if (angle1 < 0 || angle1 > 180)
+                        GnuplotAngle1 = int.Parse(consoleIn);
+                        if (GnuplotAngle1 < 0 || GnuplotAngle1 > 180)
                         {
                             Console.WriteLine(" Wrong value for first angle entered, hence exiting \n");
                             return;
                         }
                         Console.WriteLine(" Enter the second angle (an integer in the range 0-360) (if not known, enter 30) :");
                         consoleIn = Console.ReadLine();
-                        angle2 = int.Parse(consoleIn);
-                        if (angle2 < 0 || angle2 > 360)
+                        GnuplotAngle2 = int.Parse(consoleIn);
+                        if (GnuplotAngle2 < 0 || GnuplotAngle2 > 360)
                         {
                             Console.WriteLine(" Wrong value for second angle entered, hence exiting \n");
                             return;
@@ -570,55 +567,55 @@ namespace ConsoleApp
 
             #region write down starting params into file
 
-            writer5.WriteLine($" Population size = {popsize}");
-            writer5.WriteLine($" Number of generations = {ngen}");
-            writer5.WriteLine($" Number of objective functions = {nobj}");
-            writer5.WriteLine($" Number of constraints = {ncon}");
-            writer5.WriteLine($" Number of real variables = {nreal}");
-            if (nreal != 0)
+            writer5.WriteLine($" Population size = {PopulationSize}");
+            writer5.WriteLine($" Number of generations = {GenCount}");
+            writer5.WriteLine($" Number of objective functions = {ObjectiveCount}");
+            writer5.WriteLine($" Number of constraints = {ConstraintCount}");
+            writer5.WriteLine($" Number of real variables = {RealVariableCount}");
+            if (RealVariableCount != 0)
             {
-                for (int i = 0; i < nreal; i++)
+                for (int i = 0; i < RealVariableCount; i++)
                 {
                     writer5.WriteLine($" Lower limit of real variable {i + 1} = {min_realvar[i]}");
                     writer5.WriteLine($" Upper limit of real variable {i + 1} = {max_realvar[i]}");
                 }
-                writer5.WriteLine($" Probability of crossover of real variable = {pcross_real}");
-                writer5.WriteLine($" Probability of mutation of real variable = {pmut_real}");
-                writer5.WriteLine($" Distribution index for crossover = {eta_c}");
-                writer5.WriteLine($" Distribution index for mutation = {eta_m}");
+                writer5.WriteLine($" Probability of crossover of real variable = {RealCrossoverProbability}");
+                writer5.WriteLine($" Probability of mutation of real variable = {RealMutationProbability}");
+                writer5.WriteLine($" Distribution index for crossover = {CrossoverDistributionIndex}");
+                writer5.WriteLine($" Distribution index for mutation = {MutationDistributionIndex}");
             }
-            writer5.Write($" Number of binary variables = {nbin}");
-            if (nbin != 0)
+            writer5.Write($" Number of binary variables = {BinaryVariableCount}");
+            if (BinaryVariableCount != 0)
             {
-                for (int i = 0; i < nbin; i++)
+                for (int i = 0; i < BinaryVariableCount; i++)
                 {
                     writer5.WriteLine($" Number of bits for binary variable {i + 1} = {nbits[i]}");
                     writer5.WriteLine($" Lower limit of binary variable {i + 1} = {min_binvar[i]}");
                     writer5.WriteLine($" Upper limit of binary variable {i + 1} = {max_binvar[i]}");
                 }
-                writer5.WriteLine($" Probability of crossover of binary variable = {pcross_bin}");
-                writer5.WriteLine($" Probability of mutation of binary variable = {pmut_bin}");
+                writer5.WriteLine($" Probability of crossover of binary variable = {BinaryCrossoverProbability}");
+                writer5.WriteLine($" Probability of mutation of binary variable = {BinaryMutationProbability}");
             }
             writer5.Write($" Seed for random number generator = {seed}");
-            bitlength = 0;
-            if (nbin != 0)
+            TotalBinaryBitLength = 0;
+            if (BinaryVariableCount != 0)
             {
-                /*printf("nbin: %d \n", nbin);*/
-                for (int i = 0; i < nbin; i++)
+                /*printf("BinaryVariableCount: %d \n", BinaryVariableCount);*/
+                for (int i = 0; i < BinaryVariableCount; i++)
                 {
-                    bitlength += nbits[i];
+                    TotalBinaryBitLength += nbits[i];
                     /*printf("nbits[%d]: %d \n", i,nbits[i]);*/
                 }
             }
 
-            writer1.Write($"# of objectives = {0}, # of constraints = {1}, # of real_var = {2}, # of bits of bin_var = {3}, constr_violation, rank, crowding_distance\n", nobj, ncon, nreal, bitlength);
-            writer2.Write($"# of objectives = {0}, # of constraints = {1}, # of real_var = {2}, # of bits of bin_var = {3}, constr_violation, rank, crowding_distance\n", nobj, ncon, nreal, bitlength);
-            writer3.Write($"# of objectives = {0}, # of constraints = {1}, # of real_var = {2}, # of bits of bin_var = {3}, constr_violation, rank, crowding_distance\n", nobj, ncon, nreal, bitlength);
-            writer4.Write($"# of objectives = {0}, # of constraints = {1}, # of real_var = {2}, # of bits of bin_var = {3}, constr_violation, rank, crowding_distance\n", nobj, ncon, nreal, bitlength);
-            nbinmut = 0;
-            nrealmut = 0;
-            nbincross = 0;
-            nrealcross = 0;
+            writer1.Write($"# of objectives = {ObjectiveCount}, # of constraints = {ConstraintCount}, # of real_var = {RealVariableCount}, # of bits of bin_var = {TotalBinaryBitLength}, constr_violation, rank, crowding_distance\n");
+            writer2.Write($"# of objectives = {ObjectiveCount}, # of constraints = {ConstraintCount}, # of real_var = {RealVariableCount}, # of bits of bin_var = {TotalBinaryBitLength}, constr_violation, rank, crowding_distance\n");
+            writer3.Write($"# of objectives = {ObjectiveCount}, # of constraints = {ConstraintCount}, # of real_var = {RealVariableCount}, # of bits of bin_var = {TotalBinaryBitLength}, constr_violation, rank, crowding_distance\n");
+            writer4.Write($"# of objectives = {ObjectiveCount}, # of constraints = {ConstraintCount}, # of real_var = {RealVariableCount}, # of bits of bin_var = {TotalBinaryBitLength}, constr_violation, rank, crowding_distance\n");
+            BinaryMutationCount = 0;
+            RealMutationCount = 0;
+            BinaryCrossoverCount = 0;
+            RealCrossoverCount = 0;
 
             writer1.Flush();
             writer2.Flush();
@@ -629,31 +626,31 @@ namespace ConsoleApp
             #endregion
 
             #region first population
-            parent_pop = new Population(popsize, nreal, nbin, maxnbit, nobj, ncon);
+            parentPopulation = new Population(PopulationSize, RealVariableCount, BinaryVariableCount, MaxBitCount, ObjectiveCount, ConstraintCount);
             // (population*)malloc(sizeof(population));
-            child_pop = new Population(popsize, nreal, nbin, maxnbit, nobj, ncon);
+            childPopulation = new Population(PopulationSize, RealVariableCount, BinaryVariableCount, MaxBitCount, ObjectiveCount, ConstraintCount);
             // (population*)malloc(sizeof(population));
-            mixed_pop = new Population(popsize * 2, nreal, nbin, maxnbit, nobj, ncon);
+            mixedPopulation = new Population(PopulationSize * 2, RealVariableCount, BinaryVariableCount, MaxBitCount, ObjectiveCount, ConstraintCount);
             // (population*)malloc(sizeof(population));
 
 
-            _randomizationObj.Randomize();
-            initialize_population(parent_pop);
+            RandomizationObj.Randomize();
+            InitializePopulation(parentPopulation);
             Console.WriteLine(" Initialization done, now performing first generation");
 
 
 
-            decode_pop(parent_pop);
-            evaluate_population(parent_pop);
-            assign_rank_and_crowding_distance(parent_pop);
-            report_pop(parent_pop, writer1);
+            decode_pop(parentPopulation);
+            evaluate_population(parentPopulation);
+            assign_rank_and_crowding_distance(parentPopulation);
+            ReportPopulation(parentPopulation, writer1);
             writer4.WriteLine("# gen = 1");
-            report_pop(parent_pop, writer4);
+            ReportPopulation(parentPopulation, writer4);
             Console.WriteLine(" gen = 1");
             //fflush(stdout);
-            if (choice != 0)
+            if (GnuplotChoice != 0)
             {
-                onthefly_display(parent_pop, 1);
+                PlotPopulation(parentPopulation, 1);
             }
             writer1.Flush();
             writer2.Flush();
@@ -664,23 +661,23 @@ namespace ConsoleApp
             #endregion
 
             #region generation loop
-            for (int i = 2; i <= ngen; i++)
+            for (int i = 2; i <= GenCount; i++)
             {
-                selection(parent_pop, child_pop);
-                mutation_pop(child_pop);
-                decode_pop(child_pop);
-                evaluate_population(child_pop);
-                merge(parent_pop, child_pop, mixed_pop);
-                fill_nondominated_sort(mixed_pop, parent_pop);
+                Selection(parentPopulation, childPopulation);
+                MutatePopulation(childPopulation);
+                decode_pop(childPopulation);
+                evaluate_population(childPopulation);
+                MergePopulation(parentPopulation, childPopulation, mixedPopulation);
+                fill_nondominated_sort(mixedPopulation, parentPopulation);
 
                 /* Comment following four lines if information for all
                 generations is not desired, it will speed up the execution */
-                ///*fprintf(fpt4,"# gen = %d\n",i);
-                //report_pop(parent_pop,fpt4);
+                //*fprintf(fpt4,"# gen = %d\n",i);
+                //ReportPopulation(parent_pop,fpt4);
                 //fflush(fpt4);*/
-                if (choice != 0)
+                if (GnuplotChoice != 0)
                 {
-                    onthefly_display(parent_pop, i);
+                    PlotPopulation(parentPopulation, i);
                 }
 
                 Console.WriteLine($" gen = {i}");
@@ -689,18 +686,18 @@ namespace ConsoleApp
 
             #region prepare final reports
             Console.WriteLine($" Generations finished, now reporting solutions");
-            report_pop(parent_pop, writer2);
-            report_feasible(parent_pop, writer3);
+            ReportPopulation(parentPopulation, writer2);
+            ReportFeasiblePopulation(parentPopulation, writer3);
 
-            if (nreal != 0)
+            if (RealVariableCount != 0)
             {
-                writer5.WriteLine($" Number of crossover of real variable = {nrealcross}");
-                writer5.WriteLine($" Number of mutation of real variable = {nrealmut}");
+                writer5.WriteLine($" Number of crossover of real variable = {RealCrossoverCount}");
+                writer5.WriteLine($" Number of mutation of real variable = {RealMutationCount}");
             }
-            if (nbin != 0)
+            if (BinaryVariableCount != 0)
             {
-                writer5.WriteLine($" Number of crossover of binary variable = {nbincross}");
-                writer5.WriteLine($" Number of mutation of binary variable = {nbinmut}");
+                writer5.WriteLine($" Number of crossover of binary variable = {BinaryCrossoverCount}");
+                writer5.WriteLine($" Number of mutation of binary variable = {BinaryMutationCount}");
             }
             #endregion
 
@@ -721,11 +718,11 @@ namespace ConsoleApp
             fpt4.Close();
             fpt5.Close();
 
-            courseListFilestream.Close();
-            input_collective.Close();
-            input_labs.Close();
-            meeting_file.Close();
-            prerequisite.Close();
+            courseListFile.Close();
+            inputSchedulingFile.Close();
+            inputLabsFile.Close();
+            meetingFile.Close();
+            prerequisiteFile.Close();
             #endregion
 
             Console.WriteLine("\n Routine successfully exited \n");
@@ -735,33 +732,32 @@ namespace ConsoleApp
 
         #region initialize.c
         /* Function to initialize a population randomly */
-        static void initialize_population(Population pop)
+        static void InitializePopulation(Population pop)
         {
-            for (int i = 0; i < popsize; i++)
+            for (int i = 0; i < PopulationSize; i++)
             {
-                initialize_individual(pop.IndList[i]);
+                InitializeIndividual(pop.IndList[i]);
             }
-            return;
         }
 
         /* Function to initialize an individual randomly */
-        static void initialize_individual(Individual ind)
+        static void InitializeIndividual(Individual ind)
         {
-            int j, k;
-            if (nreal != 0)
+            int j;
+            if (RealVariableCount != 0)
             {
-                for (j = 0; j < nreal; j++)
+                for (j = 0; j < RealVariableCount; j++)
                 {
-                    ind.Xreal[j] = _randomizationObj.RandomDouble(min_realvar[j], max_realvar[j]);
+                    ind.Xreal[j] = RandomizationObj.RandomDouble(min_realvar[j], max_realvar[j]);
                 }
             }
-            if (nbin != 0)
+            if (BinaryVariableCount != 0)
             {
-                for (j = 0; j < nbin; j++)
+                for (j = 0; j < BinaryVariableCount; j++)
                 {
-                    for (k = 0; k < nbits[j]; k++)
+                    for (int k = 0; k < nbits[j]; k++)
                     {
-                        if (_randomizationObj.RandomPercent() <= 0.5)
+                        if (RandomizationObj.RandomPercent() <= 0.5)
                         {
                             ind.Gene[j, k] = 0;
                         }
@@ -772,7 +768,6 @@ namespace ConsoleApp
                     }
                 }
             }
-            return;
         }
         #endregion
 
@@ -780,15 +775,13 @@ namespace ConsoleApp
         /* Function to decode a population to find out the binary variable values based on its bit pattern */
         static void decode_pop(Population pop)
         {
-            int i;
-            if (nbin != 0)
+            if (BinaryVariableCount != 0)
             {
-                for (i = 0; i < popsize; i++)
+                for (int i = 0; i < PopulationSize; i++)
                 {
                     decode_ind(pop.IndList[i]);
                 }
             }
-            return;
         }
 
         /* Function to decode an individual to find out the binary variable values based on its bit pattern */
@@ -796,9 +789,9 @@ namespace ConsoleApp
         {
             int j, k;
             int sum;
-            if (nbin != 0)
+            if (BinaryVariableCount != 0)
             {
-                for (j = 0; j < nbin; j++)
+                for (j = 0; j < BinaryVariableCount; j++)
                 {
                     sum = 0;
                     for (k = 0; k < nbits[j]; k++)
@@ -808,10 +801,9 @@ namespace ConsoleApp
                             sum += (int)Math.Pow(2, nbits[j] - 1 - k);
                         }
                     }
-                    ind.Xbin[j] = min_binvar[j] + (double)sum * (max_binvar[j] - min_binvar[j]) / (double)(Math.Pow(2, nbits[j]) - 1);
+                    ind.Xbin[j] = min_binvar[j] + sum * (max_binvar[j] - min_binvar[j]) / (Math.Pow(2, nbits[j]) - 1);
                 }
             }
-            return;
         }
         #endregion
 
@@ -819,25 +811,24 @@ namespace ConsoleApp
         /* Routine to evaluate objective function values and constraints for a population */
         static void evaluate_population(Population pop)
         {
-            for (int i = 0; i < popsize; i++)
+            for (int i = 0; i < PopulationSize; i++)
             {
                 evaluate_individual(pop.IndList[i]);
             }
-            return;
         }
 
         /* Routine to evaluate objective function values and constraints for an individual */
         static void evaluate_individual(Individual ind)
         {
-            test_problem(ind.Xreal, ind.Xbin, ind.Gene, ind.Obj, ind.Constr);
-            if (ncon == 0)
+            UCT_Evaluate(ind.Xbin, ind.Obj);
+            if (ConstraintCount == 0)
             {
                 ind.ConstrViolation = 0.0;
             }
             else
             {
                 ind.ConstrViolation = 0.0;
-                for (int j = 0; j < ncon; j++)
+                for (int j = 0; j < ConstraintCount; j++)
                 {
                     if (ind.Constr[j] < 0.0)
                     {
@@ -845,43 +836,42 @@ namespace ConsoleApp
                     }
                 }
             }
-            return;
         }
         #endregion
 
         #region problemdef.c
-        static void test_problem(double[] xreal, double[] xbin, int[,] gene, double[] obj, double[] constr)
+        static void UCT_Evaluate(double[] xbin, double[] obj)
         {
             #region init variables
             // todo fix fix these stuff. dinamik olmamalı bunlar her seferinde? emin degilim...
             // en azından pop kadar kere yaratılmalı? pop içine taşınabilir?
             int sum, i, j, k;
-            List<int[,]> teacher_scheduling_counter = new List<int[,]>(50); //todo teacher no kadar...
+            List<int[,]> teacherSchedulingCounter = new List<int[,]>(50); //todo teacher no kadar...
             for (i = 0; i < 50; i++)
             {
-                teacher_scheduling_counter.Add(new int[5, 9]);
+                teacherSchedulingCounter.Add(new int[5, 9]);
             }
-            int teacher_index = 0;
-            int[,] lab_counter = new int[5, 9];
-            List<int>[][,] scheduling_only_CSE = new List<int>[8][,];
+            int teacherIndex = 0;
+            int[,] labCounter = new int[5, 9];
+            List<int>[][,] schedulingOnlyCse = new List<int>[8][,];
             for (i = 0; i < 8; i++)
             {
-                scheduling_only_CSE[i] = new List<int>[5, 9];
+                schedulingOnlyCse[i] = new List<int>[5, 9];
 
                 for (j = 0; j < 5; j++)
                 {
                     for (k = 0; k < 9; k++)
                     {
-                        scheduling_only_CSE[i][j, k] = new List<int>();
+                        schedulingOnlyCse[i][j, k] = new List<int>();
                     }
                 }
             }
-            List<int>[,] elective_courses = new List<int>[5, 9];
+            List<int>[,] electiveCourses = new List<int>[5, 9];
             for (i = 0; i < 5; i++)
             {
                 for (j = 0; j < 9; j++)
                 {
-                    elective_courses[i, j] = new List<int>();
+                    electiveCourses[i, j] = new List<int>();
                 }
             }
 
@@ -890,23 +880,23 @@ namespace ConsoleApp
             obj[2] = 0;
 
             //reset scheduling, tearchers_scheduling and lab_scheduling
-            for (i = 0; i < teacher_list_size; ++i)
+            for (i = 0; i < TeacherListSize; ++i)
             {
-                copy_array(teacher_scheduling_counter[i], meeting);
+                Array.Copy(teacherSchedulingCounter[i], Meeting, 5 * 9);
             }
 
             //copy diaconate lab lessons
-            copy_array(lab_counter, lab_scheduling);
+            Array.Copy(labCounter, LabScheduling, 5 * 9);
             #endregion
 
             #region fill variables
-            for (j = 0; j < nbin; j++) //ders syaisi kadar.
+            for (j = 0; j < BinaryVariableCount; j++) //ders syaisi kadar.
             {
-                for (i = 0; i < teacher_list_size; i++)
+                for (i = 0; i < TeacherListSize; i++)
                 {
-                    if (teacher_list[i].Equals(course_list[j].Teacher))
+                    if (TeacherList[i].Equals(CourseList[j].Teacher))
                     {
-                        teacher_index = i;  //todo: hashlist'e veya dict.'e çevirebiliriz?
+                        teacherIndex = i;  //todo: hashlist'e veya dict.'e çevirebiliriz?
                         break;
                     }
                 } //ögretmen indeksini buluyor.
@@ -914,63 +904,63 @@ namespace ConsoleApp
 
                 sum = (int)xbin[j];
 
-                if (course_list[j].Duration == 1)
+                if (CourseList[j].Duration == 1)
                 {
-                    if (course_list[j].Elective == 0)
+                    if (CourseList[j].Elective == 0)
                     {
-                        adding_course_1_slot(scheduling_only_CSE[course_list[j].Semester - 1], sum, j);
+                        adding_course_1_slot(schedulingOnlyCse[CourseList[j].Semester - 1], sum, j);
                     }
-                    else if (course_list[j].Elective == 1)
+                    else if (CourseList[j].Elective == 1)
                     {
-                        adding_course_1_slot(elective_courses, sum, j);
+                        adding_course_1_slot(electiveCourses, sum, j);
                     }
 
-                    adding_course_1_slot(teacher_scheduling_counter[teacher_index], sum);
-                    if (course_list[j].Type == 1)
+                    adding_course_1_slot(teacherSchedulingCounter[teacherIndex], sum);
+                    if (CourseList[j].Type == 1)
                     {
-                        for (k = 0; k < course_list[j].LabHour; k++)
+                        for (k = 0; k < CourseList[j].LabHour; k++)
                         {
-                            adding_course_1_slot(lab_counter, sum);
+                            adding_course_1_slot(labCounter, sum);
                         }
                     }
                 }
-                else if (course_list[j].Duration == 2)
+                else if (CourseList[j].Duration == 2)
                 {
-                    if (course_list[j].Elective == 0)
+                    if (CourseList[j].Elective == 0)
                     {
-                        adding_course_2_slot(scheduling_only_CSE[course_list[j].Semester - 1], sum, j);
+                        adding_course_2_slot(schedulingOnlyCse[CourseList[j].Semester - 1], sum, j);
                     }
-                    else if (course_list[j].Elective == 1)
+                    else if (CourseList[j].Elective == 1)
                     {
-                        adding_course_2_slot(elective_courses, sum, j);
+                        adding_course_2_slot(electiveCourses, sum, j);
                     }
 
-                    adding_course_2_slot(teacher_scheduling_counter[teacher_index], sum);
-                    if (course_list[j].Type == 1)
+                    adding_course_2_slot(teacherSchedulingCounter[teacherIndex], sum);
+                    if (CourseList[j].Type == 1)
                     {
-                        for (k = 0; k < course_list[j].LabHour; k++)
+                        for (k = 0; k < CourseList[j].LabHour; k++)
                         {
-                            adding_course_2_slot(lab_counter, sum);
+                            adding_course_2_slot(labCounter, sum);
                         }
                     }
                 }
-                else if (course_list[j].Duration == 3)
+                else if (CourseList[j].Duration == 3)
                 {
-                    if (course_list[j].Elective == 0)
+                    if (CourseList[j].Elective == 0)
                     {
-                        adding_course_3_slot(scheduling_only_CSE[course_list[j].Semester - 1], sum, j);
+                        adding_course_3_slot(schedulingOnlyCse[CourseList[j].Semester - 1], sum, j);
                     }
-                    else if (course_list[j].Elective == 1)
+                    else if (CourseList[j].Elective == 1)
                     {
-                        adding_course_3_slot(elective_courses, sum, j);
+                        adding_course_3_slot(electiveCourses, sum, j);
                     }
 
-                    adding_course_3_slot(teacher_scheduling_counter[teacher_index], sum);
-                    if (course_list[j].Type == 1)
+                    adding_course_3_slot(teacherSchedulingCounter[teacherIndex], sum);
+                    if (CourseList[j].Type == 1)
                     {
-                        for (k = 0; k < course_list[j].LabHour; k++)
+                        for (k = 0; k < CourseList[j].LabHour; k++)
                         {
-                            adding_course_3_slot(lab_counter, sum);
+                            adding_course_3_slot(labCounter, sum);
                         }
                     }
                 }
@@ -981,60 +971,60 @@ namespace ConsoleApp
             for (j = 0; j < 8; j++)
             {
                 //collision of CSE&fac courses in semester
-                obj[0] += calculate_collision2(scheduling_only_CSE[j], scheduling[j], 0);
+                obj[0] += calculate_collision2(schedulingOnlyCse[j], Scheduling[j], 0);
             }
             //+TODO	 donem ici bolum dersi cakismasi
             for (j = 0; j < 8; j++)
             {
-                obj[0] += calculate_collision1(scheduling_only_CSE[j], 1);                          /*collision of only CSE courses in semester*/
+                obj[0] += calculate_collision1(schedulingOnlyCse[j], 1);                          /*collision of only CSE courses in semester*/
             }
             //+TODO	dönemler arasi dekanlik/bolum dersi cakismasi--------------buna bak tekrar
             for (j = 1; j < 8; j++)
             {
                 // 1-2  2-3  3-4  4-5  5-6  6-7  7-8
                 // 2-1  3-2  4-3  5-4  6-5  7-6  8-7     consecutive CSE&faculty courses
-                obj[1] += calculate_collision2(scheduling_only_CSE[j - 1], scheduling[j], 0);  //cse derslerini bir sonraki dönem ile     
-                obj[1] += calculate_collision2(scheduling_only_CSE[j], scheduling[j - 1], 0);  //cse derslerini bir önceki dönem ile               
+                obj[1] += calculate_collision2(schedulingOnlyCse[j - 1], Scheduling[j], 0);  //cse derslerini bir sonraki dönem ile     
+                obj[1] += calculate_collision2(schedulingOnlyCse[j], Scheduling[j - 1], 0);  //cse derslerini bir önceki dönem ile               
             }
             //+TODO	dönemler arası CSE çakışmaları
             for (j = 1; j < 8; j++)
             {
-                obj[1] += calculate_collision7(scheduling_only_CSE[j - 1], scheduling_only_CSE[j], 0);  /*consecutive only CSE courses*/
+                obj[1] += calculate_collision7(schedulingOnlyCse[j - 1], schedulingOnlyCse[j], 0);  /*consecutive only CSE courses*/
             }
             //+TODO	aynı saatte 3'ten fazla lab olmaması lazim
-            obj[0] += calculate_collision1(lab_counter, 4);
+            obj[0] += calculate_collision1(labCounter, 4);
             //# of lab at most 4 //todo: make input param.
 
-            for (j = 0; j < teacher_list_size; j++)
+            for (j = 0; j < TeacherListSize; j++)
             {
-                if (!(teacher_list[j].Equals("ASSISTANT")))
+                if (!TeacherList[j].Equals("ASSISTANT"))
                 {
                     //+TODO	og. gor. aynı saatte baska dersinin olmaması
-                    obj[0] += calculate_collision1(teacher_scheduling_counter[j], 1);
+                    obj[0] += calculate_collision1(teacherSchedulingCounter[j], 1);
                     /*teacher course collision*/
                     //+TODO	og. gor. gunluk 4 saatten fazla pespese dersinin olmamasi
-                    obj[2] += calculate_collision3(teacher_scheduling_counter[j], 4);
+                    obj[2] += calculate_collision3(teacherSchedulingCounter[j], 4);
                     /*teacher have at most 4 consective lesson per day*/
                     //+TODO	og. gor. boş gununun olması
-                    obj[2] += calculate_collision4(teacher_scheduling_counter[j]);
+                    obj[2] += calculate_collision4(teacherSchedulingCounter[j]);
                     /* teacher have free day*/
                 }
             }
             //+TODO	lab ve lecture farklı günlerde olsun
             for (j = 0; j < 8; j++)
             {
-                obj[2] += calculate_collision6(scheduling_only_CSE[j]);    /*lab lecture hours must be in seperate day*/
+                obj[2] += calculate_collision6(schedulingOnlyCse[j]);    /*lab lecture hours must be in seperate day*/
             }
             //+TODO	lab miktarı kadar lab_scheduling'i artır
             //+TODO	seçmeliler için ayrı tablo tutup ayrı fonksiyonlarla çakışmaları kontrol et.
             //+TODO	secmelilerin hangi donemlere eklenecegi ve hangi donemlerle cakismamasi istendiği?
-            obj[0] += calculate_collision1(elective_courses, 1);                            /*elective courses*/
-            obj[2] += calculate_collision2(elective_courses, scheduling[5], 0);             /*elective+faculty courses in semester(consecutive)*/
-            obj[2] += calculate_collision2(elective_courses, scheduling[6], 0);             /*elective+faculty courses in semester*/
-            obj[2] += calculate_collision2(elective_courses, scheduling[7], 0);             /*elective+faculty courses in semester*/
-            obj[1] += calculate_collision7(scheduling_only_CSE[5], elective_courses, 0);    /*CSE+elective courses(consecutive)*/
-            obj[0] += calculate_collision7(scheduling_only_CSE[6], elective_courses, 0);    /*CSE+elective courses*/
-            obj[0] += calculate_collision7(scheduling_only_CSE[7], elective_courses, 0);    /*CSE+elective courses*/
+            obj[0] += calculate_collision1(electiveCourses, 1);                            /*elective courses*/
+            obj[2] += calculate_collision2(electiveCourses, Scheduling[5], 0);             /*elective+faculty courses in semester(consecutive)*/
+            obj[2] += calculate_collision2(electiveCourses, Scheduling[6], 0);             /*elective+faculty courses in semester*/
+            obj[2] += calculate_collision2(electiveCourses, Scheduling[7], 0);             /*elective+faculty courses in semester*/
+            obj[1] += calculate_collision7(schedulingOnlyCse[5], electiveCourses, 0);    /*CSE+elective courses(consecutive)*/
+            obj[0] += calculate_collision7(schedulingOnlyCse[6], electiveCourses, 0);    /*CSE+elective courses*/
+            obj[0] += calculate_collision7(schedulingOnlyCse[7], electiveCourses, 0);    /*CSE+elective courses*/
             //+TODO	toplanti saatleri hocaların tablosuna da eklensin
             //TODO	dekanlık derslerinin sectionları??
             //+TODO	obj[2] kontrol et.
@@ -1042,32 +1032,6 @@ namespace ConsoleApp
         #endregion
 
         #region functions.c
-        /* Reset ith semester table*/
-        static void reset(int[,] array)
-        {
-            int i, j;
-            for (i = 0; i < 5; i++)
-            {
-                for (j = 0; j < 9; j++)
-                {
-                    array[i, j] = 0;
-                }
-            }
-        }
-
-        /* Copy second array to first array*/
-        static void copy_array(int[,] array2, int[,] array1)
-        {
-            Array.Copy(array1, array2, 5 * 9);
-            //int i, j;
-            //for (i = 0; i < 5; i++)
-            //{
-            //    for (j = 0; j < 9; j++)
-            //    {
-            //        array[i][j] = array1[i][j];
-            //    }
-            //}
-        }
 
         /* filling scheduling table for 1-hour class by using slot number 
         9-10	-	-	-	-	-
@@ -1083,16 +1047,16 @@ namespace ConsoleApp
         static void adding_course_1_slot(int[,] array, int slot)
         {
             if (slot % 5 < 3)
-                array[slot / 5, (slot % 5) + 2]++;
+                array[slot / 5, slot % 5 + 2]++;
             else
-                array[slot / 5, (slot % 5) + 4]++;
+                array[slot / 5, slot % 5 + 4]++;
         }
         static void adding_course_1_slot(List<int>[,] array, int slot, int i)
         {
             if (slot % 5 < 3)
-                array[slot / 5, (slot % 5) + 2].Add(i);
+                array[slot / 5, slot % 5 + 2].Add(i);
             else
-                array[slot / 5, (slot % 5) + 4].Add(i);
+                array[slot / 5, slot % 5 + 4].Add(i);
         }
         /*///////////////////////////////////////////////////////*/
         /* filling scheduling table for 2-hour class by using slot number 
@@ -1217,12 +1181,12 @@ namespace ConsoleApp
             array[slot / 4, j + 2].Add(i);
         }
 
-        static bool is_prerequisite(int pre_index_of_course_list, int post_index_of_course_list)
+        static bool is_prerequisite(int preIndexOfCourseList, int postIndexOfCourseList)
         {
             int i;
-            for (i = 0; i < prerequisteList[post_index_of_course_list].Count; i++)
+            for (i = 0; i < PrerequisteList[postIndexOfCourseList].Count; i++)
             {
-                if (prerequisteList[post_index_of_course_list][i] == course_list[pre_index_of_course_list].Code)
+                if (PrerequisteList[postIndexOfCourseList][i] == CourseList[preIndexOfCourseList].Code)
                 {
                     return true;
                 }
@@ -1231,14 +1195,14 @@ namespace ConsoleApp
         }
 
         /* collision of CSE courses at the same time*/
-        static int calculate_collision1(int[,] array, int minimum_collision)
+        static int calculate_collision1(int[,] array, int minimumCollision)
         {
             int i, j, result = 0;
             for (i = 0; i < 5; i++)
             {
                 for (j = 0; j < 9; j++)
                 {
-                    if (array[i, j] > minimum_collision)
+                    if (array[i, j] > minimumCollision)
                     {
                         result += array[i, j] - 1;
                     }
@@ -1246,14 +1210,14 @@ namespace ConsoleApp
             }
             return result;
         }
-        static int calculate_collision1(List<int>[,] array, int minimum_collision)
+        static int calculate_collision1(List<int>[,] array, int minimumCollision)
         {
             int i, j, result = 0;
             for (i = 0; i < 5; i++)
             {
                 for (j = 0; j < 9; j++)
                 {
-                    if (array[i, j].Count > minimum_collision)
+                    if (array[i, j].Count > minimumCollision)
                     {
                         result += array[i, j].Count - 1;
                     }
@@ -1280,14 +1244,14 @@ namespace ConsoleApp
             return result;
         }
         */
-        static int calculate_collision2(List<int>[,] array1, int[,] array2, int minimum_collision)
+        static int calculate_collision2(List<int>[,] array1, int[,] array2, int minimumCollision)
         {
             int i, j, result = 0;
             for (i = 0; i < 5; i++)
             {
                 for (j = 0; j < 9; j++)
                 {
-                    if ((int)array1[i, j].Count > minimum_collision && array2[i, j] > minimum_collision)
+                    if (array1[i, j].Count > minimumCollision && array2[i, j] > minimumCollision)
                     {
                         result += array1[i, j].Count + array2[i, j] - 1;
                     }
@@ -1296,7 +1260,7 @@ namespace ConsoleApp
             return result;
         }
         /*count consecutive 4(can be changed) hour for teachers table*/
-        static int calculate_collision3(int[,] array, int max_consecutive_hour)
+        static int calculate_collision3(int[,] array, int maxConsecutiveHour)
         {
             int counter;
             int i, j, result = 0;
@@ -1312,7 +1276,7 @@ namespace ConsoleApp
                     else {
                         counter = 0;
                     }
-                    if (counter >= max_consecutive_hour)
+                    if (counter >= maxConsecutiveHour)
                     {
                         result++;
                     }
@@ -1402,11 +1366,11 @@ namespace ConsoleApp
                 {
                     for (k = 0; k < (int)day.Count; k++)
                     {
-                        if (j != k && course_list[j].Code.Equals(course_list[k].Code))
+                        if (j != k && CourseList[j].Code.Equals(CourseList[k].Code))
                         {
                             //result++;
-                            type1 = course_list[j].Type;
-                            type2 = course_list[k].Type;
+                            type1 = CourseList[j].Type;
+                            type2 = CourseList[k].Type;
                             if (type1 != type2 && type1 + type2 <= 1)
                             {
                                 result++;
@@ -1419,19 +1383,19 @@ namespace ConsoleApp
             return result;
         }
 
-        static int calculate_collision7(List<int>[,] array1, List<int>[,] array2, int minimum_collision)
+        static int calculate_collision7(List<int>[,] array1, List<int>[,] array2, int minimumCollision)
         {
-            int i, j, k, l, result = 0;
-            for (i = 0; i < 5; i++)
+            int result = 0;
+            for (int i = 0; i < 5; i++)
             {
-                for (j = 0; j < 9; j++)
+                for (int j = 0; j < 9; j++)
                 {
-                    if ((int)array1[i, j].Count > minimum_collision && (int)array2[i, j].Count > minimum_collision)
+                    if (array1[i, j].Count > minimumCollision && array2[i, j].Count > minimumCollision)
                     {
 
-                        for (k = 0; k < (int)array2[i, j].Count; k++)
+                        for (int k = 0; k < array2[i, j].Count; k++)
                         {
-                            for (l = 0; l < (int)array1[i, j].Count; l++)
+                            for (int l = 0; l < array1[i, j].Count; l++)
                             {
                                 if (!is_prerequisite(array1[i, j][l], array2[i, j][k]))
                                 {
@@ -1448,105 +1412,103 @@ namespace ConsoleApp
         #endregion
 
         #region tourselect.c
-        /* Routine for tournament selection, it creates a new_pop from old_pop by performing tournament selection and the crossover */
-        static void selection(Population old_pop, Population new_pop)
+        /* Routine for Tournament Selection, it creates a newPopulation from oldPopulation by performing Tournament Selection and the Crossover */
+        static void Selection(Population oldPopulation, Population newPopulation)
         {
             int[] a1, a2; //todo: optmizasyon
             int temp;
             int i;
             int rand;
             Individual parent1, parent2;
-            a1 = new int[popsize];
-            a2 = new int[popsize];
-            for (i = 0; i < popsize; i++)
+            a1 = new int[PopulationSize];
+            a2 = new int[PopulationSize];
+            for (i = 0; i < PopulationSize; i++)
             {
                 a1[i] = a2[i] = i;
             }
-            for (i = 0; i < popsize; i++)
+            for (i = 0; i < PopulationSize; i++)
             {
-                rand = _randomizationObj.RandomInteger(i, popsize - 1);
+                rand = RandomizationObj.RandomInteger(i, PopulationSize - 1);
                 temp = a1[rand];
                 a1[rand] = a1[i];
                 a1[i] = temp;
-                rand = _randomizationObj.RandomInteger(i, popsize - 1);
+                rand = RandomizationObj.RandomInteger(i, PopulationSize - 1);
                 temp = a2[rand];
                 a2[rand] = a2[i];
                 a2[i] = temp;
             }
-            for (i = 0; i < popsize; i += 4)
+            for (i = 0; i < PopulationSize; i += 4)
             {
-                parent1 = tournament(old_pop.IndList[a1[i]], old_pop.IndList[a1[i + 1]]);
-                parent2 = tournament(old_pop.IndList[a1[i + 2]], old_pop.IndList[a1[i + 3]]);
-                crossover(parent1, parent2, new_pop.IndList[i], new_pop.IndList[i + 1]);
-                parent1 = tournament(old_pop.IndList[a2[i]], old_pop.IndList[a2[i + 1]]);
-                parent2 = tournament(old_pop.IndList[a2[i + 2]], old_pop.IndList[a2[i + 3]]);
-                crossover(parent1, parent2, new_pop.IndList[i + 2], new_pop.IndList[i + 3]);
+                parent1 = Tournament(oldPopulation.IndList[a1[i]], oldPopulation.IndList[a1[i + 1]]);
+                parent2 = Tournament(oldPopulation.IndList[a1[i + 2]], oldPopulation.IndList[a1[i + 3]]);
+                Crossover(parent1, parent2, newPopulation.IndList[i], newPopulation.IndList[i + 1]);
+                parent1 = Tournament(oldPopulation.IndList[a2[i]], oldPopulation.IndList[a2[i + 1]]);
+                parent2 = Tournament(oldPopulation.IndList[a2[i + 2]], oldPopulation.IndList[a2[i + 3]]);
+                Crossover(parent1, parent2, newPopulation.IndList[i + 2], newPopulation.IndList[i + 3]);
             }
 
-            return;
         }
 
-        /* Routine for binary tournament */
-        static Individual tournament(Individual ind1, Individual ind2)
+        /* Routine for binary Tournament */
+        static Individual Tournament(Individual ind1, Individual ind2)
         {
             int flag;
-            flag = check_dominance(ind1, ind2);
+            flag = CheckDominance(ind1, ind2);
             if (flag == 1)
             {
-                return (ind1);
+                return ind1;
             }
             if (flag == -1)
             {
-                return (ind2);
+                return ind2;
             }
             if (ind1.CrowdDist > ind2.CrowdDist)
             {
-                return (ind1);
+                return ind1;
             }
             if (ind2.CrowdDist > ind1.CrowdDist)
             {
-                return (ind2);
+                return ind2;
             }
-            if ((_randomizationObj.RandomPercent()) <= 0.5)
+            if (RandomizationObj.RandomPercent() <= 0.5)
             {
-                return (ind1);
+                return ind1;
             }
             else
             {
-                return (ind2);
+                return ind2;
             }
         }
         #endregion
 
-        #region crossover.c
+        #region Crossover.c
         /* Function to cross two individuals */
-        static void crossover(Individual parent1, Individual parent2, Individual child1, Individual child2)
+        static void Crossover(Individual parent1, Individual parent2, Individual child1, Individual child2)
         {
-            if (nreal != 0)
+            if (RealVariableCount != 0)
             {
-                realcross(parent1, parent2, child1, child2);
+                RealCrossover(parent1, parent2, child1, child2);
             }
-            if (nbin != 0)
+            if (BinaryVariableCount != 0)
             {
-                bincross(parent1, parent2, child1, child2);
+                BinaryCrossover(parent1, parent2, child1, child2);
             }
-            return;
         }
 
-        /* Routine for real variable SBX crossover */
-        static void realcross(Individual parent1, Individual parent2, Individual child1, Individual child2)
+        /* Routine for real variable SBX Crossover */
+        static void RealCrossover(Individual parent1, Individual parent2, Individual child1, Individual child2)
         {
             int i;
             double rand;
             double y1, y2, yl, yu;
             double c1, c2;
             double alpha, beta, betaq;
-            if (_randomizationObj.RandomPercent() <= pcross_real)
+            if (RandomizationObj.RandomPercent() <= RealCrossoverProbability)
             {
-                nrealcross++;
-                for (i = 0; i < nreal; i++)
+                RealCrossoverCount++;
+                for (i = 0; i < RealVariableCount; i++)
                 {
-                    if (_randomizationObj.RandomPercent() <= 0.5)
+                    if (RandomizationObj.RandomPercent() <= 0.5)
                     {
                         if (Math.Abs(parent1.Xreal[i] - parent2.Xreal[i]) > EPS)
                         {
@@ -1562,29 +1524,29 @@ namespace ConsoleApp
                             }
                             yl = min_realvar[i];
                             yu = max_realvar[i];
-                            rand = _randomizationObj.RandomPercent();
-                            beta = 1.0 + (2.0 * (y1 - yl) / (y2 - y1));
-                            alpha = 2.0 - Math.Pow(beta, -(eta_c + 1.0));
-                            if (rand <= (1.0 / alpha))
+                            rand = RandomizationObj.RandomPercent();
+                            beta = 1.0 + 2.0 * (y1 - yl) / (y2 - y1);
+                            alpha = 2.0 - Math.Pow(beta, -(CrossoverDistributionIndex + 1.0));
+                            if (rand <= 1.0 / alpha)
                             {
-                                betaq = Math.Pow((rand * alpha), (1.0 / (eta_c + 1.0)));
+                                betaq = Math.Pow(rand * alpha, 1.0 / (CrossoverDistributionIndex + 1.0));
                             }
                             else
                             {
-                                betaq = Math.Pow((1.0 / (2.0 - rand * alpha)), (1.0 / (eta_c + 1.0)));
+                                betaq = Math.Pow(1.0 / (2.0 - rand * alpha), 1.0 / (CrossoverDistributionIndex + 1.0));
                             }
-                            c1 = 0.5 * ((y1 + y2) - betaq * (y2 - y1));
-                            beta = 1.0 + (2.0 * (yu - y2) / (y2 - y1));
-                            alpha = 2.0 - Math.Pow(beta, -(eta_c + 1.0));
-                            if (rand <= (1.0 / alpha))
+                            c1 = 0.5 * (y1 + y2 - betaq * (y2 - y1));
+                            beta = 1.0 + 2.0 * (yu - y2) / (y2 - y1);
+                            alpha = 2.0 - Math.Pow(beta, -(CrossoverDistributionIndex + 1.0));
+                            if (rand <= 1.0 / alpha)
                             {
-                                betaq = Math.Pow((rand * alpha), (1.0 / (eta_c + 1.0)));
+                                betaq = Math.Pow(rand * alpha, 1.0 / (CrossoverDistributionIndex + 1.0));
                             }
                             else
                             {
-                                betaq = Math.Pow((1.0 / (2.0 - rand * alpha)), (1.0 / (eta_c + 1.0)));
+                                betaq = Math.Pow(1.0 / (2.0 - rand * alpha), 1.0 / (CrossoverDistributionIndex + 1.0));
                             }
-                            c2 = 0.5 * ((y1 + y2) + betaq * (y2 - y1));
+                            c2 = 0.5 * (y1 + y2 + betaq * (y2 - y1));
                             if (c1 < yl)
                                 c1 = yl;
                             if (c2 < yl)
@@ -1593,7 +1555,7 @@ namespace ConsoleApp
                                 c1 = yu;
                             if (c2 > yu)
                                 c2 = yu;
-                            if (_randomizationObj.RandomPercent() <= 0.5)
+                            if (RandomizationObj.RandomPercent() <= 0.5)
                             {
                                 child1.Xreal[i] = c2;
                                 child2.Xreal[i] = c1;
@@ -1619,29 +1581,28 @@ namespace ConsoleApp
             }
             else
             {
-                for (i = 0; i < nreal; i++)
+                for (i = 0; i < RealVariableCount; i++)
                 {
                     child1.Xreal[i] = parent1.Xreal[i];
                     child2.Xreal[i] = parent2.Xreal[i];
                 }
             }
-            return;
         }
 
-        /* Routine for two point binary crossover */
-        static void bincross(Individual parent1, Individual parent2, Individual child1, Individual child2)
+        /* Routine for two point binary Crossover */
+        static void BinaryCrossover(Individual parent1, Individual parent2, Individual child1, Individual child2)
         {
             int i, j;
             double rand;
             int temp, site1, site2;
-            for (i = 0; i < nbin; i++)
+            for (i = 0; i < BinaryVariableCount; i++)
             {
-                rand = _randomizationObj.RandomPercent();
-                if (rand <= pcross_bin)
+                rand = RandomizationObj.RandomPercent();
+                if (rand <= BinaryCrossoverProbability)
                 {
-                    nbincross++;
-                    site1 = _randomizationObj.RandomInteger(0, nbits[i] - 1);
-                    site2 = _randomizationObj.RandomInteger(0, nbits[i] - 1);
+                    BinaryCrossoverCount++;
+                    site1 = RandomizationObj.RandomInteger(0, nbits[i] - 1);
+                    site2 = RandomizationObj.RandomInteger(0, nbits[i] - 1);
                     if (site1 > site2)
                     {
                         temp = site1;
@@ -1673,7 +1634,7 @@ namespace ConsoleApp
                     }
                 }
             }
-            return;
+
         }
         #endregion
 
@@ -1683,7 +1644,7 @@ namespace ConsoleApp
    1 if a dominates b
    -1 if b dominates a
    0 if both a and b are non-dominated */
-        static int check_dominance(Individual a, Individual b)
+        static int CheckDominance(Individual a, Individual b)
         {
             int i;
             int flag1;
@@ -1694,107 +1655,87 @@ namespace ConsoleApp
             {
                 if (a.ConstrViolation > b.ConstrViolation)
                 {
-                    return (1);
+                    return 1;
                 }
-                else
+                if (a.ConstrViolation < b.ConstrViolation)
                 {
-                    if (a.ConstrViolation < b.ConstrViolation)
-                    {
-                        return (-1);
-                    }
-                    else
-                    {
-                        return (0);
-                    }
+                    return -1;
                 }
+                return 0;
             }
-            else
+            if (a.ConstrViolation < 0 && b.ConstrViolation == 0)
             {
-                if (a.ConstrViolation < 0 && b.ConstrViolation == 0)
+                return -1;
+            }
+
+            if (a.ConstrViolation == 0 && b.ConstrViolation < 0)
+            {
+                return 1;
+            }
+
+            for (i = 0; i < ObjectiveCount; i++)
+            {
+                if (a.Obj[i] < b.Obj[i])
                 {
-                    return (-1);
+                    flag1 = 1;
+
                 }
                 else
                 {
-                    if (a.ConstrViolation == 0 && b.ConstrViolation < 0)
+                    if (a.Obj[i] > b.Obj[i])
                     {
-                        return (1);
-                    }
-                    else
-                    {
-                        for (i = 0; i < nobj; i++)
-                        {
-                            if (a.Obj[i] < b.Obj[i])
-                            {
-                                flag1 = 1;
-
-                            }
-                            else
-                            {
-                                if (a.Obj[i] > b.Obj[i])
-                                {
-                                    flag2 = 1;
-                                }
-                            }
-                        }
-                        if (flag1 == 1 && flag2 == 0)
-                        {
-                            return (1);
-                        }
-                        else
-                        {
-                            if (flag1 == 0 && flag2 == 1)
-                            {
-                                return (-1);
-                            }
-                            else
-                            {
-                                return (0);
-                            }
-                        }
+                        flag2 = 1;
                     }
                 }
             }
+            if (flag1 == 1 && flag2 == 0)
+            {
+                return 1;
+            }
+            if (flag1 == 0 && flag2 == 1)
+            {
+                return -1;
+            }
+            return 0;
         }
         #endregion
 
         #region mutation.c
         /* Function to perform mutation in a population */
-        static void mutation_pop(Population pop)
+        static void MutatePopulation(Population pop)
         {
             int i;
-            for (i = 0; i < popsize; i++)
+            for (i = 0; i < PopulationSize; i++)
             {
-                mutation_ind(pop.IndList[i]);
+                MutateIndividual(pop.IndList[i]);
             }
-            return;
         }
 
         /* Function to perform mutation of an individual */
-        static void mutation_ind(Individual ind)
+        static void MutateIndividual(Individual ind)
         {
-            if (nreal != 0)
+            if (RealVariableCount != 0)
             {
-                real_mutate_ind(ind);
+                RealMutate(ind);
             }
-            if (nbin != 0)
+            if (BinaryVariableCount != 0)
             {
-                bin_mutate_ind(ind);
+                BinaryMutate(ind);
             }
             return;
         }
 
         /* Routine for binary mutation of an individual */
-        static void bin_mutate_ind(Individual ind)
+        static void BinaryMutate(Individual ind)
         {
             int j, k;
             double prob;
-            for (j = 0; j < nbin; j++)
+            for (j = 0; j < BinaryVariableCount; j++)
             {
                 for (k = 0; k < nbits[j]; k++)
                 {
-                    prob = _randomizationObj.RandomPercent();
-                    if (prob <= pmut_bin)
+                    prob = RandomizationObj.RandomPercent();
+                    if (prob <= BinaryMutationProbability)
                     {
                         if (ind.Gene[j, k] == 0)
                         {
@@ -1804,41 +1745,40 @@ namespace ConsoleApp
                         {
                             ind.Gene[j, k] = 0;
                         }
-                        nbinmut += 1;
+                        BinaryMutationCount += 1;
                     }
                 }
             }
-            return;
         }
 
         /* Routine for real polynomial mutation of an individual */
-        static void real_mutate_ind(Individual ind)
+        static void RealMutate(Individual ind)
         {
             int j;
             double rnd, delta1, delta2, mut_pow, deltaq;
             double y, yl, yu, val, xy;
-            for (j = 0; j < nreal; j++)
+            for (j = 0; j < RealVariableCount; j++)
             {
-                if (_randomizationObj.RandomPercent() <= pmut_real)
+                if (RandomizationObj.RandomPercent() <= RealMutationProbability)
                 {
                     y = ind.Xreal[j];
                     yl = min_realvar[j];
                     yu = max_realvar[j];
                     delta1 = (y - yl) / (yu - yl);
                     delta2 = (yu - y) / (yu - yl);
-                    rnd = _randomizationObj.RandomPercent();
-                    mut_pow = 1.0 / (eta_m + 1.0);
+                    rnd = RandomizationObj.RandomPercent();
+                    mut_pow = 1.0 / (MutationDistributionIndex + 1.0);
                     if (rnd <= 0.5)
                     {
                         xy = 1.0 - delta1;
-                        val = 2.0 * rnd + (1.0 - 2.0 * rnd) * (Math.Pow(xy, (eta_m + 1.0)));
+                        val = 2.0 * rnd + (1.0 - 2.0 * rnd) * Math.Pow(xy, MutationDistributionIndex + 1.0);
                         deltaq = Math.Pow(val, mut_pow) - 1.0;
                     }
                     else
                     {
                         xy = 1.0 - delta2;
-                        val = 2.0 * (1.0 - rnd) + 2.0 * (rnd - 0.5) * (Math.Pow(xy, (eta_m + 1.0)));
-                        deltaq = 1.0 - (Math.Pow(val, mut_pow));
+                        val = 2.0 * (1.0 - rnd) + 2.0 * (rnd - 0.5) * Math.Pow(xy, MutationDistributionIndex + 1.0);
+                        deltaq = 1.0 - Math.Pow(val, mut_pow);
                     }
                     y = y + deltaq * (yu - yl);
                     if (y < yl)
@@ -1846,42 +1786,41 @@ namespace ConsoleApp
                     if (y > yu)
                         y = yu;
                     ind.Xreal[j] = y;
-                    nrealmut += 1;
+                    RealMutationCount += 1;
                 }
             }
-            return;
         }
         #endregion
 
         #region report.c
 
         /* Function to print the information of a population in a file */
-        static void report_pop(Population pop, StreamWriter writer)
+        static void ReportPopulation(Population pop, StreamWriter writer)
         {
             int i, j, k;
-            for (i = 0; i < popsize; i++)
+            for (i = 0; i < PopulationSize; i++)
             {
-                for (j = 0; j < nobj; j++)
+                for (j = 0; j < ObjectiveCount; j++)
                 {
                     writer.Write($"{pop.IndList[i].Obj[j].ToString("E")}\t");
                 }
-                if (ncon != 0)
+                if (ConstraintCount != 0)
                 {
-                    for (j = 0; j < ncon; j++)
+                    for (j = 0; j < ConstraintCount; j++)
                     {
                         writer.Write($"{pop.IndList[i].Constr[j].ToString("E")}\t");
                     }
                 }
-                if (nreal != 0)
+                if (RealVariableCount != 0)
                 {
-                    for (j = 0; j < nreal; j++)
+                    for (j = 0; j < RealVariableCount; j++)
                     {
                         writer.Write($"{pop.IndList[i].Xreal[j].ToString("E")}\t");
                     }
                 }
-                if (nbin != 0)
+                if (BinaryVariableCount != 0)
                 {
-                    for (j = 0; j < nbin; j++)
+                    for (j = 0; j < BinaryVariableCount; j++)
                     {
                         for (k = 0; k < nbits[j]; k++)
                         {
@@ -1893,38 +1832,38 @@ namespace ConsoleApp
                 writer.Write($"{pop.IndList[i].Rank}\t");
                 writer.Write($"{pop.IndList[i].CrowdDist.ToString("E")}\n");
             }
-            return;
+
         }
 
         /* Function to print the information of feasible and non-dominated population in a file */
-        static void report_feasible(Population pop, StreamWriter writer)
+        static void ReportFeasiblePopulation(Population pop, StreamWriter writer)
         {
             int i, j, k;
-            for (i = 0; i < popsize; i++)
+            for (i = 0; i < PopulationSize; i++)
             {
                 if (pop.IndList[i].ConstrViolation == 0.0 && pop.IndList[i].Rank == 1)
                 {
-                    for (j = 0; j < nobj; j++)
+                    for (j = 0; j < ObjectiveCount; j++)
                     {
                         writer.Write($"{pop.IndList[i].Obj[j].ToString("E")}\t");
                     }
-                    if (ncon != 0)
+                    if (ConstraintCount != 0)
                     {
-                        for (j = 0; j < ncon; j++)
+                        for (j = 0; j < ConstraintCount; j++)
                         {
                             writer.Write($"{pop.IndList[i].Constr[j].ToString("E")}\t");
                         }
                     }
-                    if (nreal != 0)
+                    if (RealVariableCount != 0)
                     {
-                        for (j = 0; j < nreal; j++)
+                        for (j = 0; j < RealVariableCount; j++)
                         {
                             writer.Write($"{pop.IndList[i].Xreal[j].ToString("E")}\t");
                         }
                     }
-                    if (nbin != 0)
+                    if (BinaryVariableCount != 0)
                     {
-                        for (j = 0; j < nbin; j++)
+                        for (j = 0; j < BinaryVariableCount; j++)
                         {
                             for (k = 0; k < nbits[j]; k++)
                             {
@@ -1944,7 +1883,7 @@ namespace ConsoleApp
 
         #region list.c
         /* Insert an element X into the list at location specified by NODE */
-        static void insert(Lists node, int x)
+        static void Insert(Lists node, int x)
         {
             Lists temp;
             if (node == null)
@@ -1961,11 +1900,10 @@ namespace ConsoleApp
                 node.child.parent = temp;
             }
             node.child = temp;
-            return;
         }
 
         /* Delete the node NODE from the list */
-        static Lists del(Lists node)
+        static Lists Delete(Lists node)
         {
             Lists temp;
             if (node == null)
@@ -1980,13 +1918,13 @@ namespace ConsoleApp
                 temp.child.parent = temp;
             }
             //free(node);
-            return (temp);
+            return temp;
         }
         #endregion
 
         #region rank.c
         /* Function to assign rank and crowding distance to a population of size pop_size*/
-        static void assign_rank_and_crowding_distance(Population new_pop)
+        static void assign_rank_and_crowding_distance(Population newPopulation)
         {
             int flag;
             int i;
@@ -1999,7 +1937,6 @@ namespace ConsoleApp
             orig = new Lists();
             cur = new Lists();
 
-            front_size = 0;
             orig.index = -1;
             orig.parent = null;
             orig.child = null;
@@ -2007,24 +1944,24 @@ namespace ConsoleApp
             cur.parent = null;
             cur.child = null;
             temp1 = orig;
-            for (i = 0; i < popsize; i++)
+            for (i = 0; i < PopulationSize; i++)
             {
-                insert(temp1, i);
+                Insert(temp1, i);
                 temp1 = temp1.child;
             }
             do
             {
                 if (orig.child.child == null)
                 {
-                    new_pop.IndList[orig.child.index].Rank = rank;
-                    new_pop.IndList[orig.child.index].CrowdDist = INF;
+                    newPopulation.IndList[orig.child.index].Rank = rank;
+                    newPopulation.IndList[orig.child.index].CrowdDist = INF;
                     break;
                 }
                 temp1 = orig.child;
-                insert(cur, temp1.index);
+                Insert(cur, temp1.index);
                 front_size = 1;
                 temp2 = cur.child;
-                temp1 = del(temp1);
+                temp1 = Delete(temp1);
                 temp1 = temp1.child;
                 do
                 {
@@ -2032,11 +1969,11 @@ namespace ConsoleApp
                     do
                     {
                         end = 0;
-                        flag = check_dominance((new_pop.IndList[temp1.index]), (new_pop.IndList[temp2.index]));
+                        flag = CheckDominance(newPopulation.IndList[temp1.index], newPopulation.IndList[temp2.index]);
                         if (flag == 1)
                         {
-                            insert(orig, temp2.index);
-                            temp2 = del(temp2);
+                            Insert(orig, temp2.index);
+                            temp2 = Delete(temp2);
                             front_size--;
                             temp2 = temp2.child;
                         }
@@ -2052,9 +1989,9 @@ namespace ConsoleApp
                     while (end != 1 && temp2 != null);
                     if (flag == 0 || flag == 1)
                     {
-                        insert(cur, temp1.index);
+                        Insert(cur, temp1.index);
                         front_size++;
-                        temp1 = del(temp1);
+                        temp1 = Delete(temp1);
                     }
                     temp1 = temp1.child;
                 }
@@ -2062,15 +1999,15 @@ namespace ConsoleApp
                 temp2 = cur.child;
                 do
                 {
-                    new_pop.IndList[temp2.index].Rank = rank;
+                    newPopulation.IndList[temp2.index].Rank = rank;
                     temp2 = temp2.child;
                 }
                 while (temp2 != null);
-                assign_crowding_distance_list(new_pop, cur.child, front_size);
+                assign_crowding_distance_list(newPopulation, cur.child, front_size);
                 temp2 = cur.child;
                 do
                 {
-                    temp2 = del(temp2);
+                    temp2 = Delete(temp2);
                     temp2 = temp2.child;
                 }
                 while (cur.child != null);
@@ -2078,52 +2015,43 @@ namespace ConsoleApp
             }
             while (orig.child != null);
 
-            //free(orig);
-            //free(cur);
-            return;
         }
         #endregion
 
         #region crowddist.c
         /* Routine to compute crowding distance based on ojbective function values when the population in in the form of a list */
-        static void assign_crowding_distance_list(Population pop, Lists lst, int front_size)
+        static void assign_crowding_distance_list(Population pop, Lists lst, int frontSize)
         {
             int[][] obj_array;
             int[] dist;
             int i, j;
             Lists temp;
             temp = lst;
-            if (front_size == 1)
+            if (frontSize == 1)
             {
                 pop.IndList[lst.index].CrowdDist = INF;
                 return;
             }
-            if (front_size == 2)
+            if (frontSize == 2)
             {
                 pop.IndList[lst.index].CrowdDist = INF;
                 pop.IndList[lst.child.index].CrowdDist = INF;
                 return;
             }
-            dist = new int[front_size];
-            obj_array = new int[nobj][];
-            //obj_array = (int**)malloc(nobj * sizeof(int*));
-            for (i = 0; i < nobj; i++)
+            dist = new int[frontSize];
+            obj_array = new int[ObjectiveCount][];
+            //obj_array = (int**)malloc(ObjectiveCount * sizeof(int*));
+            for (i = 0; i < ObjectiveCount; i++)
             {
-                obj_array[i] = new int[front_size];
+                obj_array[i] = new int[frontSize];
             }
-            for (j = 0; j < front_size; j++)
+            for (j = 0; j < frontSize; j++)
             {
                 dist[j] = temp.index;
                 temp = temp.child;
             }
-            assign_crowding_distance(pop, dist, obj_array, front_size);
-            //free(dist);
-            //for (i = 0; i < nobj; i++)
-            //{
-            //    free(obj_array[i]);
-            //}
-            //free(obj_array);
-            return;
+            assign_crowding_distance(pop, dist, obj_array, frontSize);
+
         }
 
         /* Routine to compute crowding distance based on objective function values when the population in in the form of an array */
@@ -2146,9 +2074,9 @@ namespace ConsoleApp
                 return;
             }
             dist = new int[front_size];
-            obj_array = new int[nobj][];
-            //obj_array = (int**)malloc(nobj * sizeof(int*));
-            for (i = 0; i < nobj; i++)
+            obj_array = new int[ObjectiveCount][];
+            //obj_array = (int**)malloc(ObjectiveCount * sizeof(int*));
+            for (i = 0; i < ObjectiveCount; i++)
             {
                 obj_array[i] = new int[front_size];
             }
@@ -2159,7 +2087,7 @@ namespace ConsoleApp
             }
             assign_crowding_distance(pop, dist, obj_array, front_size);
             //free(dist);
-            //for (i = 0; i < nobj; i++)
+            //for (i = 0; i < ObjectiveCount; i++)
             //{
             //    free(obj_array[i]);
             //}
@@ -2168,47 +2096,47 @@ namespace ConsoleApp
         }
 
         /* Routine to compute crowding distances */
-        static void assign_crowding_distance(Population pop, int[] dist, int[][] obj_array, int front_size)
+        static void assign_crowding_distance(Population pop, int[] dist, int[][] objArray, int frontSize)
         {
             int i, j;
-            for (i = 0; i < nobj; i++)
+            for (i = 0; i < ObjectiveCount; i++)
             {
-                for (j = 0; j < front_size; j++)
+                for (j = 0; j < frontSize; j++)
                 {
-                    obj_array[i][j] = dist[j];
+                    objArray[i][j] = dist[j];
                 }
-                quicksort_front_obj(pop, i, obj_array[i], front_size);
+                quicksort_front_obj(pop, i, objArray[i], frontSize);
             }
-            for (j = 0; j < front_size; j++)
+            for (j = 0; j < frontSize; j++)
             {
                 pop.IndList[dist[j]].CrowdDist = 0.0;
             }
-            for (i = 0; i < nobj; i++)
+            for (i = 0; i < ObjectiveCount; i++)
             {
-                pop.IndList[obj_array[i][0]].CrowdDist = INF;
+                pop.IndList[objArray[i][0]].CrowdDist = INF;
             }
-            for (i = 0; i < nobj; i++)
+            for (i = 0; i < ObjectiveCount; i++)
             {
-                for (j = 1; j < front_size - 1; j++)
+                for (j = 1; j < frontSize - 1; j++)
                 {
-                    if (pop.IndList[obj_array[i][j]].CrowdDist != INF)
+                    if (pop.IndList[objArray[i][j]].CrowdDist != INF)
                     {
-                        if (pop.IndList[obj_array[i][front_size - 1]].Obj[i] == pop.IndList[obj_array[i][0]].Obj[i])
+                        if (pop.IndList[objArray[i][frontSize - 1]].Obj[i] == pop.IndList[objArray[i][0]].Obj[i])
                         {
-                            pop.IndList[obj_array[i][j]].CrowdDist += 0.0;
+                            pop.IndList[objArray[i][j]].CrowdDist += 0.0;
                         }
                         else
                         {
-                            pop.IndList[obj_array[i][j]].CrowdDist += (pop.IndList[obj_array[i][j + 1]].Obj[i] - pop.IndList[obj_array[i][j - 1]].Obj[i]) / (pop.IndList[obj_array[i][front_size - 1]].Obj[i] - pop.IndList[obj_array[i][0]].Obj[i]);
+                            pop.IndList[objArray[i][j]].CrowdDist += (pop.IndList[objArray[i][j + 1]].Obj[i] - pop.IndList[objArray[i][j - 1]].Obj[i]) / (pop.IndList[objArray[i][frontSize - 1]].Obj[i] - pop.IndList[objArray[i][0]].Obj[i]);
                         }
                     }
                 }
             }
-            for (j = 0; j < front_size; j++)
+            for (j = 0; j < frontSize; j++)
             {
                 if (pop.IndList[dist[j]].CrowdDist != INF)
                 {
-                    pop.IndList[dist[j]].CrowdDist = (pop.IndList[dist[j]].CrowdDist) / nobj;
+                    pop.IndList[dist[j]].CrowdDist = pop.IndList[dist[j]].CrowdDist / ObjectiveCount;
                 }
             }
             return;
@@ -2217,14 +2145,14 @@ namespace ConsoleApp
 
         #region sort.c
         /* Randomized quick sort routine to sort a population based on a particular objective chosen */
-        static void quicksort_front_obj(Population pop, int objcount, int[] obj_array, int obj_array_size)
+        static void quicksort_front_obj(Population pop, int objcount, int[] objArray, int objArraySize)
         {
-            q_sort_front_obj(pop, objcount, obj_array, 0, obj_array_size - 1);
+            q_sort_front_obj(pop, objcount, objArray, 0, objArraySize - 1);
             return;
         }
 
         /* Actual implementation of the randomized quick sort used to sort a population based on a particular objective chosen */
-        static void q_sort_front_obj(Population pop, int objcount, int[] obj_array, int left, int right)
+        static void q_sort_front_obj(Population pop, int objcount, int[] objArray, int left, int right)
         {
             int index;
             int temp;
@@ -2232,37 +2160,35 @@ namespace ConsoleApp
             double pivot;
             if (left < right)
             {
-                index = _randomizationObj.RandomInteger(left, right);
-                temp = obj_array[right];
-                obj_array[right] = obj_array[index];
-                obj_array[index] = temp;
-                pivot = pop.IndList[obj_array[right]].Obj[objcount];
+                index = RandomizationObj.RandomInteger(left, right);
+                temp = objArray[right];
+                objArray[right] = objArray[index];
+                objArray[index] = temp;
+                pivot = pop.IndList[objArray[right]].Obj[objcount];
                 i = left - 1;
                 for (j = left; j < right; j++)
                 {
-                    if (pop.IndList[obj_array[j]].Obj[objcount] <= pivot)
+                    if (pop.IndList[objArray[j]].Obj[objcount] <= pivot)
                     {
                         i += 1;
-                        temp = obj_array[j];
-                        obj_array[j] = obj_array[i];
-                        obj_array[i] = temp;
+                        temp = objArray[j];
+                        objArray[j] = objArray[i];
+                        objArray[i] = temp;
                     }
                 }
                 index = i + 1;
-                temp = obj_array[index];
-                obj_array[index] = obj_array[right];
-                obj_array[right] = temp;
-                q_sort_front_obj(pop, objcount, obj_array, left, index - 1);
-                q_sort_front_obj(pop, objcount, obj_array, index + 1, right);
+                temp = objArray[index];
+                objArray[index] = objArray[right];
+                objArray[right] = temp;
+                q_sort_front_obj(pop, objcount, objArray, left, index - 1);
+                q_sort_front_obj(pop, objcount, objArray, index + 1, right);
             }
-            return;
         }
 
         /* Randomized quick sort routine to sort a population based on crowding distance */
-        static void quicksort_dist(Population pop, int[] dist, int front_size)
+        static void quicksort_dist(Population pop, int[] dist, int frontSize)
         {
-            q_sort_dist(pop, dist, 0, front_size - 1);
-            return;
+            q_sort_dist(pop, dist, 0, frontSize - 1);
         }
 
         /* Actual implementation of the randomized quick sort used to sort a population based on crowding distance */
@@ -2274,7 +2200,7 @@ namespace ConsoleApp
             double pivot;
             if (left < right)
             {
-                index = _randomizationObj.RandomInteger(left, right);
+                index = RandomizationObj.RandomInteger(left, right);
                 temp = dist[right];
                 dist[right] = dist[index];
                 dist[index] = temp;
@@ -2297,44 +2223,43 @@ namespace ConsoleApp
                 q_sort_dist(pop, dist, left, index - 1);
                 q_sort_dist(pop, dist, index + 1, right);
             }
-            return;
+
         }
         #endregion
 
-        #region merge.c
+        #region MergePopulation.c
 
-        /* Routine to merge two populations into one */
-        static void merge(Population pop1, Population pop2, Population pop3)
+        /* Routine to MergePopulation two populations into one */
+        static void MergePopulation(Population pop1, Population pop2, Population pop3)
         {
             int i, k;
-            for (i = 0; i < popsize; i++)
+            for (i = 0; i < PopulationSize; i++)
             {
-                copy_ind(pop1.IndList[i], pop3.IndList[i]);
+                CopyIndividual(pop1.IndList[i], pop3.IndList[i]);
             }
-            for (i = 0, k = popsize; i < popsize; i++, k++)
+            for (i = 0, k = PopulationSize; i < PopulationSize; i++, k++)
             {
-                copy_ind(pop2.IndList[i], pop3.IndList[k]);
+                CopyIndividual(pop2.IndList[i], pop3.IndList[k]);
             }
-            return;
         }
 
         /* Routine to copy an individual 'ind1' into another individual 'ind2' */
-        static void copy_ind(Individual ind1, Individual ind2)
+        static void CopyIndividual(Individual ind1, Individual ind2)
         {
             int i, j;
             ind2.Rank = ind1.Rank;
             ind2.ConstrViolation = ind1.ConstrViolation;
             ind2.CrowdDist = ind1.CrowdDist;
-            if (nreal != 0)
+            if (RealVariableCount != 0)
             {
-                for (i = 0; i < nreal; i++)
+                for (i = 0; i < RealVariableCount; i++)
                 {
                     ind2.Xreal[i] = ind1.Xreal[i];
                 }
             }
-            if (nbin != 0)
+            if (BinaryVariableCount != 0)
             {
-                for (i = 0; i < nbin; i++)
+                for (i = 0; i < BinaryVariableCount; i++)
                 {
                     ind2.Xbin[i] = ind1.Xbin[i];
                     for (j = 0; j < nbits[i]; j++)
@@ -2343,18 +2268,18 @@ namespace ConsoleApp
                     }
                 }
             }
-            for (i = 0; i < nobj; i++)
+            for (i = 0; i < ObjectiveCount; i++)
             {
                 ind2.Obj[i] = ind1.Obj[i];
             }
-            if (ncon != 0)
+            if (ConstraintCount != 0)
             {
-                for (i = 0; i < ncon; i++)
+                for (i = 0; i < ConstraintCount; i++)
                 {
                     ind2.Constr[i] = ind1.Constr[i];
                 }
             }
-            return;
+
         }
 
         #endregion
@@ -2362,7 +2287,7 @@ namespace ConsoleApp
         #region fillnds.c
 
         /* Routine to perform non-dominated sorting */
-        static void fill_nondominated_sort(Population mixed_pop, Population new_pop)
+        static void fill_nondominated_sort(Population mixedPop, Population newPop)
         {
             int flag;
             int i, j;
@@ -2384,19 +2309,19 @@ namespace ConsoleApp
             elite.parent = null;
             elite.child = null;
             temp1 = pool;
-            for (i = 0; i < 2 * popsize; i++)
+            for (i = 0; i < 2 * PopulationSize; i++)
             {
-                insert(temp1, i);
+                Insert(temp1, i);
                 temp1 = temp1.child;
             }
             i = 0;
             do
             {
                 temp1 = pool.child;
-                insert(elite, temp1.index);
+                Insert(elite, temp1.index);
                 front_size = 1;
                 temp2 = elite.child;
-                temp1 = del(temp1);
+                temp1 = Delete(temp1);
                 temp1 = temp1.child;
                 do
                 {
@@ -2408,11 +2333,11 @@ namespace ConsoleApp
                     do
                     {
                         end = 0;
-                        flag = check_dominance(mixed_pop.IndList[temp1.index], mixed_pop.IndList[temp2.index]);
+                        flag = CheckDominance(mixedPop.IndList[temp1.index], mixedPop.IndList[temp2.index]);
                         if (flag == 1)
                         {
-                            insert(pool, temp2.index);
-                            temp2 = del(temp2);
+                            Insert(pool, temp2.index);
+                            temp2 = Delete(temp2);
                             front_size--;
                             temp2 = temp2.child;
                         }
@@ -2428,125 +2353,112 @@ namespace ConsoleApp
                     while (end != 1 && temp2 != null);
                     if (flag == 0 || flag == 1)
                     {
-                        insert(elite, temp1.index);
+                        Insert(elite, temp1.index);
                         front_size++;
-                        temp1 = del(temp1);
+                        temp1 = Delete(temp1);
                     }
                     temp1 = temp1.child;
                 }
                 while (temp1 != null);
                 temp2 = elite.child;
                 j = i;
-                if ((archieve_size + front_size) <= popsize)
+                if (archieve_size + front_size <= PopulationSize)
                 {
                     do
                     {
-                        copy_ind(mixed_pop.IndList[temp2.index], new_pop.IndList[i]);
-                        new_pop.IndList[i].Rank = rank;
+                        CopyIndividual(mixedPop.IndList[temp2.index], newPop.IndList[i]);
+                        newPop.IndList[i].Rank = rank;
                         archieve_size += 1;
                         temp2 = temp2.child;
                         i += 1;
                     }
                     while (temp2 != null);
-                    assign_crowding_distance_indices(new_pop, j, i - 1);
+                    assign_crowding_distance_indices(newPop, j, i - 1);
                     rank += 1;
                 }
                 else
                 {
-                    crowding_fill(mixed_pop, new_pop, i, front_size, elite);
-                    archieve_size = popsize;
-                    for (j = i; j < popsize; j++)
+                    crowding_fill(mixedPop, newPop, i, front_size, elite);
+                    archieve_size = PopulationSize;
+                    for (j = i; j < PopulationSize; j++)
                     {
-                        new_pop.IndList[j].Rank = rank;
+                        newPop.IndList[j].Rank = rank;
                     }
                 }
                 temp2 = elite.child;
                 do
                 {
-                    temp2 = del(temp2);
+                    temp2 = Delete(temp2);
                     temp2 = temp2.child;
                 }
                 while (elite.child != null);
             }
-            while (archieve_size < popsize);
-            //while (pool != null)
-            //{
-            //    temp1 = pool;
-            //    pool = pool.child;
-            //    free(temp1);
-            //}
-            //while (elite != null)
-            //{
-            //    temp1 = elite;
-            //    elite = elite.child;
-            //    free(temp1);
-            //}
-            return;
+            while (archieve_size < PopulationSize);
+
         }
 
         /* Routine to fill a population with individuals in the decreasing order of crowding distance */
-        static void crowding_fill(Population mixed_pop, Population new_pop, int count, int front_size, Lists elite)
+        static void crowding_fill(Population mixedPop, Population newPop, int count, int frontSize, Lists elite)
         {
             int[] dist;
             Lists temp;
             int i, j;
-            assign_crowding_distance_list(mixed_pop, elite.child, front_size);
-            dist = new int[front_size];
+            assign_crowding_distance_list(mixedPop, elite.child, frontSize);
+            dist = new int[frontSize];
             temp = elite.child;
-            for (j = 0; j < front_size; j++)
+            for (j = 0; j < frontSize; j++)
             {
                 dist[j] = temp.index;
                 temp = temp.child;
             }
-            quicksort_dist(mixed_pop, dist, front_size);
-            for (i = count, j = front_size - 1; i < popsize; i++, j--)
+            quicksort_dist(mixedPop, dist, frontSize);
+            for (i = count, j = frontSize - 1; i < PopulationSize; i++, j--)
             {
-                copy_ind(mixed_pop.IndList[dist[j]], new_pop.IndList[i]);
+                CopyIndividual(mixedPop.IndList[dist[j]], newPop.IndList[i]);
             }
-            //free(dist);
-            return;
+
         }
 
         #endregion
 
         #region display.c
         ///* Function to display the current population for the subsequent generation */
-        static void onthefly_display(Population pop, int genNo)
+        static void PlotPopulation(Population pop, int genNo)
         {
             Console.WriteLine(" printing gnuplot");
-            if (choice != 3)
+            if (GnuplotChoice != 3)
             {
-                var Xr = new double[popsize];
-                var Yr = new double[popsize];
+                var xr = new double[PopulationSize];
+                var yr = new double[PopulationSize];
 
-                for (int x = 0; x < popsize; x++)
+                for (int x = 0; x < PopulationSize; x++)
                 {
-                    Xr[x] = pop.IndList[x].Obj[obj1 - 1];
-                    Yr[x] = pop.IndList[x].Obj[obj2 - 1];
+                    xr[x] = pop.IndList[x].Obj[GnuplotObjective1 - 1];
+                    yr[x] = pop.IndList[x].Obj[GnuplotObjective2 - 1];
                 }
 
-                GnuPlot.Plot(Xr, Yr, $"title 'Generation #{genNo} of {ngen}' pt 1");
-                GnuPlot.Set($"xlabel \"obj[{obj1 - 1}]\"");
-                GnuPlot.Set($"ylabel \"obj[{obj2 - 1}]\"");
+                GnuPlot.Plot(xr, yr, $"title 'Generation #{genNo} of {GenCount}' pt 1");
+                GnuPlot.Set($"xlabel \"obj[{GnuplotObjective1 - 1}]\"");
+                GnuPlot.Set($"ylabel \"obj[{GnuplotObjective2 - 1}]\"");
 
             }
             else
             {
-                var Xr = new double[popsize];
-                var Yr = new double[popsize];
-                var Zr = new double[popsize];
+                var xr = new double[PopulationSize];
+                var yr = new double[PopulationSize];
+                var zr = new double[PopulationSize];
 
-                for (int x = 0; x < popsize; x++)
+                for (int x = 0; x < PopulationSize; x++)
                 {
-                    Xr[x] = pop.IndList[x].Obj[obj1 - 1];
-                    Yr[x] = pop.IndList[x].Obj[obj2 - 1];
-                    Zr[x] = pop.IndList[x].Obj[obj3 - 1];
+                    xr[x] = pop.IndList[x].Obj[GnuplotObjective1 - 1];
+                    yr[x] = pop.IndList[x].Obj[GnuplotObjective2 - 1];
+                    zr[x] = pop.IndList[x].Obj[GnuplotObjective3 - 1];
                 }
 
-                GnuPlot.SPlot(Xr, Yr, Zr, $"title 'Generation #{genNo} of {ngen}' with points pointtype 8 lc rgb 'blue'");
-                GnuPlot.Set($"xlabel \"obj[{obj1-1}]\"");
-                GnuPlot.Set($"ylabel \"obj[{obj2-1}]\"");
-                GnuPlot.Set($"zlabel \"obj[{obj3-1}]\"");
+                GnuPlot.SPlot(xr, yr, zr, $"title 'Generation #{genNo} of {GenCount}' with points pointtype 8 lc rgb 'blue'");
+                GnuPlot.Set($"xlabel \"obj[{GnuplotObjective1 - 1}]\"");
+                GnuPlot.Set($"ylabel \"obj[{GnuplotObjective2 - 1}]\"");
+                GnuPlot.Set($"zlabel \"obj[{GnuplotObjective3 - 1}]\"");
             }
         }
 
