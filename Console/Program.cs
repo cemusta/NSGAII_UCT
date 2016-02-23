@@ -56,7 +56,7 @@ namespace ConsoleApp
 
         public static readonly List<int[,]> Scheduling = new List<int[,]>(8); //8 dönem, 5 gün, 9 ders            
         public static readonly int[,] LabScheduling = new int[5, 9]; // labda dönem tutulmuyor 
-        public static readonly string[] TeacherList = new string[70]; //todo: dub hocalar olabiliyor.
+        public static readonly string[] TeacherList = new string[20]; //todo: dub hocalar olabiliyor.
         public static readonly int[,] Meeting = new int[5, 9]; // bölüm hocalarının ortak meeting saatleri.
         public static readonly string[] RecordList1 = new string[2];
         public static CourseDetail[] CourseList;
@@ -820,7 +820,7 @@ namespace ConsoleApp
         /* Routine to evaluate objective function values and constraints for an individual */
         static void evaluate_individual(Individual ind)
         {
-            UCT_Evaluate(ind.Xbin, ind.Obj);
+            UCT_Evaluate(ind);
             if (ConstraintCount == 0)
             {
                 ind.ConstrViolation = 0.0;
@@ -840,19 +840,26 @@ namespace ConsoleApp
         #endregion
 
         #region problemdef.c
-        static void UCT_Evaluate(double[] xbin, double[] obj)
+        static void UCT_Evaluate(Individual ind)
         {
             #region init variables
             // todo fix fix these stuff. dinamik olmamalı bunlar her seferinde? emin degilim...
             // en azından pop kadar kere yaratılmalı? pop içine taşınabilir?
             int sum, i, j, k;
-            List<int[,]> teacherSchedulingCounter = new List<int[,]>(50); //todo teacher no kadar...
+            List<List<int>[,]> teacherSchedulingCounter = new List<List<int>[,]>(50); //todo teacher no kadar...
             for (i = 0; i < 50; i++)
             {
-                teacherSchedulingCounter.Add(new int[5, 9]);
+                teacherSchedulingCounter.Add(new List<int>[5, 9]);
+                for (j = 0; j < 5; j++)
+                {
+                    for (k = 0; k < 9; k++)
+                    {
+                        teacherSchedulingCounter[i][j, k] = new List<int>();
+                    }
+                }
             }
             int teacherIndex = 0;
-            int[,] labCounter = new int[5, 9];
+
             List<int>[][,] schedulingOnlyCse = new List<int>[8][,];
             for (i = 0; i < 8; i++)
             {
@@ -866,31 +873,55 @@ namespace ConsoleApp
                     }
                 }
             }
+            List<int>[,] labCounter = new List<int>[5, 9];
             List<int>[,] electiveCourses = new List<int>[5, 9];
             for (i = 0; i < 5; i++)
             {
                 for (j = 0; j < 9; j++)
                 {
                     electiveCourses[i, j] = new List<int>();
+                    labCounter[i, j] = new List<int>();
                 }
             }
 
-            obj[0] = 0;
-            obj[1] = 0;
-            obj[2] = 0;
+            ind.Obj[0] = 0;
+            ind.Obj[1] = 0;
+            ind.Obj[2] = 0;
 
             //reset scheduling, tearchers_scheduling and lab_scheduling
             for (i = 0; i < TeacherListSize; ++i)
             {
-                Array.Copy(teacherSchedulingCounter[i], Meeting, 5 * 9);
+                for (int x = 0; x < 5; x++)
+                {
+                    for (int y = 0; y < 9; y++)
+                    {
+                        if (Meeting[x, y] > 0)
+                            teacherSchedulingCounter[i][x, y].Add(Meeting[x, y]);
+                    }
+                }
+                //Array.Copy(, Meeting, 5 * 9);
             }
 
             //copy diaconate lab lessons
-            Array.Copy(labCounter, LabScheduling, 5 * 9);
+            //Array.Copy(labCounter, LabScheduling, 5 * 9);
+            for (int x = 0; x < 5; x++)
+            {
+                for (int y = 0; y < 9; y++)
+                {
+                    if (LabScheduling[x, y] > 0)
+                    {
+                        for (int z = 0; z < LabScheduling[x, y]; z++)
+                        {
+                            labCounter[x, y].Add(LabScheduling[x, y]); //burada lab'dersinin adını girmek lazım aslıdna.... 
+                        }
+
+                    }
+                }
+            }
             #endregion
 
             #region fill variables
-            for (j = 0; j < BinaryVariableCount; j++) //ders syaisi kadar.
+            for (j = 0; j < BinaryVariableCount; j++) //ders sayisi kadar.
             {
                 for (i = 0; i < TeacherListSize; i++)
                 {
@@ -901,8 +932,7 @@ namespace ConsoleApp
                     }
                 } //ögretmen indeksini buluyor.
 
-
-                sum = (int)xbin[j];
+                sum = (int)ind.Xbin[j];
 
                 if (CourseList[j].Duration == 1)
                 {
@@ -915,12 +945,12 @@ namespace ConsoleApp
                         adding_course_1_slot(electiveCourses, sum, j);
                     }
 
-                    adding_course_1_slot(teacherSchedulingCounter[teacherIndex], sum);
+                    adding_course_1_slot(teacherSchedulingCounter[teacherIndex], sum, j);
                     if (CourseList[j].Type == 1)
                     {
                         for (k = 0; k < CourseList[j].LabHour; k++)
                         {
-                            adding_course_1_slot(labCounter, sum);
+                            adding_course_1_slot(labCounter, sum, j);
                         }
                     }
                 }
@@ -935,12 +965,12 @@ namespace ConsoleApp
                         adding_course_2_slot(electiveCourses, sum, j);
                     }
 
-                    adding_course_2_slot(teacherSchedulingCounter[teacherIndex], sum);
+                    adding_course_2_slot(teacherSchedulingCounter[teacherIndex], sum, j);
                     if (CourseList[j].Type == 1)
                     {
                         for (k = 0; k < CourseList[j].LabHour; k++)
                         {
-                            adding_course_2_slot(labCounter, sum);
+                            adding_course_2_slot(labCounter, sum, j);
                         }
                     }
                 }
@@ -955,12 +985,12 @@ namespace ConsoleApp
                         adding_course_3_slot(electiveCourses, sum, j);
                     }
 
-                    adding_course_3_slot(teacherSchedulingCounter[teacherIndex], sum);
+                    adding_course_3_slot(teacherSchedulingCounter[teacherIndex], sum, j);
                     if (CourseList[j].Type == 1)
                     {
                         for (k = 0; k < CourseList[j].LabHour; k++)
                         {
-                            adding_course_3_slot(labCounter, sum);
+                            adding_course_3_slot(labCounter, sum, j);
                         }
                     }
                 }
@@ -971,28 +1001,28 @@ namespace ConsoleApp
             for (j = 0; j < 8; j++)
             {
                 //collision of CSE&fac courses in semester
-                obj[0] += calculate_collision2(schedulingOnlyCse[j], Scheduling[j], 0);
+                ind.Obj[0] += calculate_collision2(schedulingOnlyCse[j], Scheduling[j], 0);
             }
             //+TODO	 donem ici bolum dersi cakismasi
             for (j = 0; j < 8; j++)
             {
-                obj[0] += calculate_collision1(schedulingOnlyCse[j], 1);                          /*collision of only CSE courses in semester*/
+                ind.Obj[0] += calculate_collision1(schedulingOnlyCse[j], 1);                          /*collision of only CSE courses in semester*/
             }
             //+TODO	dönemler arasi dekanlik/bolum dersi cakismasi--------------buna bak tekrar
             for (j = 1; j < 8; j++)
             {
                 // 1-2  2-3  3-4  4-5  5-6  6-7  7-8
                 // 2-1  3-2  4-3  5-4  6-5  7-6  8-7     consecutive CSE&faculty courses
-                obj[1] += calculate_collision2(schedulingOnlyCse[j - 1], Scheduling[j], 0);  //cse derslerini bir sonraki dönem ile     
-                obj[1] += calculate_collision2(schedulingOnlyCse[j], Scheduling[j - 1], 0);  //cse derslerini bir önceki dönem ile               
+                ind.Obj[1] += calculate_collision2(schedulingOnlyCse[j - 1], Scheduling[j], 0);  //cse derslerini bir sonraki dönem ile     
+                ind.Obj[1] += calculate_collision2(schedulingOnlyCse[j], Scheduling[j - 1], 0);  //cse derslerini bir önceki dönem ile               
             }
             //+TODO	dönemler arası CSE çakışmaları
             for (j = 1; j < 8; j++)
             {
-                obj[1] += calculate_collision7(schedulingOnlyCse[j - 1], schedulingOnlyCse[j], 0);  /*consecutive only CSE courses*/
+                ind.Obj[1] += calculate_collision7(schedulingOnlyCse[j - 1], schedulingOnlyCse[j], 0);  /*consecutive only CSE courses*/
             }
             //+TODO	aynı saatte 3'ten fazla lab olmaması lazim
-            obj[0] += calculate_collision1(labCounter, 4);
+            ind.Obj[0] += calculate_collision1(labCounter, 4);
             //# of lab at most 4 //todo: make input param.
 
             for (j = 0; j < TeacherListSize; j++)
@@ -1000,31 +1030,31 @@ namespace ConsoleApp
                 if (!TeacherList[j].Equals("ASSISTANT"))
                 {
                     //+TODO	og. gor. aynı saatte baska dersinin olmaması
-                    obj[0] += calculate_collision1(teacherSchedulingCounter[j], 1);
+                    ind.Obj[0] += calculate_collision1(teacherSchedulingCounter[j], 1);
                     /*teacher course collision*/
                     //+TODO	og. gor. gunluk 4 saatten fazla pespese dersinin olmamasi
-                    obj[2] += calculate_collision3(teacherSchedulingCounter[j], 4);
+                    ind.Obj[2] += calculate_collision3(teacherSchedulingCounter[j], 4);
                     /*teacher have at most 4 consective lesson per day*/
                     //+TODO	og. gor. boş gununun olması
-                    obj[2] += calculate_collision4(teacherSchedulingCounter[j]);
+                    ind.Obj[2] += calculate_collision4(teacherSchedulingCounter[j]);
                     /* teacher have free day*/
                 }
             }
             //+TODO	lab ve lecture farklı günlerde olsun
             for (j = 0; j < 8; j++)
             {
-                obj[2] += calculate_collision6(schedulingOnlyCse[j]);    /*lab lecture hours must be in seperate day*/
+                ind.Obj[2] += calculate_collision6(schedulingOnlyCse[j]);    /*lab lecture hours must be in seperate day*/
             }
             //+TODO	lab miktarı kadar lab_scheduling'i artır
             //+TODO	seçmeliler için ayrı tablo tutup ayrı fonksiyonlarla çakışmaları kontrol et.
             //+TODO	secmelilerin hangi donemlere eklenecegi ve hangi donemlerle cakismamasi istendiği?
-            obj[0] += calculate_collision1(electiveCourses, 1);                            /*elective courses*/
-            obj[2] += calculate_collision2(electiveCourses, Scheduling[5], 0);             /*elective+faculty courses in semester(consecutive)*/
-            obj[2] += calculate_collision2(electiveCourses, Scheduling[6], 0);             /*elective+faculty courses in semester*/
-            obj[2] += calculate_collision2(electiveCourses, Scheduling[7], 0);             /*elective+faculty courses in semester*/
-            obj[1] += calculate_collision7(schedulingOnlyCse[5], electiveCourses, 0);    /*CSE+elective courses(consecutive)*/
-            obj[0] += calculate_collision7(schedulingOnlyCse[6], electiveCourses, 0);    /*CSE+elective courses*/
-            obj[0] += calculate_collision7(schedulingOnlyCse[7], electiveCourses, 0);    /*CSE+elective courses*/
+            ind.Obj[0] += calculate_collision1(electiveCourses, 1);                            /*elective courses*/
+            ind.Obj[2] += calculate_collision2(electiveCourses, Scheduling[5], 0);             /*elective+faculty courses in semester(consecutive)*/
+            ind.Obj[2] += calculate_collision2(electiveCourses, Scheduling[6], 0);             /*elective+faculty courses in semester*/
+            ind.Obj[2] += calculate_collision2(electiveCourses, Scheduling[7], 0);             /*elective+faculty courses in semester*/
+            ind.Obj[1] += calculate_collision7(schedulingOnlyCse[5], electiveCourses, 0);    /*CSE+elective courses(consecutive)*/
+            ind.Obj[0] += calculate_collision7(schedulingOnlyCse[6], electiveCourses, 0);    /*CSE+elective courses*/
+            ind.Obj[0] += calculate_collision7(schedulingOnlyCse[7], electiveCourses, 0);    /*CSE+elective courses*/
             //+TODO	toplanti saatleri hocaların tablosuna da eklensin
             //TODO	dekanlık derslerinin sectionları??
             //+TODO	obj[2] kontrol et.
@@ -1044,19 +1074,19 @@ namespace ConsoleApp
         16-17	3	8	13	18	23
         17-18	4	9	14	19	24
         */
-        static void adding_course_1_slot(int[,] array, int slot)
+        //static void adding_course_1_slot(int[,] array, int slot)
+        //{
+        //    if (slot % 5 < 3)
+        //        array[slot / 5, slot % 5 + 2]++;
+        //    else
+        //        array[slot / 5, slot % 5 + 4]++;
+        //}
+        static void adding_course_1_slot(List<int>[,] array, int slot, int courseId)
         {
             if (slot % 5 < 3)
-                array[slot / 5, slot % 5 + 2]++;
+                array[slot / 5, slot % 5 + 2].Add(courseId);
             else
-                array[slot / 5, slot % 5 + 4]++;
-        }
-        static void adding_course_1_slot(List<int>[,] array, int slot, int i)
-        {
-            if (slot % 5 < 3)
-                array[slot / 5, slot % 5 + 2].Add(i);
-            else
-                array[slot / 5, slot % 5 + 4].Add(i);
+                array[slot / 5, slot % 5 + 4].Add(courseId);
         }
         /*///////////////////////////////////////////////////////*/
         /* filling scheduling table for 2-hour class by using slot number 
@@ -1070,32 +1100,32 @@ namespace ConsoleApp
         16-17	4	9	14	19	24
         17-18	-	-	-	-	-
         */
-        static void adding_course_2_slot(int[,] array, int slot)
-        {
-            int j = 0;
-            if (slot % 5 == 0)
-            {
-                j = 0;
-            }
-            if (slot % 5 == 1)
-            {
-                j = 2;
-            }
-            if (slot % 5 == 2)
-            {
-                j = 3;
-            }
-            if (slot % 5 == 3)
-            {
-                j = 5;
-            }
-            if (slot % 5 == 4)
-            {
-                j = 7;
-            }
-            array[slot / 5, j]++;
-            array[slot / 5, j + 1]++;
-        }
+        //static void adding_course_2_slot(int[,] array, int slot)
+        //{
+        //    int j = 0;
+        //    if (slot % 5 == 0)
+        //    {
+        //        j = 0;
+        //    }
+        //    if (slot % 5 == 1)
+        //    {
+        //        j = 2;
+        //    }
+        //    if (slot % 5 == 2)
+        //    {
+        //        j = 3;
+        //    }
+        //    if (slot % 5 == 3)
+        //    {
+        //        j = 5;
+        //    }
+        //    if (slot % 5 == 4)
+        //    {
+        //        j = 7;
+        //    }
+        //    array[slot / 5, j]++;
+        //    array[slot / 5, j + 1]++;
+        //}
         static void adding_course_2_slot(List<int>[,] array, int slot, int i)
         {
             int j = 0;
@@ -1134,29 +1164,29 @@ namespace ConsoleApp
         16-17	-	-	-	-	-
         17-18	-	-	-	-	-
         */
-        static void adding_course_3_slot(int[,] array, int slot)
-        {
-            int j = 0;
-            if (slot % 4 == 0)
-            {
-                j = 0;
-            }
-            if (slot % 4 == 1)
-            {
-                j = 2;
-            }
-            if (slot % 4 == 2)
-            {
-                j = 4;
-            }
-            if (slot % 4 == 3)
-            {
-                j = 5;
-            }
-            array[slot / 4, j]++;
-            array[slot / 4, j + 1]++;
-            array[slot / 4, j + 2]++;
-        }
+        //static void adding_course_3_slot(int[,] array, int slot)
+        //{
+        //    int j = 0;
+        //    if (slot % 4 == 0)
+        //    {
+        //        j = 0;
+        //    }
+        //    if (slot % 4 == 1)
+        //    {
+        //        j = 2;
+        //    }
+        //    if (slot % 4 == 2)
+        //    {
+        //        j = 4;
+        //    }
+        //    if (slot % 4 == 3)
+        //    {
+        //        j = 5;
+        //    }
+        //    array[slot / 4, j]++;
+        //    array[slot / 4, j + 1]++;
+        //    array[slot / 4, j + 2]++;
+        //}
         static void adding_course_3_slot(List<int>[,] array, int slot, int i)
         {
             int j = 0;
@@ -1195,21 +1225,21 @@ namespace ConsoleApp
         }
 
         /* collision of CSE courses at the same time*/
-        static int calculate_collision1(int[,] array, int minimumCollision)
-        {
-            int i, j, result = 0;
-            for (i = 0; i < 5; i++)
-            {
-                for (j = 0; j < 9; j++)
-                {
-                    if (array[i, j] > minimumCollision)
-                    {
-                        result += array[i, j] - 1;
-                    }
-                }
-            }
-            return result;
-        }
+        //static int calculate_collision1(int[,] array, int minimumCollision)
+        //{
+        //    int i, j, result = 0;
+        //    for (i = 0; i < 5; i++)
+        //    {
+        //        for (j = 0; j < 9; j++)
+        //        {
+        //            if (array[i, j] > minimumCollision)
+        //            {
+        //                result += array[i, j] - 1;
+        //            }
+        //        }
+        //    }
+        //    return result;
+        //}
         static int calculate_collision1(List<int>[,] array, int minimumCollision)
         {
             int i, j, result = 0;
@@ -1225,25 +1255,8 @@ namespace ConsoleApp
             }
             return result;
         }
-        ///*///////////////////////////////////////////////////////*/
-        ///* collision of CSE courses -1 0(calculate_collision1) +1 semester*/
-        /*
-        int calculate_collision2(int[,] array1, int[,] array2, int minimum_collision)
-        {
-            int i, j, result = 0;
-            for (i = 0; i < 5; i++)
-            {
-                for (j = 0; j < 9; j++)
-                {
-                    if (array1[i,j] > minimum_collision && array2[i,j] > minimum_collision)
-                    {
-                        result++;
-                    }
-                }
-            }
-            return result;
-        }
-        */
+
+        // collision of CSE courses -1 0(calculate_collision1) +1 semester
         static int calculate_collision2(List<int>[,] array1, int[,] array2, int minimumCollision)
         {
             int i, j, result = 0;
@@ -1259,8 +1272,9 @@ namespace ConsoleApp
             }
             return result;
         }
-        /*count consecutive 4(can be changed) hour for teachers table*/
-        static int calculate_collision3(int[,] array, int maxConsecutiveHour)
+
+        // count consecutive 4(can be changed) hour for teachers table
+        static int calculate_collision3(List<int>[,] array, int maxConsecutiveHour)
         {
             int counter;
             int i, j, result = 0;
@@ -1269,7 +1283,7 @@ namespace ConsoleApp
                 counter = 0;
                 for (j = 0; j < 9; j++)
                 {
-                    if (array[i, j] > 0)
+                    if (array[i, j].Count > 0)
                     {
                         counter++;
                     }
@@ -1285,17 +1299,16 @@ namespace ConsoleApp
             return result;
         }
 
-        /* if 1 day (or more) whole day is empty for teachers table   
-            return 0  else return 1*/
-        static int calculate_collision4(int[,] array)
+        // if 1 day (or more) whole day is empty for teachers table return 0
+        static int calculate_collision4(List<int>[,] array)
         {
-            int i, j, counter, tmp = 0;
-            for (i = 0; i < 5; i++)
+            int counter;
+            for (int i = 0; i < 5; i++) //gun
             {
                 counter = 0;
-                for (j = 0; j < 9; j++)
+                for (int j = 0; j < 9; j++) //dersler
                 {
-                    if (array[i, j] > 0)
+                    if (array[i, j].Count > 0)
                     {
                         counter = 0;
                         break;
@@ -1304,15 +1317,18 @@ namespace ConsoleApp
                         counter++;
                 }
                 if (counter == 9)
-                    tmp++;
+                {
+                    return 0;
+                }
+
             }
-            if (tmp == 0)
-                return 1;
-            else
-                return 0;
+
+            return 1;
+
+            // hocanın bir günü boş
         }
 
-        /*if lecture and lab have been at the day slot return result; else 0; */
+        //if lecture and lab have been at the day slot return result; else 0; 
         static int calculate_collision5(int[,] array, int[,] array1)
         {
             int i, j, k, result = 0;

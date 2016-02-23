@@ -9,7 +9,7 @@
         public double[] Xbin { get; set; }
         public double[] Obj { get; set; }
         public double[] Constr { get; set; }
-        public double CrowdDist { get; set; }        
+        public double CrowdDist { get; set; }
 
         public Individual(int nreal, int nbin, int maxnbits, int nobj, int ncon)
         {
@@ -27,6 +27,11 @@
             if (ncon != 0)
                 Constr = new double[ncon];
         }
+
+    }
+
+    public class Collision
+    {
 
     }
 }
