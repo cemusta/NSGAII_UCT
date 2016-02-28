@@ -59,7 +59,7 @@ namespace ConsoleApp
         public static readonly string[] TeacherList = new string[20]; //todo: dub hocalar olabiliyor.
         public static readonly int[,] Meeting = new int[5, 9]; // bölüm hocalarının ortak meeting saatleri.
         public static readonly string[] RecordList1 = new string[2];
-        public static CourseDetail[] CourseList;
+        public static Course[] CourseList;
 
         public static List<List<string>> PrerequisteList;
         #endregion
@@ -190,7 +190,7 @@ namespace ConsoleApp
 
             line = reader.ReadLine();
             int courseCount = int.Parse(line); //43 gibi bir sayı dönüyor
-            CourseList = new CourseDetail[courseCount]; //corse list için alan al.
+            CourseList = new Course[courseCount]; //corse list için alan al.
             Console.WriteLine($"SIZE: {courseCount} \n");
 
             for (int courseId = 0; courseId < courseCount; courseId++)
@@ -207,7 +207,7 @@ namespace ConsoleApp
                 }
                 Console.WriteLine();
 
-                CourseList[courseId] = new CourseDetail(parts[0], parts[1], int.Parse(parts[2]), int.Parse(parts[3]), int.Parse(parts[4]), int.Parse(parts[5]), int.Parse(parts[6]));
+                CourseList[courseId] = new Course(parts[0], parts[1], int.Parse(parts[2]), int.Parse(parts[3]), int.Parse(parts[4]), int.Parse(parts[5]), (int.Parse(parts[6]) == 1));
 
                 int j;
                 for (j = 0; j < courseId; j++)
@@ -936,11 +936,11 @@ namespace ConsoleApp
 
                 if (CourseList[j].Duration == 1)
                 {
-                    if (CourseList[j].Elective == 0)
+                    if (CourseList[j].Elective == false)
                     {
                         adding_course_1_slot(schedulingOnlyCse[CourseList[j].Semester - 1], sum, j);
                     }
-                    else if (CourseList[j].Elective == 1)
+                    else if (CourseList[j].Elective == true)
                     {
                         adding_course_1_slot(electiveCourses, sum, j);
                     }
@@ -956,11 +956,11 @@ namespace ConsoleApp
                 }
                 else if (CourseList[j].Duration == 2)
                 {
-                    if (CourseList[j].Elective == 0)
+                    if (CourseList[j].Elective == false)
                     {
                         adding_course_2_slot(schedulingOnlyCse[CourseList[j].Semester - 1], sum, j);
                     }
-                    else if (CourseList[j].Elective == 1)
+                    else if (CourseList[j].Elective == true)
                     {
                         adding_course_2_slot(electiveCourses, sum, j);
                     }
@@ -976,11 +976,11 @@ namespace ConsoleApp
                 }
                 else if (CourseList[j].Duration == 3)
                 {
-                    if (CourseList[j].Elective == 0)
+                    if (CourseList[j].Elective == false)
                     {
                         adding_course_3_slot(schedulingOnlyCse[CourseList[j].Semester - 1], sum, j);
                     }
-                    else if (CourseList[j].Elective == 1)
+                    else if (CourseList[j].Elective == true)
                     {
                         adding_course_3_slot(electiveCourses, sum, j);
                     }

@@ -1,4 +1,6 @@
-﻿namespace ConsoleApp.Models
+﻿using System.Collections.Generic;
+
+namespace ConsoleApp.Models
 {
     public class Individual
     {
@@ -10,6 +12,8 @@
         public double[] Obj { get; set; }
         public double[] Constr { get; set; }
         public double CrowdDist { get; set; }
+
+        public List<Collision> CollisionList { get; set; }
 
         public Individual(int nreal, int nbin, int maxnbits, int nobj, int ncon)
         {
@@ -27,11 +31,6 @@
             if (ncon != 0)
                 Constr = new double[ncon];
         }
-
-    }
-
-    public class Collision
-    {
 
     }
 }
