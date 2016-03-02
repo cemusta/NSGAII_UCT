@@ -3,6 +3,7 @@
         public string Code { get; set; }
         public string Teacher { get; set; }
         public int Type { get; set; }
+        public int Section { get; set; } // not used yet
         public int Semester { get; set; }
         public int Duration { get; set; }
         public int LabHour { get; set; }

@@ -846,8 +846,8 @@ namespace ConsoleApp
             // todo fix fix these stuff. dinamik olmamalı bunlar her seferinde? emin degilim...
             // en azından pop kadar kere yaratılmalı? pop içine taşınabilir?
             int sum, i, j, k;
-            List<List<int>[,]> teacherSchedulingCounter = new List<List<int>[,]>(50); //todo teacher no kadar...
-            for (i = 0; i < 50; i++)
+            List<List<int>[,]> teacherSchedulingCounter = new List<List<int>[,]>(TeacherListSize); //todo teacher no kadar...
+            for (i = 0; i < TeacherListSize; i++)
             {
                 teacherSchedulingCounter.Add(new List<int>[5, 9]);
                 for (j = 0; j < 5; j++)
@@ -899,7 +899,6 @@ namespace ConsoleApp
                             teacherSchedulingCounter[i][x, y].Add(Meeting[x, y]);
                     }
                 }
-                //Array.Copy(, Meeting, 5 * 9);
             }
 
             //copy diaconate lab lessons
@@ -997,6 +996,7 @@ namespace ConsoleApp
             }
             #endregion
 
+            #region calc. collisions
             //+TODO   dönem ici dekanlik/bolum dersi cakismasi
             for (j = 0; j < 8; j++)
             {
@@ -1055,9 +1055,10 @@ namespace ConsoleApp
             ind.Obj[1] += calculate_collision7(schedulingOnlyCse[5], electiveCourses, 0);    /*CSE+elective courses(consecutive)*/
             ind.Obj[0] += calculate_collision7(schedulingOnlyCse[6], electiveCourses, 0);    /*CSE+elective courses*/
             ind.Obj[0] += calculate_collision7(schedulingOnlyCse[7], electiveCourses, 0);    /*CSE+elective courses*/
-            //+TODO	toplanti saatleri hocaların tablosuna da eklensin
-            //TODO	dekanlık derslerinin sectionları??
-            //+TODO	obj[2] kontrol et.
+                                                                                             //+TODO	toplanti saatleri hocaların tablosuna da eklensin
+                                                                                             //TODO	dekanlık derslerinin sectionları??
+                                                                                             //+TODO	obj[2] kontrol et.
+            #endregion
         }
         #endregion
 
@@ -1256,7 +1257,7 @@ namespace ConsoleApp
             return result;
         }
 
-        // collision of CSE courses -1 0(calculate_collision1) +1 semester
+        // collision of CSE courses -1 0(calculate_collision) +1 semester
         static int calculate_collision2(List<int>[,] array1, int[,] array2, int minimumCollision)
         {
             int i, j, result = 0;
@@ -1266,7 +1267,8 @@ namespace ConsoleApp
                 {
                     if (array1[i, j].Count > minimumCollision && array2[i, j] > minimumCollision)
                     {
-                        result += array1[i, j].Count + array2[i, j] - 1;
+                        var x = array1[i, j].Count + array2[i, j] - 1;
+                        result += x;
                     }
                 }
             }

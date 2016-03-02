@@ -9,7 +9,6 @@ namespace ConsoleApp.Models
         public Collision()
         {
             CrashingCourses = new List<Course>();
-
         }
     }
 }

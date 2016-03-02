@@ -30,11 +30,13 @@ namespace ConsoleApp.Models
 
             if (ncon != 0)
                 Constr = new double[ncon];
+
+            CollisionList = new List<Collision>();
         }
 
         public void AddCollision(Collision temp)
         {
-            this.CollisionList.Add(temp);
+            CollisionList.Add(temp);
         }
 
     }
