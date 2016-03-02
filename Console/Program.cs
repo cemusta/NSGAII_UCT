@@ -52,11 +52,9 @@ namespace ConsoleApp
 
         public static readonly Randomization RandomizationObj = new Randomization();
 
-        public static int TeacherListSize = 0;
-
         public static readonly List<int[,]> Scheduling = new List<int[,]>(8); //8 dönem, 5 gün, 9 ders            
         public static readonly int[,] LabScheduling = new int[5, 9]; // labda dönem tutulmuyor 
-        public static readonly string[] TeacherList = new string[20]; //todo: dub hocalar olabiliyor.
+        public static readonly List<string> TeacherList = new List<string>(8);
         public static readonly int[,] Meeting = new int[5, 9]; // bölüm hocalarının ortak meeting saatleri.
         public static readonly string[] RecordList1 = new string[2];
         public static Course[] CourseList;
@@ -207,25 +205,19 @@ namespace ConsoleApp
                 }
                 Console.WriteLine();
 
-                CourseList[courseId] = new Course(parts[0], parts[1], int.Parse(parts[2]), int.Parse(parts[3]), int.Parse(parts[4]), int.Parse(parts[5]), (int.Parse(parts[6]) == 1));
-
-                int j;
-                for (j = 0; j < courseId; j++)
+                var teacherName = parts[1];
+                if (!TeacherList.Contains(teacherName))
                 {
-                    if (CourseList[j].Teacher == parts[1])
-                    {
-                        break; //niye?
-                    }
+                    TeacherList.Add(teacherName);
                 }
 
-                if (j == courseId)
-                {
-                    TeacherList[TeacherListSize] = parts[1];
-                    TeacherListSize++;
-                }
+                CourseList[courseId] = new Course(parts[0], parts[1], TeacherList.IndexOf(teacherName), int.Parse(parts[2]), int.Parse(parts[3]), int.Parse(parts[4]), int.Parse(parts[5]), (int.Parse(parts[6]) == 1));
+
+
+
 
             }
-            Console.WriteLine($"teacher size: {TeacherListSize}");
+            Console.WriteLine($"teacher size: {TeacherList.Count}");
             #endregion
 
             #region scan preqeuiste courses
@@ -845,9 +837,9 @@ namespace ConsoleApp
             #region init variables
             // todo fix fix these stuff. dinamik olmamalı bunlar her seferinde? emin degilim...
             // en azından pop kadar kere yaratılmalı? pop içine taşınabilir?
-            int sum, i, j, k;
-            List<List<int>[,]> teacherSchedulingCounter = new List<List<int>[,]>(TeacherListSize); //todo teacher no kadar...
-            for (i = 0; i < TeacherListSize; i++)
+            int slotId, i, j, k;
+            List<List<int>[,]> teacherSchedulingCounter = new List<List<int>[,]>(TeacherList.Count); //todo teacher no kadar...
+            for (i = 0; i < TeacherList.Count; i++)
             {
                 teacherSchedulingCounter.Add(new List<int>[5, 9]);
                 for (j = 0; j < 5; j++)
@@ -889,7 +881,7 @@ namespace ConsoleApp
             ind.Obj[2] = 0;
 
             //reset scheduling, tearchers_scheduling and lab_scheduling
-            for (i = 0; i < TeacherListSize; ++i)
+            for (i = 0; i < TeacherList.Count; ++i)
             {
                 for (int x = 0; x < 5; x++)
                 {
@@ -919,37 +911,40 @@ namespace ConsoleApp
             }
             #endregion
 
+            Slot[,] TimeTable = new Slot[5, 9];
+            for (j = 0; j < 5; j++)
+            {
+                for (k = 0; k < 9; k++)
+                {
+                    TimeTable[j, k] = new Slot(TeacherList.Count);
+                }
+            }
+
             #region fill variables
             for (j = 0; j < BinaryVariableCount; j++) //ders sayisi kadar.
             {
-                for (i = 0; i < TeacherListSize; i++)
-                {
-                    if (TeacherList[i].Equals(CourseList[j].Teacher))
-                    {
-                        teacherIndex = i;  //todo: hashlist'e veya dict.'e çevirebiliriz?
-                        break;
-                    }
-                } //ögretmen indeksini buluyor.
 
-                sum = (int)ind.Xbin[j];
+                teacherIndex = CourseList[j].TeacherId;
+
+                slotId = (int)ind.Xbin[j];
 
                 if (CourseList[j].Duration == 1)
                 {
                     if (CourseList[j].Elective == false)
                     {
-                        adding_course_1_slot(schedulingOnlyCse[CourseList[j].Semester - 1], sum, j);
+                        adding_course_1_slot(schedulingOnlyCse[CourseList[j].Semester - 1], slotId, j);
                     }
                     else if (CourseList[j].Elective == true)
                     {
-                        adding_course_1_slot(electiveCourses, sum, j);
+                        adding_course_1_slot(electiveCourses, slotId, j);
                     }
 
-                    adding_course_1_slot(teacherSchedulingCounter[teacherIndex], sum, j);
+                    adding_course_1_slot(teacherSchedulingCounter[teacherIndex], slotId, j);
                     if (CourseList[j].Type == 1)
                     {
                         for (k = 0; k < CourseList[j].LabHour; k++)
                         {
-                            adding_course_1_slot(labCounter, sum, j);
+                            adding_course_1_slot(labCounter, slotId, j);
                         }
                     }
                 }
@@ -957,19 +952,19 @@ namespace ConsoleApp
                 {
                     if (CourseList[j].Elective == false)
                     {
-                        adding_course_2_slot(schedulingOnlyCse[CourseList[j].Semester - 1], sum, j);
+                        adding_course_2_slot(schedulingOnlyCse[CourseList[j].Semester - 1], slotId, j);
                     }
                     else if (CourseList[j].Elective == true)
                     {
-                        adding_course_2_slot(electiveCourses, sum, j);
+                        adding_course_2_slot(electiveCourses, slotId, j);
                     }
 
-                    adding_course_2_slot(teacherSchedulingCounter[teacherIndex], sum, j);
+                    adding_course_2_slot(teacherSchedulingCounter[teacherIndex], slotId, j);
                     if (CourseList[j].Type == 1)
                     {
                         for (k = 0; k < CourseList[j].LabHour; k++)
                         {
-                            adding_course_2_slot(labCounter, sum, j);
+                            adding_course_2_slot(labCounter, slotId, j);
                         }
                     }
                 }
@@ -977,22 +972,32 @@ namespace ConsoleApp
                 {
                     if (CourseList[j].Elective == false)
                     {
-                        adding_course_3_slot(schedulingOnlyCse[CourseList[j].Semester - 1], sum, j);
+                        adding_course_3_slot(schedulingOnlyCse[CourseList[j].Semester - 1], slotId, j);
                     }
                     else if (CourseList[j].Elective == true)
                     {
-                        adding_course_3_slot(electiveCourses, sum, j);
+                        adding_course_3_slot(electiveCourses, slotId, j);
                     }
 
-                    adding_course_3_slot(teacherSchedulingCounter[teacherIndex], sum, j);
+                    adding_course_3_slot(teacherSchedulingCounter[teacherIndex], slotId, j);
                     if (CourseList[j].Type == 1)
                     {
                         for (k = 0; k < CourseList[j].LabHour; k++)
                         {
-                            adding_course_3_slot(labCounter, sum, j);
+                            adding_course_3_slot(labCounter, slotId, j);
                         }
                     }
                 }
+            }
+            #endregion
+
+            #region fill variables2
+            for (j = 0; j < BinaryVariableCount; j++) //ders sayisi kadar.
+            {
+
+                slotId = (int)ind.Xbin[j];
+                adding_course_timeTable(TimeTable, slotId, CourseList[j]);
+
             }
             #endregion
 
@@ -1025,7 +1030,7 @@ namespace ConsoleApp
             ind.Obj[0] += calculate_collision1(labCounter, 4);
             //# of lab at most 4 //todo: make input param.
 
-            for (j = 0; j < TeacherListSize; j++)
+            for (j = 0; j < TeacherList.Count; j++)
             {
                 if (!TeacherList[j].Equals("ASSISTANT"))
                 {
@@ -1064,6 +1069,100 @@ namespace ConsoleApp
 
         #region functions.c
 
+
+        static void adding_course_timeTable(Slot[,] array, int slotId, Course cor)
+        {
+            int x = 0;
+            int y = 0;
+            if (cor.Duration == 1) // bir saatlik bir ders ise.
+            {
+                if (slotId % 5 < 3)
+                {
+                    x = slotId / 5;
+                    y = slotId % 5 + 2;
+                }
+                else
+                {
+                    x = slotId / 5;
+                    y = slotId % 5 + 4;
+                }
+                array[x, y].Courses.Add(cor);
+                array[x, y].Teacher[cor.TeacherId]++;
+                if (cor.Type == 1)
+                    array[x, y].labCount++;
+            }
+            else if (cor.Duration == 2)
+            {
+                x = slotId / 5;
+                if (slotId % 5 == 0)
+                {
+                    y = 0;
+                }
+                if (slotId % 5 == 1)
+                {
+                    y = 2;
+                }
+                if (slotId % 5 == 2)
+                {
+                    y = 3;
+                }
+                if (slotId % 5 == 3)
+                {
+                    y = 5;
+                }
+                if (slotId % 5 == 4)
+                {
+                    y = 7;
+                }
+                array[x, y].Courses.Add(cor);
+                array[x, y].Teacher[cor.TeacherId]++;
+                if (cor.Type == 1)
+                    array[x, y].labCount++;
+                y++;
+                array[x, y].Courses.Add(cor);
+                array[x, y].Teacher[cor.TeacherId]++;
+                if (cor.Type == 1)
+                    array[x, y].labCount++;
+            }
+            else if (cor.Duration == 3)
+            {
+                x = slotId / 4;
+                if (slotId % 4 == 0)
+                {
+                    y = 0;
+                }
+                if (slotId % 4 == 1)
+                {
+                    y = 2;
+                }
+                if (slotId % 4 == 2)
+                {
+                    y = 4;
+                }
+                if (slotId % 4 == 3)
+                {
+                    y = 5;
+                }
+                array[x, y].Courses.Add(cor);
+                array[x, y].Teacher[cor.TeacherId]++;
+                if (cor.Type == 1)
+                    array[x, y].labCount++;
+                y++;
+                array[x, y].Courses.Add(cor);
+                array[x, y].Teacher[cor.TeacherId]++;
+                if (cor.Type == 1)
+                    array[x, y].labCount++;
+                y++;
+                array[x, y].Courses.Add(cor);
+                array[x, y].Teacher[cor.TeacherId]++;
+                if (cor.Type == 1)
+                    array[x, y].labCount++;
+            }
+
+
+        }
+
+
         /* filling scheduling table for 1-hour class by using slot number 
         9-10	-	-	-	-	-
         10-11	-	-	-	-	-
@@ -1075,13 +1174,6 @@ namespace ConsoleApp
         16-17	3	8	13	18	23
         17-18	4	9	14	19	24
         */
-        //static void adding_course_1_slot(int[,] array, int slot)
-        //{
-        //    if (slot % 5 < 3)
-        //        array[slot / 5, slot % 5 + 2]++;
-        //    else
-        //        array[slot / 5, slot % 5 + 4]++;
-        //}
         static void adding_course_1_slot(List<int>[,] array, int slot, int courseId)
         {
             if (slot % 5 < 3)
@@ -1089,6 +1181,10 @@ namespace ConsoleApp
             else
                 array[slot / 5, slot % 5 + 4].Add(courseId);
         }
+
+
+
+
         /*///////////////////////////////////////////////////////*/
         /* filling scheduling table for 2-hour class by using slot number 
         9-10	0	5	10	15	20
@@ -1101,32 +1197,6 @@ namespace ConsoleApp
         16-17	4	9	14	19	24
         17-18	-	-	-	-	-
         */
-        //static void adding_course_2_slot(int[,] array, int slot)
-        //{
-        //    int j = 0;
-        //    if (slot % 5 == 0)
-        //    {
-        //        j = 0;
-        //    }
-        //    if (slot % 5 == 1)
-        //    {
-        //        j = 2;
-        //    }
-        //    if (slot % 5 == 2)
-        //    {
-        //        j = 3;
-        //    }
-        //    if (slot % 5 == 3)
-        //    {
-        //        j = 5;
-        //    }
-        //    if (slot % 5 == 4)
-        //    {
-        //        j = 7;
-        //    }
-        //    array[slot / 5, j]++;
-        //    array[slot / 5, j + 1]++;
-        //}
         static void adding_course_2_slot(List<int>[,] array, int slot, int i)
         {
             int j = 0;
@@ -1165,29 +1235,6 @@ namespace ConsoleApp
         16-17	-	-	-	-	-
         17-18	-	-	-	-	-
         */
-        //static void adding_course_3_slot(int[,] array, int slot)
-        //{
-        //    int j = 0;
-        //    if (slot % 4 == 0)
-        //    {
-        //        j = 0;
-        //    }
-        //    if (slot % 4 == 1)
-        //    {
-        //        j = 2;
-        //    }
-        //    if (slot % 4 == 2)
-        //    {
-        //        j = 4;
-        //    }
-        //    if (slot % 4 == 3)
-        //    {
-        //        j = 5;
-        //    }
-        //    array[slot / 4, j]++;
-        //    array[slot / 4, j + 1]++;
-        //    array[slot / 4, j + 2]++;
-        //}
         static void adding_course_3_slot(List<int>[,] array, int slot, int i)
         {
             int j = 0;
