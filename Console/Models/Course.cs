@@ -1,5 +1,6 @@
 ﻿namespace ConsoleApp.Models {
     public class Course {
+        public int Id { get; set; }
         public string Code { get; set; }
         public string Teacher { get; set; }
         public int TeacherId { get; set; }
@@ -11,7 +12,8 @@
         public bool Elective { get; set; }
         public string PrintableName => $"{Code}{(Type == 1 ? " Lab " : " ")}{(Duration > 0 ? Duration + "hr" : "")}{(Elective == true ? " elective" : "")}";
 
-        public Course(string code, string teacher, int teacherId, int type, int semester, int duration, int labHour, bool elective) {
+        public Course(int id, string code, string teacher, int teacherId, int type, int semester, int duration, int labHour, bool elective) {
+            Id = id;
             Code = code;
             Teacher = teacher;
             TeacherId = teacherId;
