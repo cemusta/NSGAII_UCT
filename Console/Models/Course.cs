@@ -1,4 +1,6 @@
-﻿namespace ConsoleApp.Models {
+﻿using System.Collections.Generic;
+
+namespace ConsoleApp.Models {
     public class Course {
         public int Id { get; set; }
         public string Code { get; set; }
@@ -12,6 +14,8 @@
         public bool Elective { get; set; }
         public string PrintableName => $"{Code}{(Type == 1 ? " Lab " : " ")}{(Duration > 0 ? Duration + "hr" : "")}{(Elective == true ? " elective" : "")}";
 
+        public List<int> prerequisites { get; set; }
+
         public Course(int id, string code, string teacher, int teacherId, int type, int semester, int duration, int labHour, bool elective) {
             Id = id;
             Code = code;
@@ -22,6 +26,7 @@
             Duration = duration;
             LabHour = labHour;
             Elective = elective;
+            prerequisites = new List<int>();
         }
 
     }

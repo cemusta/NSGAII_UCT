@@ -56,10 +56,9 @@ namespace ConsoleApp
         public static readonly int[,] LabScheduling = new int[5, 9]; // labda dönem tutulmuyor 
         public static readonly List<string> TeacherList = new List<string>(8);
         public static readonly int[,] Meeting = new int[5, 9]; // bölüm hocalarının ortak meeting saatleri.
-        public static readonly string[] RecordList1 = new string[2];
+
         public static List<Course> CourseList = new List<Course>(8);
 
-        public static List<List<string>> PrerequisteList;
         #endregion
 
         static void Main(string[] args)
@@ -219,30 +218,17 @@ namespace ConsoleApp
             #endregion
 
             #region scan preqeuiste courses
-            PrerequisteList = new List<List<string>>(courseCount);
-            for (int i = 0; i < courseCount; i++)
-            {
-                PrerequisteList.Add(new List<string>());
-            }
-
             reader = new StreamReader(prerequisiteFile);
 
             while ((line = reader.ReadLine()) != null)
             {
                 var parts = line.Split(new char[] { ';' });
 
-                for (int i = 0; i < parts.Length; i++)
-                {
-                    RecordList1[i] = parts[i]; //todo: burası ancak 2 olabilir yoksa çakacak...
-                }
+                var preCourse = CourseList.Find(x => x.Code == parts[0]);
 
-                for (int i = 0; i < courseCount; i++)
-                {
-                    if (CourseList[i].Code == RecordList1[0])
-                    {
-                        PrerequisteList[i].Add(RecordList1[1]);
-                    }
-                }
+                var courseToAdd = CourseList.Find(x => x.Code == parts[1]);
+
+                courseToAdd.prerequisites.Add(preCourse.Id);
             }
             #endregion
 
@@ -1010,7 +996,7 @@ namespace ConsoleApp
             {
                 //collision of CSE&fac courses in semester
                 var x = calculate_collision2(schedulingOnlyCse[j], Scheduling[j], 0);
-                List<Collision> col = calculate_collision2TT(TimeTable, Scheduling[j], 0, j + 1);
+                List<Collision> col = calculate_collisionSemesterWithBaseCourses(TimeTable, Scheduling[j], 0, j + 1);
                 var y = col.Sum(item => item.result);
                 ind.Obj[0] += x;
                 obj0 += y;
@@ -1021,7 +1007,7 @@ namespace ConsoleApp
             {
                 //collision of only CSE courses in semester
                 var x = calculate_collision1(schedulingOnlyCse[j], 1);
-                List<Collision> col = calculate_collision1TT(TimeTable, 1, j + 1);
+                List<Collision> col = calculate_collisionInSemester(TimeTable, 1, j + 1 );
                 var y = col.Sum(item => item.result);
                 ind.Obj[0] += x;
                 obj0 += y;
@@ -1032,14 +1018,27 @@ namespace ConsoleApp
             {
                 // 1-2  2-3  3-4  4-5  5-6  6-7  7-8
                 // 2-1  3-2  4-3  5-4  6-5  7-6  8-7     consecutive CSE&faculty courses
-                ind.Obj[1] += calculate_collision2(schedulingOnlyCse[j - 1], Scheduling[j], 0);  //cse derslerini bir sonraki dönem ile     
-                ind.Obj[1] += calculate_collision2(schedulingOnlyCse[j], Scheduling[j - 1], 0);  //cse derslerini bir önceki dönem ile               
+                var x = calculate_collision2(schedulingOnlyCse[j - 1], Scheduling[j], 0);  //cse derslerini bir sonraki dönem ile     
+                x += calculate_collision2(schedulingOnlyCse[j], Scheduling[j - 1], 0);  //cse derslerini bir önceki dönem ile      
+                ind.Obj[1] += x;
+
+                List<Collision> col = calculate_collisionSemesterWithBaseCourses(TimeTable, Scheduling[j], 0, j);
+                col.AddRange( calculate_collisionSemesterWithBaseCourses(TimeTable, Scheduling[j - 1], 0, j + 1));
+                var y = col.Sum(item => item.result);
+                
+                obj1 += y;
+                Collisions.AddRange(col);
             }
             //+TODO	dönemler arası CSE çakışmaları
             for (j = 1; j < 8; j++)
             {
+
                 var x = calculate_collision7(schedulingOnlyCse[j - 1], schedulingOnlyCse[j], 0);  /*consecutive only CSE courses*/
-                                                                                                  // var y = calculate_collision7TT(schedulingOnlyCse[j - 1], schedulingOnlyCse[j], 0);  /*consecutive only CSE courses*/
+                List<Collision> col = calculate_collisionInSemesters(TimeTable, 1, new List<int> { j, j + 1 });
+                var y = col.Sum(item => item.result);
+                
+                obj1 += y;
+                Collisions.AddRange(col);                                                       
                 ind.Obj[1] += x;
                 // obj1 += y;
             }
@@ -1272,19 +1271,11 @@ namespace ConsoleApp
 
         static bool is_prerequisite(int preIndexOfCourseList, int postIndexOfCourseList)
         {
-            int i;
-            for (i = 0; i < PrerequisteList[postIndexOfCourseList].Count; i++)
-            {
-                if (PrerequisteList[postIndexOfCourseList][i] == CourseList[preIndexOfCourseList].Code)
-                {
-                    return true;
-                }
-            }
-            return false;
+            return CourseList[postIndexOfCourseList].prerequisites.Contains(preIndexOfCourseList);
         }
 
         /* collision of CSE courses at the same time*/
-        static List<Collision> calculate_collision1TT(Slot[,] timeTable, int minimumCollision, int semester)
+        static List<Collision> calculate_collisionInSemester(Slot[,] timeTable, int minimumCollision, int semester)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1299,6 +1290,32 @@ namespace ConsoleApp
                         tempCollision.result = tempSlot.Courses.FindAll(x => x.Semester == semester && !x.Elective).Count - 1;
                         tempCollision.Reason = "base course collision in same semester";
                         tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Semester == semester && !x.Elective));
+
+                        collisionList.Add(tempCollision);
+                    }
+                }
+            }
+            return collisionList;
+        }
+        static List<Collision> calculate_collisionInSemesters(Slot[,] timeTable, int minimumCollision, List<int> semesters)
+        {
+            List<Collision> collisionList = new List<Collision>();
+            for (int i = 0; i < 5; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    Slot tempSlot = timeTable[i, j];
+
+                    var slotSemesters = tempSlot.Courses.Select(x => x.Semester);
+
+                    bool multiSemesterInSlot = semesters.All(x => slotSemesters.Contains(x));
+
+                    if (multiSemesterInSlot && tempSlot.Courses.FindAll(x => semesters.Contains(x.Semester) && !x.Elective).Count > minimumCollision)
+                    {
+                        Collision tempCollision = new Collision();
+                        tempCollision.result = tempSlot.Courses.FindAll(x => semesters.Contains(x.Semester) && !x.Elective).Count - 1;
+                        tempCollision.Reason = "consicutive collision";
+                        tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => semesters.Contains(x.Semester) && !x.Elective));
 
                         collisionList.Add(tempCollision);
                     }
@@ -1323,7 +1340,7 @@ namespace ConsoleApp
         }
 
         // collision of CSE courses -1 0(calculate_collision) +1 semester
-        static List<Collision> calculate_collision2TT(Slot[,] timeTable, int[,] array2, int minimumCollision, int semester)
+        static List<Collision> calculate_collisionSemesterWithBaseCourses(Slot[,] timeTable, int[,] array2, int minimumCollision, int semester)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1521,7 +1538,7 @@ namespace ConsoleApp
         //    }
         //    return result;
         //}
-
+        
         static int calculate_collision7(List<int>[,] array1, List<int>[,] array2, int minimumCollision)
         {
             int result = 0;
