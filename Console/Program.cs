@@ -12,23 +12,15 @@ namespace ConsoleApp
     {
         #region Variable 
 
-        private static readonly ProblemDefinition Problem = new ProblemDefinition();
+        private static readonly ProblemDefinition ProblemObj = new ProblemDefinition();
         private static readonly Randomization RandomizationObj = new Randomization();
-
-        private static int GnuplotChoice;
-        private static int GnuplotObjective1;
-        private static int GnuplotObjective2;
-        private static int GnuplotObjective3;
-        private static int GnuplotAngle1;
-        private static int GnuplotAngle2;
-
-        private static int TeacherListSize;
+        private static readonly Display DisplayObj = new Display();
 
         private static readonly List<int[,]> Scheduling = new List<int[,]>(8); //8 dönem, 5 gün, 9 ders            
         private static readonly int[,] LabScheduling = new int[5, 9]; // labda dönem tutulmuyor 
         private static readonly List<string> TeacherList = new List<string>(8);
         private static readonly int[,] Meeting = new int[5, 9]; // bölüm hocalarının ortak meeting saatleri.
-        private static readonly string[] RecordList1 = new string[2];
+
         private static readonly List<Course> CourseList = new List<Course>(8);
 
         private static List<List<string>> PrerequisteList;
@@ -66,7 +58,6 @@ namespace ConsoleApp
             Population parentPopulation;
             Population childPopulation;
             Population mixedPopulation;
-
 
 
             //Input files:
@@ -179,9 +170,8 @@ namespace ConsoleApp
 
                 CourseList.Add(new Course(courseId, parts[0], parts[1], TeacherList.IndexOf(teacherName), int.Parse(parts[2]), int.Parse(parts[3]), int.Parse(parts[4]), int.Parse(parts[5]), (int.Parse(parts[6]) == 1)));
 
-
             }
-            Console.WriteLine($"teacher size: {TeacherListSize}");
+            Console.WriteLine($"teacher size: {TeacherList.Count}");
             #endregion
 
             #region scan preqeuiste courses
@@ -249,68 +239,68 @@ namespace ConsoleApp
             Console.WriteLine(" Enter the problem relevant and algorithm relevant parameters ... ");
             Console.WriteLine(" Enter the population size (a multiple of 4) : ");
             consoleIn = Console.ReadLine();
-            Problem.PopulationSize = int.Parse(consoleIn);
-            if (Problem.PopulationSize < 4 || Problem.PopulationSize % 4 != 0)
+            ProblemObj.PopulationSize = int.Parse(consoleIn);
+            if (ProblemObj.PopulationSize < 4 || ProblemObj.PopulationSize % 4 != 0)
             {
-                Console.WriteLine($" population size read is : {Problem.PopulationSize}");
+                Console.WriteLine($" population size read is : {ProblemObj.PopulationSize}");
                 Console.WriteLine(" Wrong population size entered, hence exiting \n");
                 return;
             }
 
             Console.WriteLine(" Enter the number of generations : ");
             consoleIn = Console.ReadLine();
-            Problem.GenCount = int.Parse(consoleIn);
-            if (Problem.GenCount < 1)
+            ProblemObj.GenCount = int.Parse(consoleIn);
+            if (ProblemObj.GenCount < 1)
             {
-                Console.WriteLine($" number of generations read is : {Problem.GenCount}");
+                Console.WriteLine($" number of generations read is : {ProblemObj.GenCount}");
                 Console.WriteLine(" Wrong nuber of generations entered, hence exiting \n");
                 return;
             }
 
             Console.WriteLine(" Enter the number of objectives : ");
             consoleIn = Console.ReadLine();
-            Problem.ObjectiveCount = int.Parse(consoleIn);
-            if (Problem.ObjectiveCount < 1)
+            ProblemObj.ObjectiveCount = int.Parse(consoleIn);
+            if (ProblemObj.ObjectiveCount < 1)
             {
-                Console.WriteLine($" number of objectives entered is : {Problem.ObjectiveCount}");
+                Console.WriteLine($" number of objectives entered is : {ProblemObj.ObjectiveCount}");
                 Console.WriteLine(" Wrong number of objectives entered, hence exiting \n");
                 return;
             }
 
             Console.WriteLine("\n Enter the number of constraints : ");
             consoleIn = Console.ReadLine();
-            Problem.ConstraintCount = int.Parse(consoleIn);
-            if (Problem.ConstraintCount < 0)
+            ProblemObj.ConstraintCount = int.Parse(consoleIn);
+            if (ProblemObj.ConstraintCount < 0)
             {
-                Console.WriteLine($" number of constraints entered is : {Problem.ConstraintCount}");
+                Console.WriteLine($" number of constraints entered is : {ProblemObj.ConstraintCount}");
                 Console.WriteLine(" Wrong number of constraints enetered, hence exiting \n");
                 return;
             }
 
             Console.WriteLine("\n Enter the number of real variables : ");
             consoleIn = Console.ReadLine();
-            Problem.RealVariableCount = int.Parse(consoleIn);
-            if (Problem.RealVariableCount < 0)
+            ProblemObj.RealVariableCount = int.Parse(consoleIn);
+            if (ProblemObj.RealVariableCount < 0)
             {
-                Console.WriteLine($" number of real variables entered is : {Problem.RealVariableCount}");
+                Console.WriteLine($" number of real variables entered is : {ProblemObj.RealVariableCount}");
                 Console.WriteLine(" Wrong number of variables entered, hence exiting \n");
                 return;
             }
 
 
-            if (Problem.RealVariableCount != 0)
+            if (ProblemObj.RealVariableCount != 0)
             {
-                Problem.min_realvar = new double[Problem.RealVariableCount];
-                Problem.max_realvar = new double[Problem.RealVariableCount];
-                for (int i = 0; i < Problem.RealVariableCount; i++)
+                ProblemObj.min_realvar = new double[ProblemObj.RealVariableCount];
+                ProblemObj.max_realvar = new double[ProblemObj.RealVariableCount];
+                for (int i = 0; i < ProblemObj.RealVariableCount; i++)
                 {
                     Console.WriteLine($" Enter the lower limit of real variable {i + 1} : ");
                     consoleIn = Console.ReadLine();
-                    Problem.min_realvar[i] = double.Parse(consoleIn);
+                    ProblemObj.min_realvar[i] = double.Parse(consoleIn);
                     Console.WriteLine($" Enter the upper limit of real variable {i + 1} : ");
                     consoleIn = Console.ReadLine();
-                    Problem.max_realvar[i] = double.Parse(consoleIn);
-                    if (Problem.max_realvar[i] <= Problem.min_realvar[i])
+                    ProblemObj.max_realvar[i] = double.Parse(consoleIn);
+                    if (ProblemObj.max_realvar[i] <= ProblemObj.min_realvar[i])
                     {
                         Console.WriteLine(" Wrong limits entered for the min and max bounds of real variable, hence exiting \n");
                         return;
@@ -318,37 +308,37 @@ namespace ConsoleApp
                 }
                 Console.WriteLine(" Enter the probability of Crossover of real variable (0.6-1.0) : ");
                 consoleIn = Console.ReadLine();
-                Problem.RealCrossoverProbability = double.Parse(consoleIn);
-                if (Problem.RealCrossoverProbability < 0.0 || Problem.RealCrossoverProbability > 1.0)
+                ProblemObj.RealCrossoverProbability = double.Parse(consoleIn);
+                if (ProblemObj.RealCrossoverProbability < 0.0 || ProblemObj.RealCrossoverProbability > 1.0)
                 {
-                    Console.WriteLine($" Probability of crossover entered is : {Problem.RealCrossoverProbability}");
+                    Console.WriteLine($" Probability of crossover entered is : {ProblemObj.RealCrossoverProbability}");
                     Console.WriteLine(" Entered value of probability of Crossover of real variables is out of bounds, hence exiting \n");
                     return;
                 }
-                Console.WriteLine(" Enter the probablity of mutation of real variables (1/Problem.RealVariableCount) : ");
+                Console.WriteLine(" Enter the probablity of mutation of real variables (1/ProblemObj.RealVariableCount) : ");
                 consoleIn = Console.ReadLine();
-                Problem.RealMutationProbability = double.Parse(consoleIn);
-                if (Problem.RealMutationProbability < 0.0 || Problem.RealMutationProbability > 1.0)
+                ProblemObj.RealMutationProbability = double.Parse(consoleIn);
+                if (ProblemObj.RealMutationProbability < 0.0 || ProblemObj.RealMutationProbability > 1.0)
                 {
-                    Console.WriteLine($" Probability of mutation entered is : {Problem.RealMutationProbability}");
+                    Console.WriteLine($" Probability of mutation entered is : {ProblemObj.RealMutationProbability}");
                     Console.WriteLine(" Entered value of probability of mutation of real variables is out of bounds, hence exiting \n");
                     return;
                 }
                 Console.WriteLine(" Enter the value of distribution index for Crossover (5-20): ");
                 consoleIn = Console.ReadLine();
-                Problem.CrossoverDistributionIndex = double.Parse(consoleIn);
-                if (Problem.CrossoverDistributionIndex <= 0)
+                ProblemObj.CrossoverDistributionIndex = double.Parse(consoleIn);
+                if (ProblemObj.CrossoverDistributionIndex <= 0)
                 {
-                    Console.WriteLine($" The value entered is : {Problem.CrossoverDistributionIndex}");
+                    Console.WriteLine($" The value entered is : {ProblemObj.CrossoverDistributionIndex}");
                     Console.WriteLine(" Wrong value of distribution index for Crossover entered, hence exiting \n");
                     return;
                 }
                 Console.WriteLine(" Enter the value of distribution index for mutation (5-50): ");
                 consoleIn = Console.ReadLine();
-                Problem.MutationDistributionIndex = double.Parse(consoleIn);
-                if (Problem.MutationDistributionIndex <= 0)
+                ProblemObj.MutationDistributionIndex = double.Parse(consoleIn);
+                if (ProblemObj.MutationDistributionIndex <= 0)
                 {
-                    Console.WriteLine($" The value entered is : {Problem.MutationDistributionIndex}");
+                    Console.WriteLine($" The value entered is : {ProblemObj.MutationDistributionIndex}");
                     Console.WriteLine(" Wrong value of distribution index for mutation entered, hence exiting \n");
                     return;
                 }
@@ -356,39 +346,39 @@ namespace ConsoleApp
 
             Console.WriteLine(" Enter the number of binary variables : ");
             consoleIn = Console.ReadLine();
-            Problem.BinaryVariableCount = int.Parse(consoleIn);
-            if (Problem.BinaryVariableCount < 0)
+            ProblemObj.BinaryVariableCount = int.Parse(consoleIn);
+            if (ProblemObj.BinaryVariableCount < 0)
             {
-                Console.WriteLine($" number of binary variables entered is : {Problem.BinaryVariableCount}");
+                Console.WriteLine($" number of binary variables entered is : {ProblemObj.BinaryVariableCount}");
                 Console.WriteLine(" Wrong number of binary variables entered, hence exiting \n");
                 return;
             }
-            if (Problem.BinaryVariableCount != 0)
+            if (ProblemObj.BinaryVariableCount != 0)
             {
-                Problem.nbits = new int[Problem.BinaryVariableCount];
-                Problem.min_binvar = new double[Problem.BinaryVariableCount];
-                Problem.max_binvar = new double[Problem.BinaryVariableCount];
-                for (int i = 0; i < Problem.BinaryVariableCount; i++)
+                ProblemObj.nbits = new int[ProblemObj.BinaryVariableCount];
+                ProblemObj.min_binvar = new double[ProblemObj.BinaryVariableCount];
+                ProblemObj.max_binvar = new double[ProblemObj.BinaryVariableCount];
+                for (int i = 0; i < ProblemObj.BinaryVariableCount; i++)
                 {
                     Console.WriteLine($" Enter the number of bits for binary variable {i + 1} :");
                     consoleIn = Console.ReadLine();
                     var parts = consoleIn.Split(new char[] { ' ' });
-                    Problem.nbits[i] = int.Parse(parts[0]);
-                    if (Problem.nbits[i] > Problem.MaxBitCount)
-                        Problem.MaxBitCount = Problem.nbits[i];
-                    if (Problem.nbits[i] < 1)
+                    ProblemObj.nbits[i] = int.Parse(parts[0]);
+                    if (ProblemObj.nbits[i] > ProblemObj.MaxBitCount)
+                        ProblemObj.MaxBitCount = ProblemObj.nbits[i];
+                    if (ProblemObj.nbits[i] < 1)
                     {
                         Console.WriteLine(" Wrong number of bits for binary variable entered, hence exiting");
                         return;
                     }
                     Console.WriteLine($" Enter the lower limit of binary variable {i + 1} :");
                     //consoleIn = Console.ReadLine();
-                    Problem.min_binvar[i] = double.Parse(parts[1]);
+                    ProblemObj.min_binvar[i] = double.Parse(parts[1]);
 
                     Console.WriteLine($" Enter the upper limit of binary variable {i + 1} :");
                     //consoleIn = Console.ReadLine();
-                    Problem.max_binvar[i] = double.Parse(parts[2]);
-                    if (Problem.max_binvar[i] <= Problem.min_binvar[i])
+                    ProblemObj.max_binvar[i] = double.Parse(parts[2]);
+                    if (ProblemObj.max_binvar[i] <= ProblemObj.min_binvar[i])
                     {
                         Console.WriteLine(" Wrong limits entered for the min and max bounds of binary variable entered, hence exiting \n");
                         return;
@@ -397,25 +387,25 @@ namespace ConsoleApp
                 Console.WriteLine(" Enter the probability of Crossover of binary variable (0.6-1.0): ");
                 consoleIn = Console.ReadLine().Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator)
                     .Replace(",", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
-                Problem.BinaryCrossoverProbability = double.Parse(consoleIn);
-                if (Problem.BinaryCrossoverProbability < 0.0 || Problem.BinaryCrossoverProbability > 1.0)
+                ProblemObj.BinaryCrossoverProbability = double.Parse(consoleIn);
+                if (ProblemObj.BinaryCrossoverProbability < 0.0 || ProblemObj.BinaryCrossoverProbability > 1.0)
                 {
-                    Console.WriteLine($" Probability of crossover entered is : {Problem.BinaryCrossoverProbability}");
+                    Console.WriteLine($" Probability of crossover entered is : {ProblemObj.BinaryCrossoverProbability}");
                     Console.WriteLine(" Entered value of probability of Crossover of binary variables is out of bounds, hence exiting \n");
                     return;
                 }
-                Console.WriteLine(" Enter the probability of mutation of binary variables (1/Problem.nbits): ");
+                Console.WriteLine(" Enter the probability of mutation of binary variables (1/ProblemObj.nbits): ");
                 consoleIn = Console.ReadLine().Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator)
                     .Replace(",", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
-                Problem.BinaryMutationProbability = double.Parse(consoleIn);
-                if (Problem.BinaryMutationProbability < 0.0 || Problem.BinaryMutationProbability > 1.0)
+                ProblemObj.BinaryMutationProbability = double.Parse(consoleIn);
+                if (ProblemObj.BinaryMutationProbability < 0.0 || ProblemObj.BinaryMutationProbability > 1.0)
                 {
-                    Console.WriteLine($" Probability of mutation entered is :  {Problem.BinaryMutationProbability}");
+                    Console.WriteLine($" Probability of mutation entered is :  {ProblemObj.BinaryMutationProbability}");
                     Console.WriteLine(" Entered value of probability  of mutation of binary variables is out of bounds, hence exiting \n");
                     return;
                 }
             }
-            if (Problem.RealVariableCount == 0 && Problem.BinaryVariableCount == 0)
+            if (ProblemObj.RealVariableCount == 0 && ProblemObj.BinaryVariableCount == 0)
             {
                 Console.WriteLine("\n Number of real as well as binary variables, both are zero, hence exiting \n");
                 return;
@@ -423,104 +413,104 @@ namespace ConsoleApp
 
             Console.WriteLine(" Do you want to use gnuplot to display the results realtime (0 for NO) (1 for yes) : ");
             consoleIn = Console.ReadLine();
-            GnuplotChoice = int.Parse(consoleIn);
-            if (GnuplotChoice != 0 && GnuplotChoice != 1)
+            DisplayObj.GnuplotChoice = int.Parse(consoleIn);
+            if (DisplayObj.GnuplotChoice != 0 && DisplayObj.GnuplotChoice != 1)
             {
-                Console.WriteLine($" Entered the wrong choice, hence exiting, choice entered was {GnuplotChoice}\n");
+                Console.WriteLine($" Entered the wrong choice, hence exiting, choice entered was {DisplayObj.GnuplotChoice}\n");
                 return;
             }
-            if (GnuplotChoice == 1)
+            if (DisplayObj.GnuplotChoice == 1)
             {
-                if (Problem.ObjectiveCount == 2)
+                if (ProblemObj.ObjectiveCount == 2)
                 {
                     Console.WriteLine(" Enter the objective for X axis display : ");
                     consoleIn = Console.ReadLine();
-                    GnuplotObjective1 = int.Parse(consoleIn);
-                    if (GnuplotObjective1 < 1 || GnuplotObjective1 > Problem.ObjectiveCount)
+                    DisplayObj.GnuplotObjective1 = int.Parse(consoleIn);
+                    if (DisplayObj.GnuplotObjective1 < 1 || DisplayObj.GnuplotObjective1 > ProblemObj.ObjectiveCount)
                     {
-                        Console.WriteLine($" Wrong value of X objective entered, value entered was {GnuplotObjective1}\n");
+                        Console.WriteLine($" Wrong value of X objective entered, value entered was {DisplayObj.GnuplotObjective1}\n");
                         return;
                     }
                     Console.WriteLine(" Enter the objective for Y axis display : ");
                     consoleIn = Console.ReadLine();
-                    GnuplotObjective2 = int.Parse(consoleIn);
-                    if (GnuplotObjective2 < 1 || GnuplotObjective2 > Problem.ObjectiveCount)
+                    DisplayObj.GnuplotObjective2 = int.Parse(consoleIn);
+                    if (DisplayObj.GnuplotObjective2 < 1 || DisplayObj.GnuplotObjective2 > ProblemObj.ObjectiveCount)
                     {
-                        Console.WriteLine($" Wrong value of Y objective entered, value entered was {GnuplotObjective2}\n");
+                        Console.WriteLine($" Wrong value of Y objective entered, value entered was {DisplayObj.GnuplotObjective2}\n");
                         return;
                     }
-                    GnuplotObjective3 = -1;
+                    DisplayObj.GnuplotObjective3 = -1;
                 }
                 else
                 {
                     Console.WriteLine(" #obj > 2, 2D display or a 3D display ?, enter 2 for 2D and 3 for 3D :");
 
                     consoleIn = Console.ReadLine();
-                    GnuplotChoice = int.Parse(consoleIn);
-                    if (GnuplotChoice != 2 && GnuplotChoice != 3)
+                    DisplayObj.GnuplotChoice = int.Parse(consoleIn);
+                    if (DisplayObj.GnuplotChoice != 2 && DisplayObj.GnuplotChoice != 3)
                     {
-                        Console.WriteLine($" Entered the wrong choice, hence exiting, choice entered was {GnuplotChoice}\n");
+                        Console.WriteLine($" Entered the wrong choice, hence exiting, choice entered was {DisplayObj.GnuplotChoice}\n");
                         return;
                     }
-                    if (GnuplotChoice == 2)
+                    if (DisplayObj.GnuplotChoice == 2)
                     {
                         Console.WriteLine(" Enter the objective for X axis display : ");
                         consoleIn = Console.ReadLine();
-                        GnuplotObjective1 = int.Parse(consoleIn);
-                        if (GnuplotObjective1 < 1 || GnuplotObjective1 > Problem.ObjectiveCount)
+                        DisplayObj.GnuplotObjective1 = int.Parse(consoleIn);
+                        if (DisplayObj.GnuplotObjective1 < 1 || DisplayObj.GnuplotObjective1 > ProblemObj.ObjectiveCount)
                         {
-                            Console.WriteLine($" Wrong value of X objective entered, value entered was {GnuplotObjective1}\n");
+                            Console.WriteLine($" Wrong value of X objective entered, value entered was {DisplayObj.GnuplotObjective1}\n");
                             return;
                         }
                         Console.WriteLine(" Enter the objective for Y axis display : ");
                         consoleIn = Console.ReadLine();
-                        GnuplotObjective2 = int.Parse(consoleIn);
-                        if (GnuplotObjective2 < 1 || GnuplotObjective2 > Problem.ObjectiveCount)
+                        DisplayObj.GnuplotObjective2 = int.Parse(consoleIn);
+                        if (DisplayObj.GnuplotObjective2 < 1 || DisplayObj.GnuplotObjective2 > ProblemObj.ObjectiveCount)
                         {
-                            Console.WriteLine($" Wrong value of Y objective entered, value entered was {GnuplotObjective2}\n");
+                            Console.WriteLine($" Wrong value of Y objective entered, value entered was {DisplayObj.GnuplotObjective2}\n");
                             return;
                         }
-                        GnuplotObjective3 = -1;
+                        DisplayObj.GnuplotObjective3 = -1;
                     }
                     else
                     {
                         Console.WriteLine(" Enter the objective for X axis display : ");
                         consoleIn = Console.ReadLine();
-                        GnuplotObjective1 = int.Parse(consoleIn);
-                        if (GnuplotObjective1 < 1 || GnuplotObjective1 > Problem.ObjectiveCount)
+                        DisplayObj.GnuplotObjective1 = int.Parse(consoleIn);
+                        if (DisplayObj.GnuplotObjective1 < 1 || DisplayObj.GnuplotObjective1 > ProblemObj.ObjectiveCount)
                         {
-                            Console.WriteLine($" Wrong value of X objective entered, value entered was {GnuplotObjective1}\n");
+                            Console.WriteLine($" Wrong value of X objective entered, value entered was {DisplayObj.GnuplotObjective1}\n");
                             return;
                         }
                         Console.WriteLine(" Enter the objective for Y axis display : ");
                         consoleIn = Console.ReadLine();
-                        GnuplotObjective2 = int.Parse(consoleIn);
-                        if (GnuplotObjective2 < 1 || GnuplotObjective2 > Problem.ObjectiveCount)
+                        DisplayObj.GnuplotObjective2 = int.Parse(consoleIn);
+                        if (DisplayObj.GnuplotObjective2 < 1 || DisplayObj.GnuplotObjective2 > ProblemObj.ObjectiveCount)
                         {
-                            Console.WriteLine($" Wrong value of Y objective entered, value entered was {GnuplotObjective2}\n");
+                            Console.WriteLine($" Wrong value of Y objective entered, value entered was {DisplayObj.GnuplotObjective2}\n");
                             return;
                         }
                         Console.WriteLine(" Enter the objective for Z axis display : ");
                         consoleIn = Console.ReadLine();
-                        GnuplotObjective3 = int.Parse(consoleIn);
-                        if (GnuplotObjective3 < 1 || GnuplotObjective3 > Problem.ObjectiveCount)
+                        DisplayObj.GnuplotObjective3 = int.Parse(consoleIn);
+                        if (DisplayObj.GnuplotObjective3 < 1 || DisplayObj.GnuplotObjective3 > ProblemObj.ObjectiveCount)
                         {
-                            Console.WriteLine($" Wrong value of Z objective entered, value entered was {GnuplotObjective3}\n");
+                            Console.WriteLine($" Wrong value of Z objective entered, value entered was {DisplayObj.GnuplotObjective3}\n");
                             return;
                         }
                         Console.WriteLine(" You have chosen 3D display, hence location of eye required \n");
                         Console.WriteLine(" Enter the first angle (an integer in the range 0-180) (if not known, enter 60) :");
                         consoleIn = Console.ReadLine();
-                        GnuplotAngle1 = int.Parse(consoleIn);
-                        if (GnuplotAngle1 < 0 || GnuplotAngle1 > 180)
+                        DisplayObj.GnuplotAngle1 = int.Parse(consoleIn);
+                        if (DisplayObj.GnuplotAngle1 < 0 || DisplayObj.GnuplotAngle1 > 180)
                         {
                             Console.WriteLine(" Wrong value for first angle entered, hence exiting \n");
                             return;
                         }
                         Console.WriteLine(" Enter the second angle (an integer in the range 0-360) (if not known, enter 30) :");
                         consoleIn = Console.ReadLine();
-                        GnuplotAngle2 = int.Parse(consoleIn);
-                        if (GnuplotAngle2 < 0 || GnuplotAngle2 > 360)
+                        DisplayObj.GnuplotAngle2 = int.Parse(consoleIn);
+                        if (DisplayObj.GnuplotAngle2 < 0 || DisplayObj.GnuplotAngle2 > 360)
                         {
                             Console.WriteLine(" Wrong value for second angle entered, hence exiting \n");
                             return;
@@ -533,55 +523,55 @@ namespace ConsoleApp
 
             #region write down starting params into file
 
-            writer5.WriteLine($" Population size = {Problem.PopulationSize}");
-            writer5.WriteLine($" Number of generations = {Problem.GenCount}");
-            writer5.WriteLine($" Number of objective functions = {Problem.ObjectiveCount}");
-            writer5.WriteLine($" Number of constraints = {Problem.ConstraintCount}");
-            writer5.WriteLine($" Number of real variables = {Problem.RealVariableCount}");
-            if (Problem.RealVariableCount != 0)
+            writer5.WriteLine($" Population size = {ProblemObj.PopulationSize}");
+            writer5.WriteLine($" Number of generations = {ProblemObj.GenCount}");
+            writer5.WriteLine($" Number of objective functions = {ProblemObj.ObjectiveCount}");
+            writer5.WriteLine($" Number of constraints = {ProblemObj.ConstraintCount}");
+            writer5.WriteLine($" Number of real variables = {ProblemObj.RealVariableCount}");
+            if (ProblemObj.RealVariableCount != 0)
             {
-                for (int i = 0; i < Problem.RealVariableCount; i++)
+                for (int i = 0; i < ProblemObj.RealVariableCount; i++)
                 {
-                    writer5.WriteLine($" Lower limit of real variable {i + 1} = {Problem.min_realvar[i]}");
-                    writer5.WriteLine($" Upper limit of real variable {i + 1} = {Problem.max_realvar[i]}");
+                    writer5.WriteLine($" Lower limit of real variable {i + 1} = {ProblemObj.min_realvar[i]}");
+                    writer5.WriteLine($" Upper limit of real variable {i + 1} = {ProblemObj.max_realvar[i]}");
                 }
-                writer5.WriteLine($" Probability of crossover of real variable = {Problem.RealCrossoverProbability}");
-                writer5.WriteLine($" Probability of mutation of real variable = {Problem.RealMutationProbability}");
-                writer5.WriteLine($" Distribution index for crossover = {Problem.CrossoverDistributionIndex}");
-                writer5.WriteLine($" Distribution index for mutation = {Problem.MutationDistributionIndex}");
+                writer5.WriteLine($" Probability of crossover of real variable = {ProblemObj.RealCrossoverProbability}");
+                writer5.WriteLine($" Probability of mutation of real variable = {ProblemObj.RealMutationProbability}");
+                writer5.WriteLine($" Distribution index for crossover = {ProblemObj.CrossoverDistributionIndex}");
+                writer5.WriteLine($" Distribution index for mutation = {ProblemObj.MutationDistributionIndex}");
             }
-            writer5.Write($" Number of binary variables = {Problem.BinaryVariableCount}");
-            if (Problem.BinaryVariableCount != 0)
+            writer5.Write($" Number of binary variables = {ProblemObj.BinaryVariableCount}");
+            if (ProblemObj.BinaryVariableCount != 0)
             {
-                for (int i = 0; i < Problem.BinaryVariableCount; i++)
+                for (int i = 0; i < ProblemObj.BinaryVariableCount; i++)
                 {
-                    writer5.WriteLine($" Number of bits for binary variable {i + 1} = {Problem.nbits[i]}");
-                    writer5.WriteLine($" Lower limit of binary variable {i + 1} = {Problem.min_binvar[i]}");
-                    writer5.WriteLine($" Upper limit of binary variable {i + 1} = {Problem.max_binvar[i]}");
+                    writer5.WriteLine($" Number of bits for binary variable {i + 1} = {ProblemObj.nbits[i]}");
+                    writer5.WriteLine($" Lower limit of binary variable {i + 1} = {ProblemObj.min_binvar[i]}");
+                    writer5.WriteLine($" Upper limit of binary variable {i + 1} = {ProblemObj.max_binvar[i]}");
                 }
-                writer5.WriteLine($" Probability of crossover of binary variable = {Problem.BinaryCrossoverProbability}");
-                writer5.WriteLine($" Probability of mutation of binary variable = {Problem.BinaryMutationProbability}");
+                writer5.WriteLine($" Probability of crossover of binary variable = {ProblemObj.BinaryCrossoverProbability}");
+                writer5.WriteLine($" Probability of mutation of binary variable = {ProblemObj.BinaryMutationProbability}");
             }
             writer5.Write($" Seed for random number generator = {seed}");
-            Problem.TotalBinaryBitLength = 0;
-            if (Problem.BinaryVariableCount != 0)
+            ProblemObj.TotalBinaryBitLength = 0;
+            if (ProblemObj.BinaryVariableCount != 0)
             {
-                /*printf("Problem.BinaryVariableCount: %d \n", Problem.BinaryVariableCount);*/
-                for (int i = 0; i < Problem.BinaryVariableCount; i++)
+                /*printf("ProblemObj.BinaryVariableCount: %d \n", ProblemObj.BinaryVariableCount);*/
+                for (int i = 0; i < ProblemObj.BinaryVariableCount; i++)
                 {
-                    Problem.TotalBinaryBitLength += Problem.nbits[i];
-                    /*printf("Problem.nbits[%d]: %d \n", i,Problem.nbits[i]);*/
+                    ProblemObj.TotalBinaryBitLength += ProblemObj.nbits[i];
+                    /*printf("ProblemObj.nbits[%d]: %d \n", i,ProblemObj.nbits[i]);*/
                 }
             }
 
-            writer1.Write($"# of objectives = {Problem.ObjectiveCount}, # of constraints = {Problem.ConstraintCount}, # of real_var = {Problem.RealVariableCount}, # of bits of bin_var = {Problem.TotalBinaryBitLength}, constr_violation, rank, crowding_distance\n");
-            writer2.Write($"# of objectives = {Problem.ObjectiveCount}, # of constraints = {Problem.ConstraintCount}, # of real_var = {Problem.RealVariableCount}, # of bits of bin_var = {Problem.TotalBinaryBitLength}, constr_violation, rank, crowding_distance\n");
-            writer3.Write($"# of objectives = {Problem.ObjectiveCount}, # of constraints = {Problem.ConstraintCount}, # of real_var = {Problem.RealVariableCount}, # of bits of bin_var = {Problem.TotalBinaryBitLength}, constr_violation, rank, crowding_distance\n");
-            writer4.Write($"# of objectives = {Problem.ObjectiveCount}, # of constraints = {Problem.ConstraintCount}, # of real_var = {Problem.RealVariableCount}, # of bits of bin_var = {Problem.TotalBinaryBitLength}, constr_violation, rank, crowding_distance\n");
-            Problem.BinaryMutationCount = 0;
-            Problem.RealMutationCount = 0;
-            Problem.BinaryCrossoverCount = 0;
-            Problem.RealCrossoverCount = 0;
+            writer1.Write($"# of objectives = {ProblemObj.ObjectiveCount}, # of constraints = {ProblemObj.ConstraintCount}, # of real_var = {ProblemObj.RealVariableCount}, # of bits of bin_var = {ProblemObj.TotalBinaryBitLength}, constr_violation, rank, crowding_distance\n");
+            writer2.Write($"# of objectives = {ProblemObj.ObjectiveCount}, # of constraints = {ProblemObj.ConstraintCount}, # of real_var = {ProblemObj.RealVariableCount}, # of bits of bin_var = {ProblemObj.TotalBinaryBitLength}, constr_violation, rank, crowding_distance\n");
+            writer3.Write($"# of objectives = {ProblemObj.ObjectiveCount}, # of constraints = {ProblemObj.ConstraintCount}, # of real_var = {ProblemObj.RealVariableCount}, # of bits of bin_var = {ProblemObj.TotalBinaryBitLength}, constr_violation, rank, crowding_distance\n");
+            writer4.Write($"# of objectives = {ProblemObj.ObjectiveCount}, # of constraints = {ProblemObj.ConstraintCount}, # of real_var = {ProblemObj.RealVariableCount}, # of bits of bin_var = {ProblemObj.TotalBinaryBitLength}, constr_violation, rank, crowding_distance\n");
+            ProblemObj.BinaryMutationCount = 0;
+            ProblemObj.RealMutationCount = 0;
+            ProblemObj.BinaryCrossoverCount = 0;
+            ProblemObj.RealCrossoverCount = 0;
 
             writer1.Flush();
             writer2.Flush();
@@ -592,20 +582,20 @@ namespace ConsoleApp
             #endregion
 
             #region first population
-            parentPopulation = new Population(Problem.PopulationSize, Problem.RealVariableCount, Problem.BinaryVariableCount, Problem.MaxBitCount, Problem.ObjectiveCount, Problem.ConstraintCount);
+            parentPopulation = new Population(ProblemObj.PopulationSize, ProblemObj.RealVariableCount, ProblemObj.BinaryVariableCount, ProblemObj.MaxBitCount, ProblemObj.ObjectiveCount, ProblemObj.ConstraintCount);
             // (population*)malloc(sizeof(population));
-            childPopulation = new Population(Problem.PopulationSize, Problem.RealVariableCount, Problem.BinaryVariableCount, Problem.MaxBitCount, Problem.ObjectiveCount, Problem.ConstraintCount);
+            childPopulation = new Population(ProblemObj.PopulationSize, ProblemObj.RealVariableCount, ProblemObj.BinaryVariableCount, ProblemObj.MaxBitCount, ProblemObj.ObjectiveCount, ProblemObj.ConstraintCount);
             // (population*)malloc(sizeof(population));
-            mixedPopulation = new Population(Problem.PopulationSize * 2, Problem.RealVariableCount, Problem.BinaryVariableCount, Problem.MaxBitCount, Problem.ObjectiveCount, Problem.ConstraintCount);
+            mixedPopulation = new Population(ProblemObj.PopulationSize * 2, ProblemObj.RealVariableCount, ProblemObj.BinaryVariableCount, ProblemObj.MaxBitCount, ProblemObj.ObjectiveCount, ProblemObj.ConstraintCount);
             // (population*)malloc(sizeof(population));
 
 
             RandomizationObj.Randomize();
-            parentPopulation.Initialize(Problem,RandomizationObj);
+            parentPopulation.Initialize(ProblemObj,RandomizationObj);
             Console.WriteLine(" Initialization done, now performing first generation");
 
 
-            parentPopulation.Decode(Problem);
+            parentPopulation.Decode(ProblemObj);
 
             evaluate_population(parentPopulation);
             assign_rank_and_crowding_distance(parentPopulation);
@@ -614,9 +604,9 @@ namespace ConsoleApp
             ReportPopulation(parentPopulation, writer4);
             Console.WriteLine(" gen = 1");
             //fflush(stdout);
-            if (GnuplotChoice != 0)
+            if (DisplayObj.GnuplotChoice != 0)
             {
-                PlotPopulation(parentPopulation, 1);
+                DisplayObj.PlotPopulation(parentPopulation, ProblemObj, 1);
             }
             writer1.Flush();
             writer2.Flush();
@@ -627,12 +617,12 @@ namespace ConsoleApp
             #endregion
 
             #region generation loop
-            for (int i = 2; i <= Problem.GenCount; i++)
+            for (int i = 2; i <= ProblemObj.GenCount; i++)
             {
                 Selection(parentPopulation, childPopulation);
                 MutatePopulation(childPopulation);
 
-                childPopulation.Decode(Problem);
+                childPopulation.Decode(ProblemObj);
                 evaluate_population(childPopulation);
                 MergePopulation(parentPopulation, childPopulation, mixedPopulation);
                 fill_nondominated_sort(mixedPopulation, parentPopulation);
@@ -642,9 +632,9 @@ namespace ConsoleApp
                 //*fprintf(fpt4,"# gen = %d\n",i);
                 //ReportPopulation(parent_pop,fpt4);
                 //fflush(fpt4);*/
-                if (GnuplotChoice != 0)
+                if (DisplayObj.GnuplotChoice != 0)
                 {
-                    PlotPopulation(parentPopulation, i);
+                    DisplayObj.PlotPopulation(parentPopulation, ProblemObj, i);
                 }
 
                 Console.WriteLine($" gen = {i}");
@@ -656,15 +646,15 @@ namespace ConsoleApp
             ReportPopulation(parentPopulation, writer2);
             ReportFeasiblePopulation(parentPopulation, writer3);
 
-            if (Problem.RealVariableCount != 0)
+            if (ProblemObj.RealVariableCount != 0)
             {
-                writer5.WriteLine($" Number of crossover of real variable = {Problem.RealCrossoverCount}");
-                writer5.WriteLine($" Number of mutation of real variable = {Problem.RealMutationCount}");
+                writer5.WriteLine($" Number of crossover of real variable = {ProblemObj.RealCrossoverCount}");
+                writer5.WriteLine($" Number of mutation of real variable = {ProblemObj.RealMutationCount}");
             }
-            if (Problem.BinaryVariableCount != 0)
+            if (ProblemObj.BinaryVariableCount != 0)
             {
-                writer5.WriteLine($" Number of crossover of binary variable = {Problem.BinaryCrossoverCount}");
-                writer5.WriteLine($" Number of mutation of binary variable = {Problem.BinaryMutationCount}");
+                writer5.WriteLine($" Number of crossover of binary variable = {ProblemObj.BinaryCrossoverCount}");
+                writer5.WriteLine($" Number of mutation of binary variable = {ProblemObj.BinaryMutationCount}");
             }
             #endregion
 
@@ -701,7 +691,7 @@ namespace ConsoleApp
         /* Routine to evaluate objective function values and constraints for a population */
         static void evaluate_population(Population pop)
         {
-            for (int i = 0; i < Problem.PopulationSize; i++)
+            for (int i = 0; i < ProblemObj.PopulationSize; i++)
             {
                 evaluate_individual(pop.IndList[i]);
             }
@@ -711,14 +701,14 @@ namespace ConsoleApp
         static void evaluate_individual(Individual ind)
         {
             UCT_Evaluate(ind);
-            if (Problem.ConstraintCount == 0)
+            if (ProblemObj.ConstraintCount == 0)
             {
                 ind.ConstrViolation = 0.0;
             }
             else
             {
                 ind.ConstrViolation = 0.0;
-                for (int j = 0; j < Problem.ConstraintCount; j++)
+                for (int j = 0; j < ProblemObj.ConstraintCount; j++)
                 {
                     if (ind.Constr[j] < 0.0)
                     {
@@ -824,7 +814,7 @@ namespace ConsoleApp
             #endregion
 
             #region fill variables2
-            for (j = 0; j < Problem.BinaryVariableCount; j++) //ders sayisi kadar.
+            for (j = 0; j < ProblemObj.BinaryVariableCount; j++) //ders sayisi kadar.
             {
 
                 slotId = (int)ind.Xbin[j];
@@ -844,7 +834,7 @@ namespace ConsoleApp
             #endregion
 
             #region fill variables
-            for (j = 0; j < Problem.BinaryVariableCount; j++) //ders sayisi kadar.
+            for (j = 0; j < ProblemObj.BinaryVariableCount; j++) //ders sayisi kadar.
             {
 
                 teacherIndex = CourseList[j].TeacherId;
@@ -1654,24 +1644,24 @@ namespace ConsoleApp
             int i;
             int rand;
             Individual parent1, parent2;
-            a1 = new int[Problem.PopulationSize];
-            a2 = new int[Problem.PopulationSize];
-            for (i = 0; i < Problem.PopulationSize; i++)
+            a1 = new int[ProblemObj.PopulationSize];
+            a2 = new int[ProblemObj.PopulationSize];
+            for (i = 0; i < ProblemObj.PopulationSize; i++)
             {
                 a1[i] = a2[i] = i;
             }
-            for (i = 0; i < Problem.PopulationSize; i++)
+            for (i = 0; i < ProblemObj.PopulationSize; i++)
             {
-                rand = RandomizationObj.RandomInteger(i, Problem.PopulationSize - 1);
+                rand = RandomizationObj.RandomInteger(i, ProblemObj.PopulationSize - 1);
                 temp = a1[rand];
                 a1[rand] = a1[i];
                 a1[i] = temp;
-                rand = RandomizationObj.RandomInteger(i, Problem.PopulationSize - 1);
+                rand = RandomizationObj.RandomInteger(i, ProblemObj.PopulationSize - 1);
                 temp = a2[rand];
                 a2[rand] = a2[i];
                 a2[i] = temp;
             }
-            for (i = 0; i < Problem.PopulationSize; i += 4)
+            for (i = 0; i < ProblemObj.PopulationSize; i += 4)
             {
                 parent1 = Tournament(oldPopulation.IndList[a1[i]], oldPopulation.IndList[a1[i + 1]]);
                 parent2 = Tournament(oldPopulation.IndList[a1[i + 2]], oldPopulation.IndList[a1[i + 3]]);
@@ -1719,11 +1709,11 @@ namespace ConsoleApp
         /* Function to cross two individuals */
         static void Crossover(Individual parent1, Individual parent2, Individual child1, Individual child2)
         {
-            if (Problem.RealVariableCount != 0)
+            if (ProblemObj.RealVariableCount != 0)
             {
                 RealCrossover(parent1, parent2, child1, child2);
             }
-            if (Problem.BinaryVariableCount != 0)
+            if (ProblemObj.BinaryVariableCount != 0)
             {
                 BinaryCrossover(parent1, parent2, child1, child2);
             }
@@ -1737,14 +1727,14 @@ namespace ConsoleApp
             double y1, y2, yl, yu;
             double c1, c2;
             double alpha, beta, betaq;
-            if (RandomizationObj.RandomPercent() <= Problem.RealCrossoverProbability)
+            if (RandomizationObj.RandomPercent() <= ProblemObj.RealCrossoverProbability)
             {
-                Problem.RealCrossoverCount++;
-                for (i = 0; i < Problem.RealVariableCount; i++)
+                ProblemObj.RealCrossoverCount++;
+                for (i = 0; i < ProblemObj.RealVariableCount; i++)
                 {
                     if (RandomizationObj.RandomPercent() <= 0.5)
                     {
-                        if (Math.Abs(parent1.Xreal[i] - parent2.Xreal[i]) > Problem.EPS)
+                        if (Math.Abs(parent1.Xreal[i] - parent2.Xreal[i]) > ProblemObj.EPS)
                         {
                             if (parent1.Xreal[i] < parent2.Xreal[i])
                             {
@@ -1756,29 +1746,29 @@ namespace ConsoleApp
                                 y1 = parent2.Xreal[i];
                                 y2 = parent1.Xreal[i];
                             }
-                            yl = Problem.min_realvar[i];
-                            yu = Problem.max_realvar[i];
+                            yl = ProblemObj.min_realvar[i];
+                            yu = ProblemObj.max_realvar[i];
                             rand = RandomizationObj.RandomPercent();
                             beta = 1.0 + 2.0 * (y1 - yl) / (y2 - y1);
-                            alpha = 2.0 - Math.Pow(beta, -(Problem.CrossoverDistributionIndex + 1.0));
+                            alpha = 2.0 - Math.Pow(beta, -(ProblemObj.CrossoverDistributionIndex + 1.0));
                             if (rand <= 1.0 / alpha)
                             {
-                                betaq = Math.Pow(rand * alpha, 1.0 / (Problem.CrossoverDistributionIndex + 1.0));
+                                betaq = Math.Pow(rand * alpha, 1.0 / (ProblemObj.CrossoverDistributionIndex + 1.0));
                             }
                             else
                             {
-                                betaq = Math.Pow(1.0 / (2.0 - rand * alpha), 1.0 / (Problem.CrossoverDistributionIndex + 1.0));
+                                betaq = Math.Pow(1.0 / (2.0 - rand * alpha), 1.0 / (ProblemObj.CrossoverDistributionIndex + 1.0));
                             }
                             c1 = 0.5 * (y1 + y2 - betaq * (y2 - y1));
                             beta = 1.0 + 2.0 * (yu - y2) / (y2 - y1);
-                            alpha = 2.0 - Math.Pow(beta, -(Problem.CrossoverDistributionIndex + 1.0));
+                            alpha = 2.0 - Math.Pow(beta, -(ProblemObj.CrossoverDistributionIndex + 1.0));
                             if (rand <= 1.0 / alpha)
                             {
-                                betaq = Math.Pow(rand * alpha, 1.0 / (Problem.CrossoverDistributionIndex + 1.0));
+                                betaq = Math.Pow(rand * alpha, 1.0 / (ProblemObj.CrossoverDistributionIndex + 1.0));
                             }
                             else
                             {
-                                betaq = Math.Pow(1.0 / (2.0 - rand * alpha), 1.0 / (Problem.CrossoverDistributionIndex + 1.0));
+                                betaq = Math.Pow(1.0 / (2.0 - rand * alpha), 1.0 / (ProblemObj.CrossoverDistributionIndex + 1.0));
                             }
                             c2 = 0.5 * (y1 + y2 + betaq * (y2 - y1));
                             if (c1 < yl)
@@ -1815,7 +1805,7 @@ namespace ConsoleApp
             }
             else
             {
-                for (i = 0; i < Problem.RealVariableCount; i++)
+                for (i = 0; i < ProblemObj.RealVariableCount; i++)
                 {
                     child1.Xreal[i] = parent1.Xreal[i];
                     child2.Xreal[i] = parent2.Xreal[i];
@@ -1829,14 +1819,14 @@ namespace ConsoleApp
             int i, j;
             double rand;
             int temp, site1, site2;
-            for (i = 0; i < Problem.BinaryVariableCount; i++)
+            for (i = 0; i < ProblemObj.BinaryVariableCount; i++)
             {
                 rand = RandomizationObj.RandomPercent();
-                if (rand <= Problem.BinaryCrossoverProbability)
+                if (rand <= ProblemObj.BinaryCrossoverProbability)
                 {
-                    Problem.BinaryCrossoverCount++;
-                    site1 = RandomizationObj.RandomInteger(0, Problem.nbits[i] - 1);
-                    site2 = RandomizationObj.RandomInteger(0, Problem.nbits[i] - 1);
+                    ProblemObj.BinaryCrossoverCount++;
+                    site1 = RandomizationObj.RandomInteger(0, ProblemObj.nbits[i] - 1);
+                    site2 = RandomizationObj.RandomInteger(0, ProblemObj.nbits[i] - 1);
                     if (site1 > site2)
                     {
                         temp = site1;
@@ -1853,7 +1843,7 @@ namespace ConsoleApp
                         child1.Gene[i, j] = parent2.Gene[i, j];
                         child2.Gene[i, j] = parent1.Gene[i, j];
                     }
-                    for (j = site2; j < Problem.nbits[i]; j++)
+                    for (j = site2; j < ProblemObj.nbits[i]; j++)
                     {
                         child1.Gene[i, j] = parent1.Gene[i, j];
                         child2.Gene[i, j] = parent2.Gene[i, j];
@@ -1861,7 +1851,7 @@ namespace ConsoleApp
                 }
                 else
                 {
-                    for (j = 0; j < Problem.nbits[i]; j++)
+                    for (j = 0; j < ProblemObj.nbits[i]; j++)
                     {
                         child1.Gene[i, j] = parent1.Gene[i, j];
                         child2.Gene[i, j] = parent2.Gene[i, j];
@@ -1907,7 +1897,7 @@ namespace ConsoleApp
                 return 1;
             }
 
-            for (i = 0; i < Problem.ObjectiveCount; i++)
+            for (i = 0; i < ProblemObj.ObjectiveCount; i++)
             {
                 if (a.Obj[i] < b.Obj[i])
                 {
@@ -1939,7 +1929,7 @@ namespace ConsoleApp
         static void MutatePopulation(Population pop)
         {
             int i;
-            for (i = 0; i < Problem.PopulationSize; i++)
+            for (i = 0; i < ProblemObj.PopulationSize; i++)
             {
                 MutateIndividual(pop.IndList[i]);
             }
@@ -1948,11 +1938,11 @@ namespace ConsoleApp
         /* Function to perform mutation of an individual */
         static void MutateIndividual(Individual ind)
         {
-            if (Problem.RealVariableCount != 0)
+            if (ProblemObj.RealVariableCount != 0)
             {
                 RealMutate(ind);
             }
-            if (Problem.BinaryVariableCount != 0)
+            if (ProblemObj.BinaryVariableCount != 0)
             {
                 BinaryMutate(ind);
             }
@@ -1964,12 +1954,12 @@ namespace ConsoleApp
         {
             int j, k;
             double prob;
-            for (j = 0; j < Problem.BinaryVariableCount; j++)
+            for (j = 0; j < ProblemObj.BinaryVariableCount; j++)
             {
-                for (k = 0; k < Problem.nbits[j]; k++)
+                for (k = 0; k < ProblemObj.nbits[j]; k++)
                 {
                     prob = RandomizationObj.RandomPercent();
-                    if (prob <= Problem.BinaryMutationProbability)
+                    if (prob <= ProblemObj.BinaryMutationProbability)
                     {
                         if (ind.Gene[j, k] == 0)
                         {
@@ -1979,7 +1969,7 @@ namespace ConsoleApp
                         {
                             ind.Gene[j, k] = 0;
                         }
-                        Problem.BinaryMutationCount += 1;
+                        ProblemObj.BinaryMutationCount += 1;
                     }
                 }
             }
@@ -1991,27 +1981,27 @@ namespace ConsoleApp
             int j;
             double rnd, delta1, delta2, mut_pow, deltaq;
             double y, yl, yu, val, xy;
-            for (j = 0; j < Problem.RealVariableCount; j++)
+            for (j = 0; j < ProblemObj.RealVariableCount; j++)
             {
-                if (RandomizationObj.RandomPercent() <= Problem.RealMutationProbability)
+                if (RandomizationObj.RandomPercent() <= ProblemObj.RealMutationProbability)
                 {
                     y = ind.Xreal[j];
-                    yl = Problem.min_realvar[j];
-                    yu = Problem.max_realvar[j];
+                    yl = ProblemObj.min_realvar[j];
+                    yu = ProblemObj.max_realvar[j];
                     delta1 = (y - yl) / (yu - yl);
                     delta2 = (yu - y) / (yu - yl);
                     rnd = RandomizationObj.RandomPercent();
-                    mut_pow = 1.0 / (Problem.MutationDistributionIndex + 1.0);
+                    mut_pow = 1.0 / (ProblemObj.MutationDistributionIndex + 1.0);
                     if (rnd <= 0.5)
                     {
                         xy = 1.0 - delta1;
-                        val = 2.0 * rnd + (1.0 - 2.0 * rnd) * Math.Pow(xy, Problem.MutationDistributionIndex + 1.0);
+                        val = 2.0 * rnd + (1.0 - 2.0 * rnd) * Math.Pow(xy, ProblemObj.MutationDistributionIndex + 1.0);
                         deltaq = Math.Pow(val, mut_pow) - 1.0;
                     }
                     else
                     {
                         xy = 1.0 - delta2;
-                        val = 2.0 * (1.0 - rnd) + 2.0 * (rnd - 0.5) * Math.Pow(xy, Problem.MutationDistributionIndex + 1.0);
+                        val = 2.0 * (1.0 - rnd) + 2.0 * (rnd - 0.5) * Math.Pow(xy, ProblemObj.MutationDistributionIndex + 1.0);
                         deltaq = 1.0 - Math.Pow(val, mut_pow);
                     }
                     y = y + deltaq * (yu - yl);
@@ -2020,7 +2010,7 @@ namespace ConsoleApp
                     if (y > yu)
                         y = yu;
                     ind.Xreal[j] = y;
-                    Problem.RealMutationCount += 1;
+                    ProblemObj.RealMutationCount += 1;
                 }
             }
         }
@@ -2032,31 +2022,31 @@ namespace ConsoleApp
         static void ReportPopulation(Population pop, StreamWriter writer)
         {
             int i, j, k;
-            for (i = 0; i < Problem.PopulationSize; i++)
+            for (i = 0; i < ProblemObj.PopulationSize; i++)
             {
-                for (j = 0; j < Problem.ObjectiveCount; j++)
+                for (j = 0; j < ProblemObj.ObjectiveCount; j++)
                 {
                     writer.Write($"{pop.IndList[i].Obj[j].ToString("E")}\t");
                 }
-                if (Problem.ConstraintCount != 0)
+                if (ProblemObj.ConstraintCount != 0)
                 {
-                    for (j = 0; j < Problem.ConstraintCount; j++)
+                    for (j = 0; j < ProblemObj.ConstraintCount; j++)
                     {
                         writer.Write($"{pop.IndList[i].Constr[j].ToString("E")}\t");
                     }
                 }
-                if (Problem.RealVariableCount != 0)
+                if (ProblemObj.RealVariableCount != 0)
                 {
-                    for (j = 0; j < Problem.RealVariableCount; j++)
+                    for (j = 0; j < ProblemObj.RealVariableCount; j++)
                     {
                         writer.Write($"{pop.IndList[i].Xreal[j].ToString("E")}\t");
                     }
                 }
-                if (Problem.BinaryVariableCount != 0)
+                if (ProblemObj.BinaryVariableCount != 0)
                 {
-                    for (j = 0; j < Problem.BinaryVariableCount; j++)
+                    for (j = 0; j < ProblemObj.BinaryVariableCount; j++)
                     {
-                        for (k = 0; k < Problem.nbits[j]; k++)
+                        for (k = 0; k < ProblemObj.nbits[j]; k++)
                         {
                             writer.Write($"{pop.IndList[i].Gene[j, k]}\t");
                         }
@@ -2073,33 +2063,33 @@ namespace ConsoleApp
         static void ReportFeasiblePopulation(Population pop, StreamWriter writer)
         {
             int i, j, k;
-            for (i = 0; i < Problem.PopulationSize; i++)
+            for (i = 0; i < ProblemObj.PopulationSize; i++)
             {
                 if (pop.IndList[i].ConstrViolation == 0.0 && pop.IndList[i].Rank == 1)
                 {
-                    for (j = 0; j < Problem.ObjectiveCount; j++)
+                    for (j = 0; j < ProblemObj.ObjectiveCount; j++)
                     {
                         writer.Write($"{pop.IndList[i].Obj[j].ToString("E")}\t");
                     }
-                    if (Problem.ConstraintCount != 0)
+                    if (ProblemObj.ConstraintCount != 0)
                     {
-                        for (j = 0; j < Problem.ConstraintCount; j++)
+                        for (j = 0; j < ProblemObj.ConstraintCount; j++)
                         {
                             writer.Write($"{pop.IndList[i].Constr[j].ToString("E")}\t");
                         }
                     }
-                    if (Problem.RealVariableCount != 0)
+                    if (ProblemObj.RealVariableCount != 0)
                     {
-                        for (j = 0; j < Problem.RealVariableCount; j++)
+                        for (j = 0; j < ProblemObj.RealVariableCount; j++)
                         {
                             writer.Write($"{pop.IndList[i].Xreal[j].ToString("E")}\t");
                         }
                     }
-                    if (Problem.BinaryVariableCount != 0)
+                    if (ProblemObj.BinaryVariableCount != 0)
                     {
-                        for (j = 0; j < Problem.BinaryVariableCount; j++)
+                        for (j = 0; j < ProblemObj.BinaryVariableCount; j++)
                         {
-                            for (k = 0; k < Problem.nbits[j]; k++)
+                            for (k = 0; k < ProblemObj.nbits[j]; k++)
                             {
                                 writer.Write($"{pop.IndList[i].Gene[j, k]}\t");
                             }
@@ -2178,7 +2168,7 @@ namespace ConsoleApp
             cur.parent = null;
             cur.child = null;
             temp1 = orig;
-            for (i = 0; i < Problem.PopulationSize; i++)
+            for (i = 0; i < ProblemObj.PopulationSize; i++)
             {
                 Insert(temp1, i);
                 temp1 = temp1.child;
@@ -2188,7 +2178,7 @@ namespace ConsoleApp
                 if (orig.child.child == null)
                 {
                     newPopulation.IndList[orig.child.index].Rank = rank;
-                    newPopulation.IndList[orig.child.index].CrowdDist = Problem.INF;
+                    newPopulation.IndList[orig.child.index].CrowdDist = ProblemObj.INF;
                     break;
                 }
                 temp1 = orig.child;
@@ -2263,19 +2253,19 @@ namespace ConsoleApp
             temp = lst;
             if (frontSize == 1)
             {
-                pop.IndList[lst.index].CrowdDist = Problem.INF;
+                pop.IndList[lst.index].CrowdDist = ProblemObj.INF;
                 return;
             }
             if (frontSize == 2)
             {
-                pop.IndList[lst.index].CrowdDist = Problem.INF;
-                pop.IndList[lst.child.index].CrowdDist = Problem.INF;
+                pop.IndList[lst.index].CrowdDist = ProblemObj.INF;
+                pop.IndList[lst.child.index].CrowdDist = ProblemObj.INF;
                 return;
             }
             dist = new int[frontSize];
-            obj_array = new int[Problem.ObjectiveCount][];
-            //obj_array = (int**)malloc(Problem.ObjectiveCount * sizeof(int*));
-            for (i = 0; i < Problem.ObjectiveCount; i++)
+            obj_array = new int[ProblemObj.ObjectiveCount][];
+            //obj_array = (int**)malloc(ProblemObj.ObjectiveCount * sizeof(int*));
+            for (i = 0; i < ProblemObj.ObjectiveCount; i++)
             {
                 obj_array[i] = new int[frontSize];
             }
@@ -2298,19 +2288,19 @@ namespace ConsoleApp
             front_size = c2 - c1 + 1;
             if (front_size == 1)
             {
-                pop.IndList[c1].CrowdDist = Problem.INF;
+                pop.IndList[c1].CrowdDist = ProblemObj.INF;
                 return;
             }
             if (front_size == 2)
             {
-                pop.IndList[c1].CrowdDist = Problem.INF;
-                pop.IndList[c2].CrowdDist = Problem.INF;
+                pop.IndList[c1].CrowdDist = ProblemObj.INF;
+                pop.IndList[c2].CrowdDist = ProblemObj.INF;
                 return;
             }
             dist = new int[front_size];
-            obj_array = new int[Problem.ObjectiveCount][];
-            //obj_array = (int**)malloc(Problem.ObjectiveCount * sizeof(int*));
-            for (i = 0; i < Problem.ObjectiveCount; i++)
+            obj_array = new int[ProblemObj.ObjectiveCount][];
+            //obj_array = (int**)malloc(ProblemObj.ObjectiveCount * sizeof(int*));
+            for (i = 0; i < ProblemObj.ObjectiveCount; i++)
             {
                 obj_array[i] = new int[front_size];
             }
@@ -2321,7 +2311,7 @@ namespace ConsoleApp
             }
             assign_crowding_distance(pop, dist, obj_array, front_size);
             //free(dist);
-            //for (i = 0; i < Problem.ObjectiveCount; i++)
+            //for (i = 0; i < ProblemObj.ObjectiveCount; i++)
             //{
             //    free(obj_array[i]);
             //}
@@ -2333,7 +2323,7 @@ namespace ConsoleApp
         static void assign_crowding_distance(Population pop, int[] dist, int[][] objArray, int frontSize)
         {
             int i, j;
-            for (i = 0; i < Problem.ObjectiveCount; i++)
+            for (i = 0; i < ProblemObj.ObjectiveCount; i++)
             {
                 for (j = 0; j < frontSize; j++)
                 {
@@ -2345,15 +2335,15 @@ namespace ConsoleApp
             {
                 pop.IndList[dist[j]].CrowdDist = 0.0;
             }
-            for (i = 0; i < Problem.ObjectiveCount; i++)
+            for (i = 0; i < ProblemObj.ObjectiveCount; i++)
             {
-                pop.IndList[objArray[i][0]].CrowdDist = Problem.INF;
+                pop.IndList[objArray[i][0]].CrowdDist = ProblemObj.INF;
             }
-            for (i = 0; i < Problem.ObjectiveCount; i++)
+            for (i = 0; i < ProblemObj.ObjectiveCount; i++)
             {
                 for (j = 1; j < frontSize - 1; j++)
                 {
-                    if (pop.IndList[objArray[i][j]].CrowdDist != Problem.INF)
+                    if (pop.IndList[objArray[i][j]].CrowdDist != ProblemObj.INF)
                     {
                         if (pop.IndList[objArray[i][frontSize - 1]].Obj[i] == pop.IndList[objArray[i][0]].Obj[i])
                         {
@@ -2368,9 +2358,9 @@ namespace ConsoleApp
             }
             for (j = 0; j < frontSize; j++)
             {
-                if (pop.IndList[dist[j]].CrowdDist != Problem.INF)
+                if (pop.IndList[dist[j]].CrowdDist != ProblemObj.INF)
                 {
-                    pop.IndList[dist[j]].CrowdDist = pop.IndList[dist[j]].CrowdDist / Problem.ObjectiveCount;
+                    pop.IndList[dist[j]].CrowdDist = pop.IndList[dist[j]].CrowdDist / ProblemObj.ObjectiveCount;
                 }
             }
             return;
@@ -2467,11 +2457,11 @@ namespace ConsoleApp
         static void MergePopulation(Population pop1, Population pop2, Population pop3)
         {
             int i, k;
-            for (i = 0; i < Problem.PopulationSize; i++)
+            for (i = 0; i < ProblemObj.PopulationSize; i++)
             {
                 CopyIndividual(pop1.IndList[i], pop3.IndList[i]);
             }
-            for (i = 0, k = Problem.PopulationSize; i < Problem.PopulationSize; i++, k++)
+            for (i = 0, k = ProblemObj.PopulationSize; i < ProblemObj.PopulationSize; i++, k++)
             {
                 CopyIndividual(pop2.IndList[i], pop3.IndList[k]);
             }
@@ -2484,31 +2474,31 @@ namespace ConsoleApp
             ind2.Rank = ind1.Rank;
             ind2.ConstrViolation = ind1.ConstrViolation;
             ind2.CrowdDist = ind1.CrowdDist;
-            if (Problem.RealVariableCount != 0)
+            if (ProblemObj.RealVariableCount != 0)
             {
-                for (i = 0; i < Problem.RealVariableCount; i++)
+                for (i = 0; i < ProblemObj.RealVariableCount; i++)
                 {
                     ind2.Xreal[i] = ind1.Xreal[i];
                 }
             }
-            if (Problem.BinaryVariableCount != 0)
+            if (ProblemObj.BinaryVariableCount != 0)
             {
-                for (i = 0; i < Problem.BinaryVariableCount; i++)
+                for (i = 0; i < ProblemObj.BinaryVariableCount; i++)
                 {
                     ind2.Xbin[i] = ind1.Xbin[i];
-                    for (j = 0; j < Problem.nbits[i]; j++)
+                    for (j = 0; j < ProblemObj.nbits[i]; j++)
                     {
                         ind2.Gene[i, j] = ind1.Gene[i, j];
                     }
                 }
             }
-            for (i = 0; i < Problem.ObjectiveCount; i++)
+            for (i = 0; i < ProblemObj.ObjectiveCount; i++)
             {
                 ind2.Obj[i] = ind1.Obj[i];
             }
-            if (Problem.ConstraintCount != 0)
+            if (ProblemObj.ConstraintCount != 0)
             {
-                for (i = 0; i < Problem.ConstraintCount; i++)
+                for (i = 0; i < ProblemObj.ConstraintCount; i++)
                 {
                     ind2.Constr[i] = ind1.Constr[i];
                 }
@@ -2543,7 +2533,7 @@ namespace ConsoleApp
             elite.parent = null;
             elite.child = null;
             temp1 = pool;
-            for (i = 0; i < 2 * Problem.PopulationSize; i++)
+            for (i = 0; i < 2 * ProblemObj.PopulationSize; i++)
             {
                 Insert(temp1, i);
                 temp1 = temp1.child;
@@ -2596,7 +2586,7 @@ namespace ConsoleApp
                 while (temp1 != null);
                 temp2 = elite.child;
                 j = i;
-                if (archieve_size + front_size <= Problem.PopulationSize)
+                if (archieve_size + front_size <= ProblemObj.PopulationSize)
                 {
                     do
                     {
@@ -2613,8 +2603,8 @@ namespace ConsoleApp
                 else
                 {
                     crowding_fill(mixedPop, newPop, i, front_size, elite);
-                    archieve_size = Problem.PopulationSize;
-                    for (j = i; j < Problem.PopulationSize; j++)
+                    archieve_size = ProblemObj.PopulationSize;
+                    for (j = i; j < ProblemObj.PopulationSize; j++)
                     {
                         newPop.IndList[j].Rank = rank;
                     }
@@ -2627,7 +2617,7 @@ namespace ConsoleApp
                 }
                 while (elite.child != null);
             }
-            while (archieve_size < Problem.PopulationSize);
+            while (archieve_size < ProblemObj.PopulationSize);
 
         }
 
@@ -2646,7 +2636,7 @@ namespace ConsoleApp
                 temp = temp.child;
             }
             quicksort_dist(mixedPop, dist, frontSize);
-            for (i = count, j = frontSize - 1; i < Problem.PopulationSize; i++, j--)
+            for (i = count, j = frontSize - 1; i < ProblemObj.PopulationSize; i++, j--)
             {
                 CopyIndividual(mixedPop.IndList[dist[j]], newPop.IndList[i]);
             }
@@ -2655,48 +2645,6 @@ namespace ConsoleApp
 
         #endregion
 
-        #region display.c
-        ///* Function to display the current population for the subsequent generation */
-        static void PlotPopulation(Population pop, int genNo)
-        {
-            Console.WriteLine(" printing gnuplot");
-            if (GnuplotChoice != 3)
-            {
-                var xr = new double[Problem.PopulationSize];
-                var yr = new double[Problem.PopulationSize];
-
-                for (int x = 0; x < Problem.PopulationSize; x++)
-                {
-                    xr[x] = pop.IndList[x].Obj[GnuplotObjective1 - 1];
-                    yr[x] = pop.IndList[x].Obj[GnuplotObjective2 - 1];
-                }
-
-                GnuPlot.Plot(xr, yr, $"title 'Generation #{genNo} of {Problem.GenCount}' pt 1");
-                GnuPlot.Set($"xlabel \"obj[{GnuplotObjective1 - 1}]\"");
-                GnuPlot.Set($"ylabel \"obj[{GnuplotObjective2 - 1}]\"");
-
-            }
-            else
-            {
-                var xr = new double[Problem.PopulationSize];
-                var yr = new double[Problem.PopulationSize];
-                var zr = new double[Problem.PopulationSize];
-
-                for (int x = 0; x < Problem.PopulationSize; x++)
-                {
-                    xr[x] = pop.IndList[x].Obj[GnuplotObjective1 - 1];
-                    yr[x] = pop.IndList[x].Obj[GnuplotObjective2 - 1];
-                    zr[x] = pop.IndList[x].Obj[GnuplotObjective3 - 1];
-                }
-
-                GnuPlot.SPlot(xr, yr, zr, $"title 'Generation #{genNo} of {Problem.GenCount}' with points pointtype 8 lc rgb 'blue'");
-                GnuPlot.Set($"xlabel \"obj[{GnuplotObjective1 - 1}]\"");
-                GnuPlot.Set($"ylabel \"obj[{GnuplotObjective2 - 1}]\"");
-                GnuPlot.Set($"zlabel \"obj[{GnuplotObjective3 - 1}]\"");
-            }
-        }
-
-        #endregion
 
     }
 }

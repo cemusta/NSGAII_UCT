@@ -49,6 +49,7 @@
     <Compile Include="GnuPlot.cs" />
     <Compile Include="Models\Collision.cs" />
     <Compile Include="Models\Course.cs" />
+    <Compile Include="Models\Display.cs" />
     <Compile Include="Models\Individual.cs" />
     <Compile Include="Models\Lists.cs" />
     <Compile Include="Models\Population.cs" />
