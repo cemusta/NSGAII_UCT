@@ -723,12 +723,12 @@ namespace ConsoleApp
         static void UCT_Evaluate(Individual ind)
         {
 
-            Slot[,] TimeTable = new Slot[5, 9];
+            Slot[,] timeTable = new Slot[5, 9];
             for (int x = 0; x < 5; x++)
             {
                 for (int y = 0; y < 9; y++)
                 {
-                    TimeTable[x, y] = new Slot(TeacherList.Count);
+                    timeTable[x, y] = new Slot(TeacherList.Count);
                 }
             }
             double obj0 = 0;
@@ -739,7 +739,7 @@ namespace ConsoleApp
             // todo fix fix these stuff. dinamik olmamalı bunlar her seferinde? emin degilim...
             // en azından pop kadar kere yaratılmalı? pop içine taşınabilir?
             int slotId, i, j, k;
-            List<List<int>[,]> teacherSchedulingCounter = new List<List<int>[,]>(TeacherList.Count); //todo teacher no kadar...
+            List<List<int>[,]> teacherSchedulingCounter = new List<List<int>[,]>(TeacherList.Count);
             for (i = 0; i < TeacherList.Count; i++)
             {
                 teacherSchedulingCounter.Add(new List<int>[5, 9]);
@@ -751,7 +751,6 @@ namespace ConsoleApp
                     }
                 }
             }
-            int teacherIndex = 0;
 
             List<int>[][,] schedulingOnlyCse = new List<int>[8][,];
             for (i = 0; i < 8; i++)
@@ -807,7 +806,7 @@ namespace ConsoleApp
                             labCounter[x, y].Add(LabScheduling[x, y]); //burada lab'dersinin adını girmek lazım aslıdna.... 
                         }
                         //labCounter[x, y].Add(LabScheduling[x, y]);
-                        TimeTable[x, y].labCount += LabScheduling[x, y];
+                        timeTable[x, y].labCount += LabScheduling[x, y];
                     }
                 }
             }
@@ -818,7 +817,7 @@ namespace ConsoleApp
             {
 
                 slotId = (int)ind.Xbin[j];
-                adding_course_timeTable(TimeTable, slotId, CourseList[j]);
+                adding_course_timeTable(timeTable, slotId, CourseList[j]);
 
             }
 
@@ -827,7 +826,7 @@ namespace ConsoleApp
                 for (int y = 0; y < 9; y++)
                 {
                     if (Meeting[x, y] > 0)
-                        TimeTable[x, y].meetingHour = true;
+                        timeTable[x, y].meetingHour = true;
 
                 }
             }
@@ -837,7 +836,7 @@ namespace ConsoleApp
             for (j = 0; j < ProblemObj.BinaryVariableCount; j++) //ders sayisi kadar.
             {
 
-                teacherIndex = CourseList[j].TeacherId;
+                var teacherIndex = CourseList[j].TeacherId;
 
                 slotId = (int)ind.Xbin[j];
 
@@ -847,7 +846,7 @@ namespace ConsoleApp
                     {
                         adding_course_1_slot(schedulingOnlyCse[CourseList[j].Semester - 1], slotId, j);
                     }
-                    else if (CourseList[j].Elective == true)
+                    else if (CourseList[j].Elective)
                     {
                         adding_course_1_slot(electiveCourses, slotId, j);
                     }
@@ -867,7 +866,7 @@ namespace ConsoleApp
                     {
                         adding_course_2_slot(schedulingOnlyCse[CourseList[j].Semester - 1], slotId, j);
                     }
-                    else if (CourseList[j].Elective == true)
+                    else if (CourseList[j].Elective)
                     {
                         adding_course_2_slot(electiveCourses, slotId, j);
                     }
@@ -887,7 +886,7 @@ namespace ConsoleApp
                     {
                         adding_course_3_slot(schedulingOnlyCse[CourseList[j].Semester - 1], slotId, j);
                     }
-                    else if (CourseList[j].Elective == true)
+                    else if (CourseList[j].Elective)
                     {
                         adding_course_3_slot(electiveCourses, slotId, j);
                     }
@@ -907,28 +906,28 @@ namespace ConsoleApp
 
             #region calc. collisions
 
-            List<Collision> Collisions = new List<Collision>(8);
+            List<Collision> collisions = new List<Collision>(8);
             //+TODO   dönem ici dekanlik/bolum dersi cakismasi
             for (j = 0; j < 8; j++)
             {
                 //collision of CSE&fac courses in semester
                 var x = calculate_collision2(schedulingOnlyCse[j], Scheduling[j], 0);
-                List<Collision> col = calculate_collisionSemesterWithBaseCourses(TimeTable, Scheduling[j], 0, j + 1);
+                List<Collision> col = calculate_collisionSemesterWithBaseCourses(timeTable, Scheduling[j], 0, j + 1);
                 var y = col.Sum(item => item.result);
                 ind.Obj[0] += x;
                 obj0 += y;
-                Collisions.AddRange(col);
+                collisions.AddRange(col);
             }
             //+TODO	 donem ici bolum dersi cakismasi
             for (j = 0; j < 8; j++)
             {
                 //collision of only CSE courses in semester
                 var x = calculate_collision1(schedulingOnlyCse[j], 1);
-                List<Collision> col = calculate_collisionInSemester(TimeTable, 1, j + 1);
+                List<Collision> col = calculate_collisionInSemester(timeTable, 1, j + 1);
                 var y = col.Sum(item => item.result);
                 ind.Obj[0] += x;
                 obj0 += y;
-                Collisions.AddRange(col);
+                collisions.AddRange(col);
             }
             //+TODO	dönemler arasi dekanlik/bolum dersi cakismasi--------------buna bak tekrar
             for (j = 1; j < 8; j++)
@@ -939,29 +938,29 @@ namespace ConsoleApp
                 x += calculate_collision2(schedulingOnlyCse[j], Scheduling[j - 1], 0);  //cse derslerini bir önceki dönem ile      
                 ind.Obj[1] += x;
 
-                List<Collision> col = calculate_collisionSemesterWithBaseCourses(TimeTable, Scheduling[j], 0, j);
-                col.AddRange(calculate_collisionSemesterWithBaseCourses(TimeTable, Scheduling[j - 1], 0, j + 1));
+                List<Collision> col = calculate_collisionSemesterWithBaseCourses(timeTable, Scheduling[j], 0, j);
+                col.AddRange(calculate_collisionSemesterWithBaseCourses(timeTable, Scheduling[j - 1], 0, j + 1));
                 var y = col.Sum(item => item.result);
 
                 obj1 += y;
-                Collisions.AddRange(col);
+                collisions.AddRange(col);
             }
             //+TODO	dönemler arası CSE çakışmaları
             for (j = 1; j < 8; j++)
             {
                 var x = calculate_collision7(schedulingOnlyCse[j - 1], schedulingOnlyCse[j], 0);  /*consecutive only CSE courses*/
-                List<Collision> col = calculate_collisionInSemesters(TimeTable, 1, new List<int> { j, j + 1 });
+                List<Collision> col = calculate_collisionInSemesters(timeTable, 1, new List<int> { j, j + 1 });
                 var y = col.Sum(item => item.result);
 
                 obj1 += y;
-                Collisions.AddRange(col);
+                collisions.AddRange(col);
                 ind.Obj[1] += x;
                 // obj1 += y;
             }
             //+TODO	aynı saatte 3'ten fazla lab olmaması lazim
             var x1 = calculate_collision1(labCounter, 4);
             ind.Obj[0] += x1;
-            List<Collision> labcol = calculate_LabCollision(TimeTable, 4);
+            List<Collision> labcol = calculate_LabCollision(timeTable, 4);
             var y1 = labcol.Sum(item => item.result);
             obj0 += y1;
 
@@ -975,7 +974,7 @@ namespace ConsoleApp
                     var xx1 = calculate_collision1(teacherSchedulingCounter[j], 1);
                     ind.Obj[0] += xx1;
 
-                    List<Collision> col = calculate_TeacherCollision(TimeTable, j, 1);
+                    List<Collision> col = calculate_TeacherCollision(timeTable, j, 1);
                     var yy1 = col.Sum(item => item.result);
                     obj0 += yy1;
 
@@ -993,7 +992,7 @@ namespace ConsoleApp
                     var xx3 = calculate_collision4(teacherSchedulingCounter[j]);
                     ind.Obj[2] += xx3;
 
-                    var yy3 = calculate_collisionTeacherFreeDay(TimeTable, j);
+                    var yy3 = calculate_collisionTeacherFreeDay(timeTable, j);
                     obj2 += yy3;
                     /* teacher have free day*/
                 }
@@ -1025,7 +1024,7 @@ namespace ConsoleApp
 
         static void adding_course_timeTable(Slot[,] array, int slotId, Course cor)
         {
-            int x = 0;
+            int x;
             int y = 0;
             if (cor.Duration == 1) // bir saatlik bir ders ise.
             {
@@ -1206,6 +1205,7 @@ namespace ConsoleApp
             array[slot / 4, j + 2].Add(i);
         }
 
+
         static bool is_prerequisite(int preIndexOfCourseList, int postIndexOfCourseList)
         {
             return CourseList[postIndexOfCourseList].prerequisites.Contains(preIndexOfCourseList);
@@ -1309,8 +1309,6 @@ namespace ConsoleApp
 
                     foreach (var item in selectedSemesterCourses)
                     {
-
-
                         if (selectedSemesterCourses.Any(x => item.prerequisites.Contains(x.Id)))
                         {
                             continue;
@@ -1325,9 +1323,11 @@ namespace ConsoleApp
 
                     if (multiSemesterInSlot && nonPreCourses.FindAll(x => semesters.Contains(x.Semester) && !x.Elective).Count > minimumCollision)
                     {
-                        Collision tempCollision = new Collision();
-                        tempCollision.result = nonPreCourses.FindAll(x => semesters.Contains(x.Semester) && !x.Elective).Count - 1;
-                        tempCollision.Reason = "consicutive collision";
+                        Collision tempCollision = new Collision
+                        {
+                            result = nonPreCourses.FindAll(x => semesters.Contains(x.Semester) && !x.Elective).Count - 1,
+                            Reason = "consicutive collision"
+                        };
                         tempCollision.CrashingCourses.AddRange(nonPreCourses.FindAll(x => semesters.Contains(x.Semester) && !x.Elective));
 
                         collisionList.Add(tempCollision);
@@ -1338,10 +1338,9 @@ namespace ConsoleApp
         }
         static int calculate_collisionTeacherFreeDay(Slot[,] timeTable, int teacherId)
         {
-            int counter;
             for (int i = 0; i < 5; i++) //gun
             {
-                counter = 0;
+                var counter = 0;
                 for (int j = 0; j < 9; j++) //dersler
                 {
                     Slot tempSlot = timeTable[i, j];
@@ -1365,12 +1364,11 @@ namespace ConsoleApp
         }
         static int calculate_collisionTeacherConsicutive(Slot[,] timeTable, int teacherId, int maxConsecutiveHour)
         {
-            int counter;
-            int i, j, result = 0;
-            for (i = 0; i < 5; i++)
+            int result = 0;
+            for (int i = 0; i < 5; i++)
             {
-                counter = 0;
-                for (j = 0; j < 9; j++)
+                var counter = 0;
+                for (int j = 0; j < 9; j++)
                 {
                     Slot tempSlot = timeTable[i, j];
 
@@ -1575,38 +1573,6 @@ namespace ConsoleApp
             return result;
         }
 
-
-        //static int calculate_collision7TT(Slot[,] timeTable)
-        //{
-        //    int result = 0;
-
-        //    for (int j = 1; j < 8; j++)
-        //    {
-        //        for (int i = 0; i < 5; i++)
-        //        {
-        //            for (int j = 0; j < 9; j++)
-        //            {
-        //                if (timeTable[i, j].Courses.FindAll(x=>x.Semester == j).Count > 0 && timeTable[i, j].Courses.FindAll(x => x.Semester == j).Count > 0)
-        //                {
-
-        //                    for (int k = 0; k < array2[i, j].Count; k++)
-        //                    {
-        //                        for (int l = 0; l < timeTable[i, j].Count; l++)
-        //                        {
-        //                            if (!is_prerequisite(timeTable[i, j][l], array2[i, j][k]))
-        //                            {
-        //                                result++;
-        //                            }
-        //                        }
-        //                    }
-
-        //                }
-        //            }
-        //        }
-        //    }
-        //    return result;
-        //}
-
         static int calculate_collision7(List<int>[,] array1, List<int>[,] array2, int minimumCollision)
         {
             int result = 0;
@@ -1634,6 +1600,9 @@ namespace ConsoleApp
             return result;
         }
         #endregion
+
+
+        #region NSGAII stuff
 
         #region tourselect.c
         /* Routine for Tournament Selection, it creates a newPopulation from oldPopulation by performing Tournament Selection and the Crossover */
@@ -2645,6 +2614,7 @@ namespace ConsoleApp
 
         #endregion
 
+        #endregion
 
     }
 }
