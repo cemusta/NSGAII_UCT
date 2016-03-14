@@ -52,6 +52,7 @@
     <Compile Include="Models\Display.cs" />
     <Compile Include="Models\Individual.cs" />
     <Compile Include="Models\Lists.cs" />
+    <Compile Include="Models\NSGAII.cs" />
     <Compile Include="Models\Population.cs" />
     <Compile Include="Models\ProblemDefinition.cs" />
     <Compile Include="Models\Slot.cs" />

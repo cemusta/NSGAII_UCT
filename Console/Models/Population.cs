@@ -1,16 +1,20 @@
-﻿namespace ConsoleApp.Models
+﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+
+namespace ConsoleApp.Models
 {
     public class Population
     {
-        public Individual[] IndList { get; set; }
+        public List<Individual> IndList { get; set; }
 
-        public Population(int size,int nreal,int nbin, int maxnbits, int nobj, int ncon)
+        public Population(int populationSize,int nRealVar,int nBinVar, int nMatBit, int nObj, int nCons)
         {
-            IndList = new Individual[size];
+            IndList = new List<Individual>(populationSize);
 
-            for (int i = 0; i < size; i++)
+            for (int i = 0; i < populationSize; i++)
             {
-                IndList[i] = new Individual(nreal,nbin,maxnbits,nobj,ncon);
+                IndList.Add( new Individual(nRealVar,nBinVar,nMatBit,nObj,nCons) );
             }
         }
 
@@ -19,19 +23,35 @@
             if (problem.BinaryVariableCount == 0)
                 return;
 
-            for (int i = 0; i < problem.PopulationSize; i++)
+            for (int i = 0; i < IndList.Count; i++)
             {
                 IndList[i].Decode(problem);
-                    
             }
         }
 
         public void Initialize(ProblemDefinition problem, Randomization randomObj)
         {
-            for (int i = 0; i < problem.PopulationSize; i++)
+            for (int i = 0; i < IndList.Count; i++)
             {
                 IndList[i].Initialize(problem, randomObj);
             }
         }
+
+        public void Merge( Population pop1, Population pop2, ProblemDefinition problem)
+        {
+            IndList.Clear();
+
+
+            for (int i = 0; i < pop1.IndList.Count; i++)
+            {
+                IndList.Add( new Individual(pop1.IndList[i], problem));                
+            }
+            for (int i = 0; i < pop2.IndList.Count; i++)
+            {
+                IndList.Add(new Individual(pop2.IndList[i], problem));
+            }
+        }
+
+
     }
 }

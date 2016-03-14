@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 
 namespace ConsoleApp
@@ -624,7 +625,9 @@ namespace ConsoleApp
 
                 childPopulation.Decode(ProblemObj);
                 evaluate_population(childPopulation);
-                MergePopulation(parentPopulation, childPopulation, mixedPopulation);
+
+                mixedPopulation.Merge(parentPopulation,childPopulation, ProblemObj);
+
                 fill_nondominated_sort(mixedPopulation, parentPopulation);
 
                 /* Comment following four lines if information for all
@@ -638,6 +641,10 @@ namespace ConsoleApp
                 }
 
                 Console.WriteLine($" gen = {i}");
+
+                #if DEBUG
+                Thread.Sleep(200);
+                #endif
             }
             #endregion
 
@@ -2422,52 +2429,37 @@ namespace ConsoleApp
 
         #region MergePopulation.c
 
-        /* Routine to MergePopulation two populations into one */
-        static void MergePopulation(Population pop1, Population pop2, Population pop3)
-        {
-            int i, k;
-            for (i = 0; i < ProblemObj.PopulationSize; i++)
-            {
-                CopyIndividual(pop1.IndList[i], pop3.IndList[i]);
-            }
-            for (i = 0, k = ProblemObj.PopulationSize; i < ProblemObj.PopulationSize; i++, k++)
-            {
-                CopyIndividual(pop2.IndList[i], pop3.IndList[k]);
-            }
-        }
-
         /* Routine to copy an individual 'ind1' into another individual 'ind2' */
         static void CopyIndividual(Individual ind1, Individual ind2)
         {
-            int i, j;
             ind2.Rank = ind1.Rank;
             ind2.ConstrViolation = ind1.ConstrViolation;
             ind2.CrowdDist = ind1.CrowdDist;
             if (ProblemObj.RealVariableCount != 0)
             {
-                for (i = 0; i < ProblemObj.RealVariableCount; i++)
+                for (int i = 0; i < ProblemObj.RealVariableCount; i++)
                 {
                     ind2.Xreal[i] = ind1.Xreal[i];
                 }
             }
             if (ProblemObj.BinaryVariableCount != 0)
             {
-                for (i = 0; i < ProblemObj.BinaryVariableCount; i++)
+                for (int i = 0; i < ProblemObj.BinaryVariableCount; i++)
                 {
                     ind2.Xbin[i] = ind1.Xbin[i];
-                    for (j = 0; j < ProblemObj.nbits[i]; j++)
+                    for (int j = 0; j < ProblemObj.nbits[i]; j++)
                     {
                         ind2.Gene[i, j] = ind1.Gene[i, j];
                     }
                 }
             }
-            for (i = 0; i < ProblemObj.ObjectiveCount; i++)
+            for (int i = 0; i < ProblemObj.ObjectiveCount; i++)
             {
                 ind2.Obj[i] = ind1.Obj[i];
             }
             if (ProblemObj.ConstraintCount != 0)
             {
-                for (i = 0; i < ProblemObj.ConstraintCount; i++)
+                for (int i = 0; i < ProblemObj.ConstraintCount; i++)
                 {
                     ind2.Constr[i] = ind1.Constr[i];
                 }
@@ -2560,6 +2552,7 @@ namespace ConsoleApp
                     do
                     {
                         CopyIndividual(mixedPop.IndList[temp2.index], newPop.IndList[i]);
+                        //newPop.IndList[i] = new Individual(mixedPop.IndList[temp2.index],ProblemObj);
                         newPop.IndList[i].Rank = rank;
                         archieve_size += 1;
                         temp2 = temp2.child;
@@ -2608,6 +2601,8 @@ namespace ConsoleApp
             for (i = count, j = frontSize - 1; i < ProblemObj.PopulationSize; i++, j--)
             {
                 CopyIndividual(mixedPop.IndList[dist[j]], newPop.IndList[i]);
+                //newPop.IndList[i] = new Individual(mixedPop.IndList[dist[j]], ProblemObj);
+
             }
 
         }
