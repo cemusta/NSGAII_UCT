@@ -58,5 +58,35 @@ namespace ConsoleApp.Models
                 Xbin[j] = problem.min_binvar[j] + sum * (problem.max_binvar[j] - problem.min_binvar[j]) / (Math.Pow(2, problem.nbits[j]) - 1);
             }
         }
+
+        /* Function to initialize an individual randomly */
+        public void Initialize(ProblemDefinition problem, Randomization randomObj)
+        {
+            int j;
+            if (problem.RealVariableCount != 0)
+            {
+                for (j = 0; j < problem.RealVariableCount; j++)
+                {
+                    Xreal[j] = randomObj.RandomDouble(problem.min_realvar[j], problem.max_realvar[j]);
+                }
+            }
+            if (problem.BinaryVariableCount != 0)
+            {
+                for (j = 0; j < problem.BinaryVariableCount; j++)
+                {
+                    for (int k = 0; k < problem.nbits[j]; k++)
+                    {
+                        if (randomObj.RandomPercent() <= 0.5)
+                        {
+                            Gene[j, k] = 0;
+                        }
+                        else
+                        {
+                            Gene[j, k] = 1;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

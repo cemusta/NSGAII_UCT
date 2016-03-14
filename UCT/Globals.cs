@@ -17,13 +17,7 @@ namespace UCT
             public int duration { get; set; }
             public int labHour { get; set; }
             public int elective { get; set; }
-            public string PrintableName
-            {
-                get
-                {
-                    return $"{code}{(type == 1 ? " Lab" : " ")}{(duration > 0 ? duration + "hr" : "")}{(elective > 0 ? " elective" : "")}";
-                }
-            }
+            public string PrintableName => $"{code}{(type == 1 ? " Lab" : " ")}{(duration > 0 ? duration + "hr" : "")}{(elective > 0 ? " elective" : "")}";
 
             public CourseDetail(string code, string teacher, int type, int semester, int duration, int labHour, int elective)
             {

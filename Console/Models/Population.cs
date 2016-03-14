@@ -25,5 +25,13 @@
                     
             }
         }
+
+        public void Initialize(ProblemDefinition problem, Randomization randomObj)
+        {
+            for (int i = 0; i < problem.PopulationSize; i++)
+            {
+                IndList[i].Initialize(problem, randomObj);
+            }
+        }
     }
 }

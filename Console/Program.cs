@@ -601,7 +601,7 @@ namespace ConsoleApp
 
 
             RandomizationObj.Randomize();
-            InitializePopulation(parentPopulation);
+            parentPopulation.Initialize(Problem,RandomizationObj);
             Console.WriteLine(" Initialization done, now performing first generation");
 
 
@@ -696,47 +696,6 @@ namespace ConsoleApp
 
         } // main
 
-
-        #region initialize.c
-        /* Function to initialize a population randomly */
-        static void InitializePopulation(Population pop)
-        {
-            for (int i = 0; i < Problem.PopulationSize; i++)
-            {
-                InitializeIndividual(pop.IndList[i]);
-            }
-        }
-
-        /* Function to initialize an individual randomly */
-        static void InitializeIndividual(Individual ind)
-        {
-            int j;
-            if (Problem.RealVariableCount != 0)
-            {
-                for (j = 0; j < Problem.RealVariableCount; j++)
-                {
-                    ind.Xreal[j] = RandomizationObj.RandomDouble(Problem.min_realvar[j], Problem.max_realvar[j]);
-                }
-            }
-            if (Problem.BinaryVariableCount != 0)
-            {
-                for (j = 0; j < Problem.BinaryVariableCount; j++)
-                {
-                    for (int k = 0; k < Problem.nbits[j]; k++)
-                    {
-                        if (RandomizationObj.RandomPercent() <= 0.5)
-                        {
-                            ind.Gene[j, k] = 0;
-                        }
-                        else
-                        {
-                            ind.Gene[j, k] = 1;
-                        }
-                    }
-                }
-            }
-        }
-        #endregion
 
         #region eval.c
         /* Routine to evaluate objective function values and constraints for a population */
