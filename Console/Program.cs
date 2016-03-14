@@ -609,8 +609,6 @@ namespace ConsoleApp
             Console.WriteLine(" Initialization done, now performing first generation");
 
 
-
-            //decode_pop(parentPopulation);
             parentPopulation.Decode(Problem);
 
             evaluate_population(parentPopulation);
@@ -637,7 +635,7 @@ namespace ConsoleApp
             {
                 Selection(parentPopulation, childPopulation);
                 MutatePopulation(childPopulation);
-                //decode_pop(childPopulation);
+
                 childPopulation.Decode(Problem);
                 evaluate_population(childPopulation);
                 MergePopulation(parentPopulation, childPopulation, mixedPopulation);
@@ -739,43 +737,6 @@ namespace ConsoleApp
                             ind.Gene[j, k] = 1;
                         }
                     }
-                }
-            }
-        }
-        #endregion
-
-        #region decode.c
-        /* Function to decode a population to find out the binary variable values based on its bit pattern */
-        static void decode_pop(Population pop)
-        {
-            if (Problem.BinaryVariableCount != 0)
-            {
-                for (int i = 0; i < Problem.PopulationSize; i++)
-                {
-                    pop.IndList[i].Decode(Problem);
-                    //decode_ind(pop.IndList[i]);
-                }
-            }
-        }
-
-        /* Function to decode an individual to find out the binary variable values based on its bit pattern */
-        static void decode_ind(Individual ind)
-        {
-            int j, k;
-            int sum;
-            if (Problem.BinaryVariableCount != 0)
-            {
-                for (j = 0; j < Problem.BinaryVariableCount; j++)
-                {
-                    sum = 0;
-                    for (k = 0; k < Problem.nbits[j]; k++)
-                    {
-                        if (ind.Gene[j, k] == 1)
-                        {
-                            sum += (int)Math.Pow(2, Problem.nbits[j] - 1 - k);
-                        }
-                    }
-                    ind.Xbin[j] = Problem.min_binvar[j] + sum * (Problem.max_binvar[j] - Problem.min_binvar[j]) / (Math.Pow(2, Problem.nbits[j]) - 1);
                 }
             }
         }
