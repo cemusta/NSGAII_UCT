@@ -13,5 +13,17 @@
                 IndList[i] = new Individual(nreal,nbin,maxnbits,nobj,ncon);
             }
         }
+
+        public void Decode(ProblemDefinition problem)
+        {
+            if (problem.BinaryVariableCount == 0)
+                return;
+
+            for (int i = 0; i < problem.PopulationSize; i++)
+            {
+                IndList[i].Decode(problem);
+                    
+            }
+        }
     }
 }

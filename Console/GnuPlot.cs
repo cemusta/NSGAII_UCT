@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
-namespace AwokeKnowing.GnuplotCSharp
+namespace ConsoleApp
 {
     class GnuPlot
     {

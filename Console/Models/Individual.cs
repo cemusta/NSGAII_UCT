@@ -1,4 +1,6 @@
-﻿namespace ConsoleApp.Models
+﻿using System;
+
+namespace ConsoleApp.Models
 {
     public class Individual
     {
@@ -28,5 +30,23 @@
                 Constr = new double[ncon];
         }
 
+        public void Decode(ProblemDefinition problem)
+        {
+            if (problem.BinaryVariableCount == 0)
+                return;
+
+            for (int j = 0; j < problem.BinaryVariableCount; j++)
+            {
+                var sum = 0;
+                for (int k = 0; k < problem.nbits[j]; k++)
+                {
+                    if (Gene[j, k] == 1)
+                    {
+                        sum += (int)Math.Pow(2, problem.nbits[j] - 1 - k);
+                    }
+                }
+                Xbin[j] = problem.min_binvar[j] + sum * (problem.max_binvar[j] - problem.min_binvar[j]) / (Math.Pow(2, problem.nbits[j]) - 1);
+            }
+        }
     }
 }

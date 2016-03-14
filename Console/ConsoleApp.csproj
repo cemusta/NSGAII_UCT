@@ -51,6 +51,7 @@
     <Compile Include="Models\Individual.cs" />
     <Compile Include="Models\Lists.cs" />
     <Compile Include="Models\Population.cs" />
+    <Compile Include="Models\ProblemDefinition.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\Randomization.cs" />
