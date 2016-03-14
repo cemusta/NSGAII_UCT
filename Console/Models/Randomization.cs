@@ -4,7 +4,7 @@
     {
 
 
-        double seed; //never assigned?
+        double seed = 0; //never assigned?
         double[] oldrand = new double[55];
         int jrand;
 

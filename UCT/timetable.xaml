@@ -19,7 +19,7 @@
                 <RowDefinition Height="30*"/>
                 <RowDefinition Height="30*"/>
                 <RowDefinition Height="30*"/>
-
+                <RowDefinition Height="30*"/>
                 <RowDefinition Height="30*"/>
                 <RowDefinition Height="30*"/>
                 <RowDefinition Height="30*"/>
@@ -39,7 +39,7 @@
                     <TextBlock Background="White"  FontSize="8" Margin="1" Text="" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"  />
                 </Viewbox>
             </Border>
-            
+
             <Border Grid.Row="0" Grid.Column="1" BorderBrush="Silver" BorderThickness="0,0,1,1">
                 <Viewbox  StretchDirection="Both" Stretch="Uniform">
                     <TextBlock Background="White"  FontSize="8" Margin="1" Text="Monday" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"  />
@@ -66,37 +66,334 @@
                 </Viewbox>
             </Border>
 
+            <Border Grid.Row="1" Grid.Column="0" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock   Text="9:00-10:00" Background="White"  FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="2" Grid.Column="0" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock   Text="10:00-11:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="3" Grid.Column="0" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock   Text="11:00-12:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="4" Grid.Column="0" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock   Text="12:00-13:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="5" Grid.Column="0"  BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock   Text="13:00-14:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border  Grid.Row="6" Grid.Column="0" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock   Text="14:00-15:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="7" Grid.Column="0" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock   Text="15:00-16:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="8" Grid.Column="0" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock   Text="16:00-17:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="9" Grid.Column="0" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock   Text="17:00-18:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="10" Grid.Column="0" BorderBrush="Silver" BorderThickness="0,0,1,0">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock   Text="18:00-19:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
 
-            <Viewbox Grid.Row="1" Grid.Column="0" StretchDirection="Both" Stretch="Uniform">
-                <TextBlock   Text="9:00-10:00" Background="White"  FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Viewbox>
-            <Viewbox Grid.Row="2" Grid.Column="0" StretchDirection="Both" Stretch="Uniform">
-                <TextBlock   Text="10:00-11:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Viewbox>
-            <Viewbox Grid.Row="3" Grid.Column="0" StretchDirection="Both" Stretch="Uniform">
-                <TextBlock   Text="11:00-12:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Viewbox>
-            <Viewbox Grid.Row="4" Grid.Column="0" StretchDirection="Both" Stretch="Uniform">
-                <TextBlock   Text="12:00-13:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Viewbox>
-            <Viewbox Grid.Row="5" Grid.Column="0" StretchDirection="Both" Stretch="Uniform">
-                <TextBlock   Text="13:00-14:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Viewbox>
-            <Viewbox Grid.Row="6" Grid.Column="0" StretchDirection="Both" Stretch="Uniform">
-                <TextBlock   Text="14:00-15:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Viewbox>
-            <Viewbox Grid.Row="7" Grid.Column="0" StretchDirection="Both" Stretch="Uniform">
-                <TextBlock   Text="15:00-16:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Viewbox>
-            <Viewbox Grid.Row="8" Grid.Column="0" StretchDirection="Both" Stretch="Uniform">
-                <TextBlock   Text="16:00-17:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Viewbox>
-            <Viewbox Grid.Row="9" Grid.Column="0" StretchDirection="Both" Stretch="Uniform">
-                <TextBlock   Text="17:00-18:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Viewbox>
-            <Viewbox Grid.Row="10" Grid.Column="0" StretchDirection="Both" Stretch="Uniform">
-                <TextBlock   Text="18:00-19:00" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Viewbox>
+
+            <!--monday-->
+
+            <Border Grid.Row="1" Grid.Column="1" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot1"   Text="cse" Background="White"  FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="2" Grid.Column="1" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot2"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="3" Grid.Column="1" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot3"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="4" Grid.Column="1" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot4"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="5" Grid.Column="1"  BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot5"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border  Grid.Row="6" Grid.Column="1" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot6"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="7" Grid.Column="1" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot7"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="8" Grid.Column="1" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot8"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="9" Grid.Column="1" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot9"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="10" Grid.Column="1" BorderBrush="Silver" BorderThickness="0,0,1,0">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <Viewbox.OpacityMask>
+                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                            <GradientStop Color="Black" Offset="0"/>
+                            <GradientStop Color="#FFE00808" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Viewbox.OpacityMask>
+                    <TextBlock x:Name="slot10"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+
+            <!--tuesday-->
+
+            <Border Grid.Row="1" Grid.Column="2" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot11"   Text="cse" Background="White"  FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="2" Grid.Column="2" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot12"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="3" Grid.Column="2" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot13"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="4" Grid.Column="2" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot14"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="5" Grid.Column="2"  BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot15"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border  Grid.Row="6" Grid.Column="2" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot16"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="7" Grid.Column="2" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot17"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="8" Grid.Column="2" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot18"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="9" Grid.Column="2" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot19"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="10" Grid.Column="2" BorderBrush="Silver" BorderThickness="0,0,1,0">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot20"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+
+            <!--wednesday-->
+
+
+            <Border Grid.Row="1" Grid.Column="3" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot21"   Text="cse" Background="White"  FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="2" Grid.Column="3" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot22"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="3" Grid.Column="3" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot23"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="4" Grid.Column="3" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot24"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="5" Grid.Column="3"  BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot25"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border  Grid.Row="6" Grid.Column="3" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot26"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="7" Grid.Column="3" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot27"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="8" Grid.Column="3" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot28"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="9" Grid.Column="3" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot29"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="10" Grid.Column="3" BorderBrush="Silver" BorderThickness="0,0,1,0">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot30"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+
+
+            <!--thursday-->
+
+
+            <Border Grid.Row="1" Grid.Column="4" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot31"   Text="cse" Background="White"  FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="2" Grid.Column="4" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot32"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="3" Grid.Column="4" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot33"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="4" Grid.Column="4" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot34"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="5" Grid.Column="4"  BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot35"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border  Grid.Row="6" Grid.Column="4" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot36"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="7" Grid.Column="4" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot37"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="8" Grid.Column="4" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot38"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="9" Grid.Column="4" BorderBrush="Silver" BorderThickness="0,0,1,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot39"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="10" Grid.Column="4" BorderBrush="Silver" BorderThickness="0,0,1,0">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot40"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+
+            <!--friday-->
+
+
+
+            <Border Grid.Row="1" Grid.Column="5" BorderBrush="Silver" BorderThickness="0,0,0,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot41"   Text="cse" Background="White"  FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="2" Grid.Column="5" BorderBrush="Silver" BorderThickness="0,0,0,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot42"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="3" Grid.Column="5" BorderBrush="Silver" BorderThickness="0,0,0,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot43"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="4" Grid.Column="5" BorderBrush="Silver" BorderThickness="0,0,0,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot44"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="5" Grid.Column="5"  BorderBrush="Silver" BorderThickness="0,0,0,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot45"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border  Grid.Row="6" Grid.Column="5" BorderBrush="Silver" BorderThickness="0,0,0,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot46"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="7" Grid.Column="5" BorderBrush="Silver" BorderThickness="0,0,0,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot47"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="8" Grid.Column="5" BorderBrush="Silver" BorderThickness="0,0,0,1">
+                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot48"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="9" Grid.Column="5" BorderBrush="Silver" BorderThickness="0,0,0,1">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot49"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+            <Border Grid.Row="10" Grid.Column="5" BorderBrush="Silver" BorderThickness="0,0,0,0">
+                <Viewbox  StretchDirection="Both" Stretch="Uniform">
+                    <TextBlock x:Name="slot50"   Text="cse" Background="White" FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+            </Border>
+
 
         </Grid>
     </Border>
