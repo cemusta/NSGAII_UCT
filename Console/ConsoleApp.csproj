@@ -47,11 +47,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GnuPlot.cs" />
-    <Compile Include="Models\CourseDetail.cs" />
+    <Compile Include="Models\Collision.cs" />
+    <Compile Include="Models\Course.cs" />
     <Compile Include="Models\Individual.cs" />
     <Compile Include="Models\Lists.cs" />
     <Compile Include="Models\Population.cs" />
     <Compile Include="Models\ProblemDefinition.cs" />
+    <Compile Include="Models\Slot.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\Randomization.cs" />
