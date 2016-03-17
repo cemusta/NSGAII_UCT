@@ -918,22 +918,24 @@ namespace ConsoleApp
             for (j = 0; j < 8; j++)
             {
                 //collision of CSE&fac courses in semester
-                var x = calculate_collision2(schedulingOnlyCse[j], Scheduling[j], 0);
+                //var x = calculate_collision2(schedulingOnlyCse[j], Scheduling[j], 0);
+                //ind.Obj[0] += x;
+
                 List<Collision> col = calculate_collisionSemesterWithBaseCourses(timeTable, Scheduling[j], 0, j + 1);
                 var y = col.Sum(item => item.result);
-                ind.Obj[0] += x;
-                obj0 += y;
+                ind.Obj[0] += y;
                 collisions.AddRange(col);
             }
             //+TODO	 donem ici bolum dersi cakismasi
             for (j = 0; j < 8; j++)
             {
                 //collision of only CSE courses in semester
-                var x = calculate_collision1(schedulingOnlyCse[j], 1);
+                //var x = calculate_collision1(schedulingOnlyCse[j], 1);
+                //ind.Obj[0] += x;
+
                 List<Collision> col = calculate_collisionInSemester(timeTable, 1, j + 1);
                 var y = col.Sum(item => item.result);
-                ind.Obj[0] += x;
-                obj0 += y;
+                ind.Obj[0] += y;
                 collisions.AddRange(col);
             }
             //+TODO	dönemler arasi dekanlik/bolum dersi cakismasi--------------buna bak tekrar
@@ -941,15 +943,14 @@ namespace ConsoleApp
             {
                 // 1-2  2-3  3-4  4-5  5-6  6-7  7-8
                 // 2-1  3-2  4-3  5-4  6-5  7-6  8-7     consecutive CSE&faculty courses
-                var x = calculate_collision2(schedulingOnlyCse[j - 1], Scheduling[j], 0);  //cse derslerini bir sonraki dönem ile     
-                x += calculate_collision2(schedulingOnlyCse[j], Scheduling[j - 1], 0);  //cse derslerini bir önceki dönem ile      
-                ind.Obj[1] += x;
+                //var x = calculate_collision2(schedulingOnlyCse[j - 1], Scheduling[j], 0);  //cse derslerini bir sonraki dönem ile     
+                //x += calculate_collision2(schedulingOnlyCse[j], Scheduling[j - 1], 0);  //cse derslerini bir önceki dönem ile      
+                //ind.Obj[1] += x;
 
                 List<Collision> col = calculate_collisionSemesterWithBaseCourses(timeTable, Scheduling[j], 0, j);
                 col.AddRange(calculate_collisionSemesterWithBaseCourses(timeTable, Scheduling[j - 1], 0, j + 1));
                 var y = col.Sum(item => item.result);
-
-                obj1 += y;
+                ind.Obj[1] += y;
                 collisions.AddRange(col);
             }
             //+TODO	dönemler arası CSE çakışmaları
@@ -962,8 +963,9 @@ namespace ConsoleApp
                 obj1 += y;
                 collisions.AddRange(col);
                 ind.Obj[1] += x;
-                // obj1 += y;
+
             }
+
             //+TODO	aynı saatte 3'ten fazla lab olmaması lazim
             var x1 = calculate_collision1(labCounter, 4);
             ind.Obj[0] += x1;
@@ -978,12 +980,12 @@ namespace ConsoleApp
                 if (!TeacherList[j].Equals("ASSISTANT")) //asistanlar önemsiz :)
                 {
                     //+TODO	og. gor. aynı saatte baska dersinin olmaması
-                    var xx1 = calculate_collision1(teacherSchedulingCounter[j], 1);
-                    ind.Obj[0] += xx1;
+                    //var xx1 = calculate_collision1(teacherSchedulingCounter[j], 1);
+                    //ind.Obj[0] += xx1;
 
                     List<Collision> col = calculate_TeacherCollision(timeTable, j, 1);
                     var yy1 = col.Sum(item => item.result);
-                    obj0 += yy1;
+                    ind.Obj[0] += yy1;
 
                     /*teacher course collision*/
 
