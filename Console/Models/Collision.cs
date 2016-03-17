@@ -5,8 +5,10 @@ namespace ConsoleApp.Models
     public class Collision
     {
         public readonly List<Course> CrashingCourses;
+        public int TeacherId;
+        public CollisionType Type;
         public string Reason;
-        public int result;
+        public int Result;
         public string Printable
         {
             get
@@ -23,11 +25,19 @@ namespace ConsoleApp.Models
             }
         }
 
-        public Collision()
+        public Collision(CollisionType type = CollisionType.CourseCollision)
         {
+            TeacherId = 0;
+            Type = type;
             CrashingCourses = new List<Course>();
         }
 
 
+    }
+
+    public enum CollisionType
+    {
+        CourseCollision = 1,
+        TeacherCollision = 2
     }
 }
