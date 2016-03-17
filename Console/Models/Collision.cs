@@ -38,6 +38,7 @@ namespace ConsoleApp.Models
     public enum CollisionType
     {
         CourseCollision = 1,
-        TeacherCollision = 2
+        TeacherCollision = 2,
+        LabCollision = 3
     }
 }
