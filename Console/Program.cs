@@ -1026,31 +1026,67 @@ namespace ConsoleApp
 
             //lab ve lecture farklı günlerde olsun
             {
-                var x = 0;
-                var y = 0;
-                for (j = 0; j < 8; j++)
-                {
-                    x += calculate_collision6(schedulingOnlyCse[j]);    /*lab lecture hours must be in seperate day*/
-                }
+                //var x = 0;
+                //for (j = 0; j < 8; j++)
+                //{
+                //    x += calculate_collision6(schedulingOnlyCse[j]);    /*lab lecture hours must be in seperate day*/
+                //}
+                //ind.Obj[2] += x;  //todo: sayılar tutmuyor.
 
-                ind.Obj[2] += x;
+                List<Collision> col = calculate_LectureLabCollision(timeTable);
+                var y = col.Sum(item => item.Result);
+                ind.Obj[2] += y;
+
             }
 
-            //+TODO	lab miktarı kadar lab_scheduling'i artır
-            //+TODO	seçmeliler için ayrı tablo tutup ayrı fonksiyonlarla çakışmaları kontrol et.
-            //+TODO	secmelilerin hangi donemlere eklenecegi ve hangi donemlerle cakismamasi istendiği?
-            ind.Obj[0] += calculate_collision1(electiveCourses, 1);                            /*elective courses*/
+            {
+                List<Collision> col = calculate_ElectiveCollision(timeTable, 1);
+                var y = col.Sum(item => item.Result);
+                ind.Obj[0] += y;
+            }
 
-            ind.Obj[2] += calculate_collision2(electiveCourses, Scheduling[5], 0);             /*elective+faculty courses in semester(consecutive)*/
-            ind.Obj[2] += calculate_collision2(electiveCourses, Scheduling[6], 0);             /*elective+faculty courses in semester*/
-            ind.Obj[2] += calculate_collision2(electiveCourses, Scheduling[7], 0);             /*elective+faculty courses in semester*/
+            /*elective+faculty courses in semester*/
+            {
+                List<Collision> col = calculate_collisionElectiveWithBaseCourses(timeTable, Scheduling[5], 0);
+                var y = col.Sum(item => item.Result);
+                ind.Obj[2] += y;
+                col.Clear();
 
-            ind.Obj[1] += calculate_collision7(schedulingOnlyCse[5], electiveCourses, 0);    /*CSE+elective courses(consecutive)*/
-            ind.Obj[0] += calculate_collision7(schedulingOnlyCse[6], electiveCourses, 0);    /*CSE+elective courses*/
-            ind.Obj[0] += calculate_collision7(schedulingOnlyCse[7], electiveCourses, 0);    /*CSE+elective courses*/
-                                                                                             //+TODO	toplanti saatleri hocaların tablosuna da eklensin
-                                                                                             //TODO	dekanlık derslerinin sectionları??
-                                                                                             //+TODO	obj[2] kontrol et.
+                col = calculate_collisionElectiveWithBaseCourses(timeTable, Scheduling[6], 0);
+                y = col.Sum(item => item.Result);
+                ind.Obj[2] += y;
+                col.Clear();
+
+                col = calculate_collisionElectiveWithBaseCourses(timeTable, Scheduling[7], 0);
+                y = col.Sum(item => item.Result);
+                ind.Obj[2] += y;
+            }
+
+            /*elective+faculty courses in semester*/
+
+            {
+                //var x = calculate_collision7(schedulingOnlyCse[5], electiveCourses, 0);    /*CSE+elective courses(consecutive)*/
+                //ind.Obj[1] += x;
+                //ind.Obj[0] += calculate_collision7(schedulingOnlyCse[6], electiveCourses, 0);    /*CSE+elective courses*/
+                //ind.Obj[0] += calculate_collision7(schedulingOnlyCse[7], electiveCourses, 0);    /*CSE+elective courses*/
+
+                List<Collision> col = calculate_collisionElectiveWithSemester(timeTable, 0, 6);
+                var y = col.Sum(item => item.Result);
+                ind.Obj[1] += y;
+                col.Clear();
+
+                col = calculate_collisionElectiveWithSemester(timeTable, 0, 7);
+                y = col.Sum(item => item.Result);
+                ind.Obj[0] += y;
+                col.Clear();
+
+                col = calculate_collisionElectiveWithSemester(timeTable, 0, 8);
+                y = col.Sum(item => item.Result);
+                ind.Obj[0] += y;
+            }
+
+            //TODO	dekanlık derslerinin sectionları??
+
             #endregion
         }
         #endregion
@@ -1249,7 +1285,7 @@ namespace ConsoleApp
         }
 
 
-        static List<Collision> calculate_collisionSemesterWithBaseCourses(Slot[,] timeTable, int[,] array2, int minimumCollision, int semester)
+        static List<Collision> calculate_collisionSemesterWithBaseCourses(Slot[,] timeTable, int[,] array2, int minimumCollision, int semester, bool elective = false)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1258,15 +1294,16 @@ namespace ConsoleApp
                 {
                     Slot tempSlot = timeTable[i, j];
 
-                    if (tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision && array2[i, j] > minimumCollision)
+                    if (tempSlot.Courses.Count(x => x.Semester == semester && x.Elective == elective) > minimumCollision && array2[i, j] > minimumCollision)
                     {
 
                         Collision tempCollision = new Collision
                         {
-                            Result = tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) + array2[i, j] - 1,
+                            Type = CollisionType.CourseCollision,
+                            Result = tempSlot.Courses.Count(x => x.Semester == semester && x.Elective == elective) + array2[i, j] - 1,
                             Reason = "collision with faculty course"
                         };
-                        tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Semester == semester && !x.Elective));
+                        tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Semester == semester && x.Elective == elective));
 
                         collisionList.Add(tempCollision);
                     }
@@ -1274,20 +1311,57 @@ namespace ConsoleApp
             }
             return collisionList;
         }
-        static int calculate_collision1(List<int>[,] array, int minimumCollision)
+        static List<Collision> calculate_collisionElectiveWithBaseCourses(Slot[,] timeTable, int[,] array2, int minimumCollision)
         {
-            int result = 0;
+            List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    if (array[i, j].Count > minimumCollision)
+                    Slot tempSlot = timeTable[i, j];
+
+                    if (tempSlot.Courses.Count(x => x.Elective) > minimumCollision && array2[i, j] > minimumCollision)
                     {
-                        result += array[i, j].Count - 1;
+
+                        Collision tempCollision = new Collision
+                        {
+                            Type = CollisionType.CourseCollision,
+                            Result = tempSlot.Courses.Count(x => x.Elective) + array2[i, j] - 1,
+                            Reason = "collision with faculty course"
+                        };
+                        tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Elective));
+
+                        collisionList.Add(tempCollision);
                     }
                 }
             }
-            return result;
+            return collisionList;
+        }
+
+        static List<Collision> calculate_ElectiveCollision(Slot[,] timeTable, int minimumCollision)
+        {
+            List<Collision> collisionList = new List<Collision>();
+            for (int i = 0; i < 5; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    Slot tempSlot = timeTable[i, j];
+
+                    if (tempSlot.Courses.FindAll(x => x.Elective).Count > minimumCollision)
+                    {
+                        Collision tempCollision = new Collision
+                        {
+                            Type = CollisionType.CourseCollision,
+                            Result = tempSlot.Courses.FindAll(x => x.Elective).Count - 1,
+                            Reason = "base course collision in same semester"
+                        };
+                        tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Elective));
+
+                        collisionList.Add(tempCollision);
+                    }
+                }
+            }
+            return collisionList;
         }
         static List<Collision> calculate_LabCollision(Slot[,] timeTable, int minimumCollision)
         {
@@ -1316,7 +1390,8 @@ namespace ConsoleApp
             }
             return collisionList;
         }
-        static List<Collision> calculate_TeacherCollision(Slot[,] timeTable, int teacherId, int minimumCollision)
+
+        static List<Collision> calculate_collisionInSemester(Slot[,] timeTable, int minimumCollision, int semester, bool elective = false)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1325,44 +1400,12 @@ namespace ConsoleApp
                 {
                     Slot tempSlot = timeTable[i, j];
 
-                    int hours = tempSlot.Courses.FindAll(x => x.TeacherId == teacherId).Count;
-                    if (tempSlot.meetingHour)
-                        hours++;
-
-                    if (hours > minimumCollision)
-                    {
-                        Collision tempCollision = new Collision
-                        {
-                            Type = CollisionType.TeacherCollision,
-                            TeacherId = teacherId,
-                            Result = hours - 1,
-                            Reason = "teacher has multiple course at same hour"
-                        };
-                        tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.TeacherId == teacherId));
-
-                        collisionList.Add(tempCollision);
-                    }
-
-                }
-
-            }
-            return collisionList;
-        }
-        static List<Collision> calculate_collisionInSemester(Slot[,] timeTable, int minimumCollision, int semester)
-        {
-            List<Collision> collisionList = new List<Collision>();
-            for (int i = 0; i < 5; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    Slot tempSlot = timeTable[i, j];
-
-                    if (tempSlot.Courses.FindAll(x => x.Semester == semester && !x.Elective).Count > minimumCollision)
+                    if (tempSlot.Courses.FindAll(x => x.Semester == semester && x.Elective == elective).Count > minimumCollision)
                     {
                         Collision tempCollision = new Collision();
-                        tempCollision.Result = tempSlot.Courses.FindAll(x => x.Semester == semester && !x.Elective).Count - 1;
+                        tempCollision.Result = tempSlot.Courses.FindAll(x => x.Semester == semester && x.Elective == elective).Count - 1;
                         tempCollision.Reason = "base course collision in same semester";
-                        tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Semester == semester && !x.Elective));
+                        tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Semester == semester && x.Elective == elective));
 
                         collisionList.Add(tempCollision);
                     }
@@ -1422,6 +1465,39 @@ namespace ConsoleApp
             }
             return collisionList;
         }
+
+        static List<Collision> calculate_TeacherCollision(Slot[,] timeTable, int teacherId, int minimumCollision)
+        {
+            List<Collision> collisionList = new List<Collision>();
+            for (int i = 0; i < 5; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    Slot tempSlot = timeTable[i, j];
+
+                    int hours = tempSlot.Courses.FindAll(x => x.TeacherId == teacherId).Count;
+                    if (tempSlot.meetingHour)
+                        hours++;
+
+                    if (hours > minimumCollision)
+                    {
+                        Collision tempCollision = new Collision
+                        {
+                            Type = CollisionType.TeacherCollision,
+                            TeacherId = teacherId,
+                            Result = hours - 1,
+                            Reason = "teacher has multiple course at same hour"
+                        };
+                        tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.TeacherId == teacherId));
+
+                        collisionList.Add(tempCollision);
+                    }
+
+                }
+
+            }
+            return collisionList;
+        }
         static int calculate_collisionTeacherFreeDay(Slot[,] timeTable, int teacherId)
         {
             for (int i = 0; i < 5; i++) //gun
@@ -1475,59 +1551,165 @@ namespace ConsoleApp
             return result;
         }
 
+        static List<Collision> calculate_LectureLabCollision(Slot[,] timeTable)
+        {
+            List<Collision> collisionList = new List<Collision>();
+            for (int i = 0; i < 5; i++)
+            {
+                List<Course> lectures = new List<Course>();
+                List<Course> labs = new List<Course>();
+
+                for (int j = 0; j < 9; j++)
+                {
+                    Slot tempSlot = timeTable[i, j];
+
+                    lectures.AddRange(tempSlot.Courses.Where(x => x.Type == 0));
+                    labs.AddRange(tempSlot.Courses.Where(x => x.Type == 1));
+                }
+
+                if (labs.Count > 0 && lectures.Count > 0)
+                {
+
+                    foreach (var lab in labs)
+                    {
+
+                        for (int j = 0; j < lectures.Count; j++)
+                        {
+                            if (lectures[j].Code == lab.Code)
+                            {
+                                Collision tempCollision = new Collision
+                                {
+                                    Type = CollisionType.CourseCollision,
+                                    Result = 1,
+                                    Reason = "lab and lecture in same day"
+                                };
+                                tempCollision.CrashingCourses.Add(lab);
+                                tempCollision.CrashingCourses.Add(lectures[j]);
+
+                                collisionList.Add(tempCollision);
+                            }
+                        }
+
+                    }
+
+
+                }
+
+            }
+            return collisionList;
+        }
+
+        //static int calculate_collision1(List<int>[,] array, int minimumCollision)
+        //{
+        //    int result = 0;
+        //    for (int i = 0; i < 5; i++)
+        //    {
+        //        for (int j = 0; j < 9; j++)
+        //        {
+        //            if (array[i, j].Count > minimumCollision)
+        //            {
+        //                result += array[i, j].Count - 1;
+        //            }
+        //        }
+        //    }
+        //    return result;
+        //}
+
+        //static int calculate_collision6(List<int>[,] array)
+        //{
+        //    int result = 0;
+        //    List<int> day = new List<int>(5);
+        //    for (int i = 0; i < 5; i++)
+        //    {
+        //        for (int j = 0; j < 9; j++)
+        //        {
+        //            for (int k = 0; k < (int)array[i, j].Count; k++)
+        //            {
+        //                day.Add(array[i, j][k]);
+        //            }
+        //        }
+        //        for (int j = 0; j < (int)day.Count; j++)
+        //        {
+        //            for (int k = 0; k < (int)day.Count; k++)
+        //            {
+        //                if (j != k && CourseList[j].Code.Equals(CourseList[k].Code))
+        //                {
+        //                    var type1 = CourseList[j].Type;
+        //                    var type2 = CourseList[k].Type;
+        //                    if (type1 != type2 && type1 + type2 <= 1)
+        //                    {
+        //                        result++;
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        day.Clear();
+        //    }
+        //    return result;
+        //}
+
+
         // collision of CSE courses at the same time
 
         // collision of CSE courses -1 0(calculate_collision) +1 semester
-        static int calculate_collision2(List<int>[,] array1, int[,] array2, int minimumCollision)
-        {
-            int i, j, result = 0;
-            for (i = 0; i < 5; i++)
-            {
-                for (j = 0; j < 9; j++)
-                {
-                    if (array1[i, j].Count > minimumCollision && array2[i, j] > minimumCollision)
-                    {
-                        var x = array1[i, j].Count + array2[i, j] - 1;
-                        result += x;
-                    }
-                }
-            }
-            return result;
-        }
+
+        //static int calculate_collision2(List<int>[,] array1, int[,] array2, int minimumCollision)
+        //{
+        //    int result = 0;
+        //    for (int i = 0; i < 5; i++)
+        //    {
+        //        for (int j = 0; j < 9; j++)
+        //        {
+        //            if (array1[i, j].Count > minimumCollision && array2[i, j] > minimumCollision)
+        //            {
+        //                var x = array1[i, j].Count + array2[i, j] - 1;
+        //                result += x;
+        //            }
+        //        }
+        //    }
+        //    return result;
+        //}
 
 
-        static int calculate_collision6(List<int>[,] array)
+        static List<Collision> calculate_collisionElectiveWithSemester(Slot[,] timeTable, int minimumCollision, int semester)
         {
-            int result = 0, i, j, k, type1, type2;
-            List<int> day = new List<int>(5);
-            for (i = 0; i < 5; i++)
+            List<Collision> collisionList = new List<Collision>();
+            for (int i = 0; i < 5; i++)
             {
-                for (j = 0; j < 9; j++)
+                for (int j = 0; j < 9; j++)
                 {
-                    for (k = 0; k < (int)array[i, j].Count; k++)
+                    Slot tempSlot = timeTable[i, j];
+
+                    if (tempSlot.Courses.Count(x => x.Elective) > minimumCollision && tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision)
                     {
-                        day.Add(array[i, j][k]);
-                    }
-                }
-                for (j = 0; j < (int)day.Count; j++)
-                {
-                    for (k = 0; k < (int)day.Count; k++)
-                    {
-                        if (j != k && CourseList[j].Code.Equals(CourseList[k].Code))
+                        var electives = tempSlot.Courses.Where(x => x.Elective).ToList();
+                        var baselectures = tempSlot.Courses.Where(x => x.Semester == semester && !x.Elective).ToList();
+
+                        foreach (var elective in electives)
                         {
-                            //result++;
-                            type1 = CourseList[j].Type;
-                            type2 = CourseList[k].Type;
-                            if (type1 != type2 && type1 + type2 <= 1)
+                            foreach (var baselecture in baselectures)
                             {
-                                result++;
+                                if (!elective.prerequisites.Contains(baselecture.Id))
+                                {
+                                    Collision tempCollision = new Collision
+                                    {
+                                        Type = CollisionType.CourseCollision,
+                                        Result = 1,
+                                        Reason = "collision between elective and base course"
+                                    };
+                                    tempCollision.CrashingCourses.Add(elective);
+                                    tempCollision.CrashingCourses.Add(baselecture);
+
+                                    collisionList.Add(tempCollision);
+                                }
                             }
                         }
+
+
                     }
                 }
-                day.Clear();
             }
-            return result;
+            return collisionList;
         }
 
         static int calculate_collision7(List<int>[,] array1, List<int>[,] array2, int minimumCollision)
