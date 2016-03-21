@@ -582,7 +582,7 @@ namespace ConsoleApp
             writer4.WriteLine("# gen = 1");
             ReportPopulation(parentPopulation, writer4);
             Console.WriteLine(" gen = 1");
-            //fflush(stdout);
+
             if (DisplayObj.GnuplotChoice != 0)
             {
                 DisplayObj.PlotPopulation(parentPopulation, ProblemObj, 1);
@@ -986,7 +986,6 @@ namespace ConsoleApp
             {
                 BinaryMutate(ind);
             }
-            return;
         }
 
         /* Routine for binary mutation of an individual */
@@ -1140,7 +1139,6 @@ namespace ConsoleApp
                     writer.Write($"{ pop.IndList[i].CrowdDist.ToString("E")}\n");
                 }
             }
-            return;
         }
 
         #endregion
@@ -1351,13 +1349,7 @@ namespace ConsoleApp
                 dist[j] = c1++;
             }
             assign_crowding_distance(pop, dist, objArray, frontSize);
-            //free(dist);
-            //for (i = 0; i < ProblemObj.ObjectiveCount; i++)
-            //{
-            //    free(obj_array[i]);
-            //}
-            //free(obj_array);
-            return;
+
         }
 
         /* Routine to compute crowding distances */
@@ -1404,7 +1396,6 @@ namespace ConsoleApp
                     pop.IndList[dist[j]].CrowdDist = pop.IndList[dist[j]].CrowdDist / ProblemObj.ObjectiveCount;
                 }
             }
-            return;
         }
         #endregion
 
@@ -1413,7 +1404,6 @@ namespace ConsoleApp
         static void quicksort_front_obj(Population pop, int objcount, int[] objArray, int objArraySize)
         {
             q_sort_front_obj(pop, objcount, objArray, 0, objArraySize - 1);
-            return;
         }
 
         /* Actual implementation of the randomized quick sort used to sort a population based on a particular objective chosen */

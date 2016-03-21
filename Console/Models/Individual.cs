@@ -22,7 +22,6 @@ namespace ConsoleApp.Models
         private readonly int _nMaxBit;
         private readonly int _nObj;
         private readonly int _nCons;
-        public List<Collision> Collisions = new List<Collision>(8);
 
 
         public Individual(int nRealVar, int nBinVar, int nMaxBit, int nObj, int nCons)
@@ -179,6 +178,7 @@ namespace ConsoleApp.Models
 
         public void EvaluateProblem(ProblemDefinition problemObj)
         {
+            CollisionList.Clear();
 
             Slot[,] timeTable = new Slot[5, 9];
             for (int x = 0; x < 5; x++)
@@ -188,6 +188,7 @@ namespace ConsoleApp.Models
                     timeTable[x, y] = new Slot(problemObj.TeacherList.Count);
                 }
             }
+
             Obj[0] = 0;
             Obj[1] = 0;
             Obj[2] = 0;
@@ -217,7 +218,7 @@ namespace ConsoleApp.Models
                 List<Collision> col = calculate_collisionSemesterWithBaseCourses(timeTable, problemObj.Scheduling[j], 0, j + 1);
                 var result = col.Sum(item => item.Result);
                 Obj[0] += result;
-                Collisions.AddRange(col);
+                CollisionList.AddRange(col);
             }
             //donem ici bolum dersi cakismasi
             for (int j = 0; j < 8; j++)
@@ -225,7 +226,7 @@ namespace ConsoleApp.Models
                 List<Collision> col = calculate_collisionInSemester(timeTable, 1, j + 1);
                 var result = col.Sum(item => item.Result);
                 Obj[0] += result;
-                Collisions.AddRange(col);
+                CollisionList.AddRange(col);
             }
 
             //dönemler arasi dekanlik/bolum dersi cakismasi todo: scheduling'in normal slot halinde gelmesi lazım
@@ -237,7 +238,7 @@ namespace ConsoleApp.Models
                 col.AddRange(calculate_collisionSemesterWithBaseCourses(timeTable, problemObj.Scheduling[j - 1], 0, j + 1));
                 var result = col.Sum(item => item.Result);
                 Obj[1] += result;
-                Collisions.AddRange(col);
+                CollisionList.AddRange(col);
             }
 
             //dönemler arası CSE çakışmaları
@@ -251,7 +252,7 @@ namespace ConsoleApp.Models
                 var y = col.Sum(item => item.Result);
 
                 Obj[1] += y;
-                Collisions.AddRange(col);
+                CollisionList.AddRange(col);
             }
 
             //aynı saatte 3'ten fazla lab olmaması lazim todo: hangi lab? inputtan alacaz.
@@ -261,7 +262,7 @@ namespace ConsoleApp.Models
                 List<Collision> labcol = calculate_LabCollision(timeTable, 4);
                 var y = labcol.Sum(item => item.Result);
                 Obj[0] += y;
-                Collisions.AddRange(labcol);
+                CollisionList.AddRange(labcol);
             }
             //# of lab at most 4
 
@@ -280,7 +281,7 @@ namespace ConsoleApp.Models
                     List<Collision> col = calculate_TeacherCollision(timeTable, j, 1);
                     var yy1 = col.Sum(item => item.Result);
                     Obj[0] += yy1;
-                    Collisions.AddRange(col);
+                    CollisionList.AddRange(col);
                 }
 
 
@@ -298,7 +299,7 @@ namespace ConsoleApp.Models
                         Result = y, // how many crash
                         Reason = "Teacher has consicutive course crash."
                     };
-                    Collisions.Add(tempCollision);
+                    CollisionList.Add(tempCollision);
                     //teacher have at most 4 consective lesson per day
                 }
                 {
@@ -315,7 +316,7 @@ namespace ConsoleApp.Models
                         Result = y, // 1
                         Reason = "Teacher doesnt have free day"
                     };
-                    Collisions.Add(tempCollision);
+                    CollisionList.Add(tempCollision);
                 }
                 /* teacher have free day*/
             }
@@ -332,14 +333,14 @@ namespace ConsoleApp.Models
                 List<Collision> col = calculate_LectureLabCollision(timeTable);
                 var y = col.Sum(item => item.Result);
                 Obj[2] += y;
-                Collisions.AddRange(col);
+                CollisionList.AddRange(col);
             }
 
             {
                 List<Collision> col = calculate_ElectiveCollision(timeTable, 1);
                 var y = col.Sum(item => item.Result);
                 Obj[0] += y;
-                Collisions.AddRange(col);
+                CollisionList.AddRange(col);
             }
 
             /*elective+faculty courses in semester*/
@@ -347,19 +348,19 @@ namespace ConsoleApp.Models
                 List<Collision> col = calculate_collisionElectiveWithBaseCourses(timeTable, problemObj.Scheduling[5], 0);
                 var y = col.Sum(item => item.Result);
                 Obj[2] += y;
-                Collisions.AddRange(col);
+                CollisionList.AddRange(col);
                 col.Clear();
 
                 col = calculate_collisionElectiveWithBaseCourses(timeTable, problemObj.Scheduling[6], 0);
                 y = col.Sum(item => item.Result);
                 Obj[2] += y;
-                Collisions.AddRange(col);
+                CollisionList.AddRange(col);
                 col.Clear();
 
                 col = calculate_collisionElectiveWithBaseCourses(timeTable, problemObj.Scheduling[7], 0);
                 y = col.Sum(item => item.Result);
                 Obj[2] += y;
-                Collisions.AddRange(col);
+                CollisionList.AddRange(col);
             }
 
             /*elective+faculty courses in semester*/
@@ -373,19 +374,19 @@ namespace ConsoleApp.Models
                 List<Collision> col = calculate_collisionElectiveWithSemester(timeTable, 0, 6);
                 var y = col.Sum(item => item.Result);
                 Obj[1] += y;
-                Collisions.AddRange(col);
+                CollisionList.AddRange(col);
                 col.Clear();
 
                 col = calculate_collisionElectiveWithSemester(timeTable, 0, 7);
                 y = col.Sum(item => item.Result);
                 Obj[0] += y;
-                Collisions.AddRange(col);
+                CollisionList.AddRange(col);
                 col.Clear();
 
                 col = calculate_collisionElectiveWithSemester(timeTable, 0, 8);
                 y = col.Sum(item => item.Result);
                 Obj[0] += y;
-                Collisions.AddRange(col);
+                CollisionList.AddRange(col);
             }
 
             //todo: dekanlık derslerinin sectionları??
