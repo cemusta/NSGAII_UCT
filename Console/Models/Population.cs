@@ -52,6 +52,14 @@ namespace ConsoleApp.Models
             }
         }
 
+        public void Evaluate(ProblemDefinition problemObj)
+        {
+            for (int i = 0; i < this.IndList.Count; i++)
+            {
+                IndList[i].Evaluate(problemObj);
+            }
+        }
+
 
     }
 }

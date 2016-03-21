@@ -1,4 +1,6 @@
-﻿namespace ConsoleApp.Models
+﻿using System.Collections.Generic;
+
+namespace ConsoleApp.Models
 {
     public class ProblemDefinition
     {
@@ -30,6 +32,14 @@
         public double[] max_realvar = new double[50];
         public double[] min_binvar = new double[50];
         public double[] max_binvar = new double[50];
+
+        public readonly List<string> TeacherList = new List<string>(8);
+        public readonly List<Course> CourseList = new List<Course>(8);
+        public readonly int[,] Meeting = new int[5, 9]; // bölüm hocalarının ortak meeting saatleri.
+        public readonly int[,] LabScheduling = new int[5, 9]; // labda dönem tutulmuyor 
+        public readonly List<int[,]> Scheduling = new List<int[,]>(8); //8 dönem, 5 gün, 9 ders            
+
+
 
     }
 }

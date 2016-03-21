@@ -1,6 +1,6 @@
 ﻿namespace ConsoleApp.Models
 {
-    public class NSGAII
+    public static class NSGAII
     {
 
     }
