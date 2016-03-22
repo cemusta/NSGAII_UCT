@@ -432,7 +432,7 @@ namespace ConsoleApp.Models
 
         private void HillClimber(ProblemDefinition problemObj)
         {
-            var tempColl = CollisionList.Where(collision => collision.Type == CollisionType.BaseLectureWithBase).ToList();
+            var tempColl = CollisionList.ToList();
 
             if (tempColl.Count > 0)
             {
@@ -575,16 +575,25 @@ namespace ConsoleApp.Models
 
                         if (fittingSlot)
                         {
-                            fittingSlots.Add(i); //performans için burada continue deyip geçebiliriz... veya 3 tane bulunca.
+                            fittingSlots.Add(i); //todo:performans için burada continue deyip geçebiliriz... veya 3 tane bulunca. ???
                         }
-
                     }
 
+                    if (fittingSlots.Count > 0)
+                    {
+                        Random rnd = new Random();
+                        int selectedSlot = fittingSlots[rnd.Next(fittingSlots.Count)];
 
+                        ChangeGene(firstOne.Id,selectedSlot,problemObj);
+                        SlotId[firstOne.Id] = selectedSlot;
+                        break;
+                    }
+          
 
                 }
             }
         }
+
 
 
         private List<Slot> GetSlot(int slotId, int hour)
