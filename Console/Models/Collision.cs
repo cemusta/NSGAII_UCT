@@ -32,13 +32,14 @@ namespace ConsoleApp.Models
             CrashingCourses = new List<Course>();
         }
 
-
     }
 
     public enum CollisionType
     {
-        CourseCollision = 1,
-        TeacherCollision = 2,
-        LabCollision = 3
+        BaseLectureWithFaculty = 0,
+        BaseLectureWithBase = 1,
+        CourseCollision = 2,
+        TeacherCollision = 3,
+        LabCollision = 4
     }
 }

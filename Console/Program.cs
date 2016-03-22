@@ -1501,7 +1501,7 @@ namespace ConsoleApp
             {
                 for (int i = 0; i < ProblemObj.BinaryVariableCount; i++)
                 {
-                    ind2.Xbin[i] = ind1.Xbin[i];
+                    ind2.SlotId[i] = ind1.SlotId[i];
                     for (int j = 0; j < ProblemObj.nbits[i]; j++)
                     {
                         ind2.Gene[i, j] = ind1.Gene[i, j];

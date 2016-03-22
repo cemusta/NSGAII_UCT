@@ -10,7 +10,7 @@ namespace ConsoleApp.Models
         public int Rank { get; set; }
         public double[] Xreal { get; set; }
         public int[,] Gene { get; set; }
-        public double[] Xbin { get; set; }
+        public double[] SlotId { get; set; }
         public double[] Obj { get; set; }
         public double[] Constr { get; set; }
         public double CrowdDist { get; set; }
@@ -23,6 +23,7 @@ namespace ConsoleApp.Models
         private readonly int _nObj;
         private readonly int _nCons;
 
+        public readonly Slot[,] TimeTable = new Slot[5, 9];
 
         public Individual(int nRealVar, int nBinVar, int nMaxBit, int nObj, int nCons)
         {
@@ -37,7 +38,7 @@ namespace ConsoleApp.Models
 
             if (nBinVar != 0)
             {
-                Xbin = new double[nBinVar];
+                SlotId = new double[nBinVar];
                 Gene = new int[nBinVar, nMaxBit];
             }
 
@@ -56,7 +57,7 @@ namespace ConsoleApp.Models
 
             if (ind._nBinVar != 0)
             {
-                Xbin = new double[ind._nBinVar];
+                SlotId = new double[ind._nBinVar];
                 Gene = new int[ind._nBinVar, ind._nMaxBit];
             }
 
@@ -80,7 +81,7 @@ namespace ConsoleApp.Models
             {
                 for (int i = 0; i < ind._nBinVar; i++)
                 {
-                    Xbin[i] = ind.Xbin[i];
+                    SlotId[i] = ind.SlotId[i];
                     for (int j = 0; j < problem.nbits[i]; j++)
                     {
                         Gene[i, j] = ind.Gene[i, j];
@@ -101,11 +102,6 @@ namespace ConsoleApp.Models
 
         }
 
-        public void AddCollision(Collision temp)
-        {
-            CollisionList.Add(temp);
-        }
-
         public void Decode(ProblemDefinition problem)
         {
             if (problem.BinaryVariableCount == 0)
@@ -121,7 +117,27 @@ namespace ConsoleApp.Models
                         sum += (int)Math.Pow(2, problem.nbits[j] - 1 - k);
                     }
                 }
-                Xbin[j] = problem.min_binvar[j] + sum * (problem.max_binvar[j] - problem.min_binvar[j]) / (Math.Pow(2, problem.nbits[j]) - 1);
+                SlotId[j] = problem.min_binvar[j] + sum * (problem.max_binvar[j] - problem.min_binvar[j]) / (Math.Pow(2, problem.nbits[j]) - 1);
+            }
+        }
+
+        private void ChangeGene(int geneId, int value, ProblemDefinition problem)
+        {
+            int valueToAdd = value;
+            int bits = problem.nbits[geneId];
+            for (int k = bits - 1; k >= 0; k--)
+            {
+                int divident = (int)Math.Pow(2, bits - 1 - k);
+                int modulus = (int)Math.Pow(2, bits - k);
+                if (valueToAdd % modulus == divident)
+                {
+                    valueToAdd = valueToAdd - divident;
+                    Gene[geneId, k] = 1;
+                }
+                else
+                {
+                    Gene[geneId, k] = 0;
+                }
             }
         }
 
@@ -159,6 +175,25 @@ namespace ConsoleApp.Models
         {
             EvaluateProblem(problemObj);
 
+            if (CollisionList.Count > 0)
+            {
+                int oldCollisionCount = CollisionList.Count;
+                int oldResult = CollisionList.Sum(x => x.Result);
+
+                HillClimber(problemObj);
+
+                EvaluateProblem(problemObj);
+
+                if (CollisionList.Count < oldCollisionCount)
+                {
+                    int newResult = CollisionList.Sum(x => x.Result);
+                    int resultImprovement = oldResult - newResult;
+                    int collisionImprovement = oldCollisionCount - CollisionList.Count;
+
+                    Console.WriteLine("improvement!!!");
+                }
+            }
+
             if (problemObj.ConstraintCount == 0)
             {
                 ConstrViolation = 0.0;
@@ -176,18 +211,18 @@ namespace ConsoleApp.Models
             }
         }
 
-        public void EvaluateProblem(ProblemDefinition problemObj)
+        private void EvaluateProblem(ProblemDefinition problemObj)
         {
             CollisionList.Clear();
 
             #region fill variables
 
-            Slot[,] timeTable = new Slot[5, 9];
+            //Slot[,] timeTable = new Slot[5, 9];
             for (int x = 0; x < 5; x++)
             {
                 for (int y = 0; y < 9; y++)
                 {
-                    timeTable[x, y] = new Slot(problemObj.TeacherList.Count);
+                    TimeTable[x, y] = new Slot(problemObj.TeacherList.Count);
                 }
             }
 
@@ -195,11 +230,11 @@ namespace ConsoleApp.Models
             Obj[1] = 0;
             Obj[2] = 0;
 
-           
+
             for (int j = 0; j < problemObj.BinaryVariableCount; j++) //ders sayisi kadar.
             {
-                int slotId = (int)Xbin[j];
-                adding_course_timeTable(timeTable, slotId, problemObj.CourseList[j]);
+                int slotId = (int)SlotId[j];
+                adding_course_timeTable(TimeTable, slotId, problemObj.CourseList[j]);
             }
 
             for (int x = 0; x < 5; x++)
@@ -207,67 +242,75 @@ namespace ConsoleApp.Models
                 for (int y = 0; y < 9; y++)
                 {
                     if (problemObj.Meeting[x, y] > 0)
-                        timeTable[x, y].meetingHour = true;
+                        TimeTable[x, y].meetingHour = true;
                 }
             }
             #endregion
 
             #region calc. collisions
 
+            #region Base vs Faculty same semester
             //dönem ici dekanlik/bolum dersi cakismasi todo: scheduling'in normal slot halinde gelmesi lazım
             for (int j = 0; j < 8; j++)
             {
-                List<Collision> col = calculate_collisionSemesterWithBaseCourses(timeTable, problemObj.Scheduling[j], 0, j + 1);
+                List<Collision> col = calculate_collisionBaseLectureWithFaculty(TimeTable, problemObj.Scheduling[j], 0, j + 1);
                 var result = col.Sum(item => item.Result);
                 Obj[0] += result;
                 CollisionList.AddRange(col);
             }
+            #endregion
+
+            #region Base vs Base same semester
             //donem ici bolum dersi cakismasi
             for (int j = 0; j < 8; j++)
             {
-                List<Collision> col = calculate_collisionInSemester(timeTable, 1, j + 1);
+                List<Collision> col = calculate_collisionInSemester(TimeTable, 1, j + 1);
                 var result = col.Sum(item => item.Result);
                 Obj[0] += result;
                 CollisionList.AddRange(col);
             }
+            #endregion
 
+            #region Base vs Faculty -1 +1 semester.
             //dönemler arasi dekanlik/bolum dersi cakismasi todo: scheduling'in normal slot halinde gelmesi lazım
             for (int j = 1; j < 8; j++)
             {
                 // 1-2  2-3  3-4  4-5  5-6  6-7  7-8
                 // 2-1  3-2  4-3  5-4  6-5  7-6  8-7     consecutive CSE&faculty courses
-                List<Collision> col = calculate_collisionSemesterWithBaseCourses(timeTable, problemObj.Scheduling[j], 0, j);
-                col.AddRange(calculate_collisionSemesterWithBaseCourses(timeTable, problemObj.Scheduling[j - 1], 0, j + 1));
+                List<Collision> col = calculate_collisionBaseLectureWithFaculty(TimeTable, problemObj.Scheduling[j], 0, j);
+                col.AddRange(calculate_collisionBaseLectureWithFaculty(TimeTable, problemObj.Scheduling[j - 1], 0, j + 1));
                 var result = col.Sum(item => item.Result);
                 Obj[1] += result;
                 CollisionList.AddRange(col);
             }
+            #endregion
 
+            #region Base vs Base -1 +1 semester
             //dönemler arası CSE çakışmaları
             for (int j = 1; j < 8; j++)
             {
-                /*consecutive only CSE courses*/
-                //var x = calculate_collision7(schedulingOnlyCse[j - 1], schedulingOnlyCse[j], 0);
-                //Obj[1] += x;
-
-                List<Collision> col = calculate_collisionInSemesters(timeTable, 1, new List<int> { j, j + 1 });
+                List<Collision> col = calculate_collisionInSemesters(TimeTable, 1, new List<int> { j, j + 1 });
                 var y = col.Sum(item => item.Result);
 
                 Obj[1] += y;
                 CollisionList.AddRange(col);
             }
+            #endregion
 
-            //aynı saatte 3'ten fazla lab olmaması lazim todo: hangi lab? inputtan alacaz.
+            #region Lab Count
+            //aynı saatte 4'ten fazla lab olmaması lazim todo: hangi lab? inputtan alacaz.
             {
                 //var x = calculate_collision1(labCounter, 4);
                 //Obj[0] += x;
-                List<Collision> labcol = calculate_LabCollision(timeTable, 4);
+                List<Collision> labcol = calculate_LabCollision(TimeTable, 4);
                 var y = labcol.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(labcol);
             }
             //# of lab at most 4
+            #endregion
 
+            #region Teacher Collisions
             for (int j = 0; j < problemObj.TeacherList.Count; j++) //Bütün hocalar için
             {
                 if (problemObj.TeacherList[j].Equals("ASSISTANT"))
@@ -277,10 +320,7 @@ namespace ConsoleApp.Models
 
                 {
                     //og. gor. aynı saatte baska dersinin olmaması
-                    //var xx1 = calculate_collision1(teacherSchedulingCounter[j], 1);
-                    //Obj[0] += xx1;
-
-                    List<Collision> col = calculate_TeacherCollision(timeTable, j, 1);
+                    List<Collision> col = calculate_TeacherCollision(TimeTable, j, 1);
                     var yy1 = col.Sum(item => item.Result);
                     Obj[0] += yy1;
                     CollisionList.AddRange(col);
@@ -289,10 +329,7 @@ namespace ConsoleApp.Models
 
                 {
                     //og. gor. gunluk 4 saatten fazla pespese dersinin olmamasi
-                    //var x = calculate_collision3(teacherSchedulingCounter[j], 4);
-                    //Obj[2] += x;
-
-                    var y = calculate_collisionTeacherConsicutive(timeTable, j, 4);
+                    var y = calculate_collisionTeacherConsicutive(TimeTable, j, 4);
                     Obj[2] += 1;
                     Collision tempCollision = new Collision
                     {
@@ -306,10 +343,7 @@ namespace ConsoleApp.Models
                 }
                 {
                     //og. gor. boş gununun olması
-                    //var x = calculate_collision4(teacherSchedulingCounter[j]);
-                    //Obj[2] += x;
-
-                    var y = calculate_collisionTeacherFreeDay(timeTable, j);
+                    var y = calculate_collisionTeacherFreeDay(TimeTable, j);
                     Obj[2] += y;
                     Collision tempCollision = new Collision
                     {
@@ -322,6 +356,7 @@ namespace ConsoleApp.Models
                 }
                 /* teacher have free day*/
             }
+            #endregion
 
             //lab ve lecture farklı günlerde olsun
             {
@@ -332,60 +367,59 @@ namespace ConsoleApp.Models
                 //}
                 //Obj[2] += x;  //todo: sayılar tutmuyor.
 
-                List<Collision> col = calculate_LectureLabCollision(timeTable);
+                List<Collision> col = calculate_LectureLabCollision(TimeTable);
                 var y = col.Sum(item => item.Result);
                 Obj[2] += y;
                 CollisionList.AddRange(col);
             }
 
+            #region Elecive vs Elective
+            //elective vs elective collision
             {
-                List<Collision> col = calculate_ElectiveCollision(timeTable, 1);
+                List<Collision> col = calculate_ElectiveCollision(TimeTable, 1);
                 var y = col.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(col);
             }
+            #endregion
 
-            /*elective+faculty courses in semester*/
+            #region Elective vs Faculty in semester 6 7 8
+            //elective vs faculty courses in semester
             {
-                List<Collision> col = calculate_collisionElectiveWithBaseCourses(timeTable, problemObj.Scheduling[5], 0);
+                List<Collision> col = calculate_collisionElectiveWithBaseCourses(TimeTable, problemObj.Scheduling[5], 0);
                 var y = col.Sum(item => item.Result);
                 Obj[2] += y;
                 CollisionList.AddRange(col);
                 col.Clear();
 
-                col = calculate_collisionElectiveWithBaseCourses(timeTable, problemObj.Scheduling[6], 0);
+                col = calculate_collisionElectiveWithBaseCourses(TimeTable, problemObj.Scheduling[6], 0);
                 y = col.Sum(item => item.Result);
                 Obj[2] += y;
                 CollisionList.AddRange(col);
                 col.Clear();
 
-                col = calculate_collisionElectiveWithBaseCourses(timeTable, problemObj.Scheduling[7], 0);
+                col = calculate_collisionElectiveWithBaseCourses(TimeTable, problemObj.Scheduling[7], 0);
                 y = col.Sum(item => item.Result);
                 Obj[2] += y;
                 CollisionList.AddRange(col);
             }
+            #endregion
 
-            /*elective+faculty courses in semester*/
-
+            //elective vs base courses in semester
             {
-                //var x = calculate_collision7(schedulingOnlyCse[5], electiveCourses, 0);    /*CSE+elective courses(consecutive)*/
-                //Obj[1] += x;
-                //Obj[0] += calculate_collision7(schedulingOnlyCse[6], electiveCourses, 0);    /*CSE+elective courses*/
-                //Obj[0] += calculate_collision7(schedulingOnlyCse[7], electiveCourses, 0);    /*CSE+elective courses*/
-
-                List<Collision> col = calculate_collisionElectiveWithSemester(timeTable, 0, 6);
+                List<Collision> col = calculate_collisionElectiveWithSemester(TimeTable, 0, 6);
                 var y = col.Sum(item => item.Result);
                 Obj[1] += y;
                 CollisionList.AddRange(col);
                 col.Clear();
 
-                col = calculate_collisionElectiveWithSemester(timeTable, 0, 7);
+                col = calculate_collisionElectiveWithSemester(TimeTable, 0, 7);
                 y = col.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(col);
                 col.Clear();
 
-                col = calculate_collisionElectiveWithSemester(timeTable, 0, 8);
+                col = calculate_collisionElectiveWithSemester(TimeTable, 0, 8);
                 y = col.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(col);
@@ -396,7 +430,399 @@ namespace ConsoleApp.Models
 
         }
 
-        #region functions.c
+        private void HillClimber(ProblemDefinition problemObj)
+        {
+            var tempColl = CollisionList.Where(collision => collision.Type == CollisionType.BaseLectureWithBase).ToList();
+
+            if (tempColl.Count > 0)
+            {
+                foreach (var collision in tempColl)
+                {
+                    Course firstOne = collision.CrashingCourses.First();
+
+                    List<int> fittingSlots = new List<int>();
+
+                    int maxSlot = firstOne.Duration == 3 ? 20 : 25;
+                    bool fittingSlot = false;
+
+                    int semester = firstOne.Semester;
+                    int duration = firstOne.Duration;
+
+                    for (int i = 0; i < maxSlot; i++)
+                    {
+                        var temp = GetSlot(i, duration);
+                        int day = GetX(i, duration);
+                        int hour = GetY(i, duration);
+
+                        for (int j = 0; j < duration; j++)
+                        {
+                            fittingSlot = true;
+                            temp[j].Courses.RemoveAll(x => x.Id == firstOne.Id);
+
+                            if (!firstOne.Elective)
+                            {
+                                if (problemObj.Scheduling[semester - 1][day, hour] > 0) //base vs faculty collision, same semester.
+                                {
+                                    fittingSlot = false;
+                                    break;
+                                }
+                            }
+
+                            if (!firstOne.Elective)
+                            {
+                                if (temp[j].Courses.Count(x => x.Semester == semester && !x.Elective) > 0) //base vs base collision, same semester.
+                                {
+                                    fittingSlot = false;
+                                    break;
+                                }
+                            }
+
+                            if (!firstOne.Elective) //todo: bu obj1 ??? birşeyler yapak.
+                            {
+                                if (semester - 2 >= 0)
+                                {
+                                    if (problemObj.Scheduling[semester - 2][day, hour] > 0) //base vs faculty collision, -1 semester.
+                                    {
+                                        fittingSlot = false;
+                                        break;
+                                    }
+                                }
+                                if (semester < 8)
+                                {
+                                    if (problemObj.Scheduling[semester][day, hour] > 0) //base vs faculty collision, +1 semester.
+                                    {
+                                        fittingSlot = false;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (!firstOne.Elective) //todo: bu obj1 ??? birşeyler yapak.
+                            {
+                                if (semester - 1 > 0)
+                                {
+                                    if (temp[j].Courses.Count(x => x.Semester == semester - 1 && !x.Elective) > 0) //base check faculty collision, -1 semester.
+                                    {
+                                        fittingSlot = false;
+                                        break;
+                                    }
+                                }
+                                if (semester + 1 < 9)
+                                {
+                                    if (temp[j].Courses.Count(x => x.Semester == semester + 1 && !x.Elective) > 0) //base check faculty collision, +1 semester.
+                                    {
+                                        fittingSlot = false;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (firstOne.Type == 1) //lab ise
+                            {
+                                if (problemObj.LabScheduling[day, hour] > 4) //base vs faculty collision, same semester.
+                                {
+                                    fittingSlot = false;
+                                    break;
+                                }
+                            }
+
+                            if (temp[j].Courses.Count(x => x.TeacherId == firstOne.TeacherId) > 0) //check teacher collision
+                            {
+                                fittingSlot = false;
+                                break;
+                            }
+
+                            //todo: obj2 og. gor. gunluk 4 saatten fazla pespese dersinin olmamasi
+
+                            //todo: obj2 og. gor. boş gununun olması
+
+                            //todo: obj2 lab ve lecture farklı günlerde olsun
+
+                            if (firstOne.Elective)
+                            {
+                                if (temp[j].Courses.Count(x => x.Elective) > 0) //elective vs elective collision, all semesters.
+                                {
+                                    fittingSlot = false;
+                                    break;
+                                }
+                            }
+
+                            //todo: obj2 Elective vs Faculty in semester 6 7 8
+
+                            //elective vs base courses in semester
+                            if (firstOne.Elective)
+                            {
+                                if (temp[j].Courses.Count(x => x.Semester == 8 & !x.Elective) > 0) //elective vs base collision, #8 semester.
+                                {
+                                    fittingSlot = false;
+                                    break;
+                                }
+
+                                if (temp[j].Courses.Count(x => x.Semester == 7 & !x.Elective) > 0) //elective vs base collision, #7 semester.
+                                {
+                                    fittingSlot = false;
+                                    break;
+                                }
+
+                                if (temp[j].Courses.Count(x => x.Semester == 6 & !x.Elective) > 0) //todo: obj1 elective vs base collision, #6 semester.
+                                {
+                                    fittingSlot = false;
+                                    break;
+                                }
+                            }
+
+                        }
+
+                        if (fittingSlot)
+                        {
+                            fittingSlots.Add(i); //performans için burada continue deyip geçebiliriz... veya 3 tane bulunca.
+                        }
+
+                    }
+
+
+
+                }
+            }
+        }
+
+
+        private List<Slot> GetSlot(int slotId, int hour)
+        {
+            int x = 0;
+            int y = 0;
+
+            if (slotId > 24)
+                return null;
+
+            #region determine x,y
+            if (hour == 1) // bir saatlik ders ise.
+            {
+                if (slotId % 5 < 3)
+                {
+                    x = slotId / 5;
+                    y = slotId % 5 + 2;
+                }
+                else
+                {
+                    x = slotId / 5;
+                    y = slotId % 5 + 4;
+                }
+
+            }
+            else if (hour == 2) // 2 saatlik ders ise.
+            {
+                x = slotId / 5;
+                if (slotId % 5 == 0)
+                {
+                    y = 0;
+                }
+                if (slotId % 5 == 1)
+                {
+                    y = 2;
+                }
+                if (slotId % 5 == 2)
+                {
+                    y = 3;
+                }
+                if (slotId % 5 == 3)
+                {
+                    y = 5;
+                }
+                if (slotId % 5 == 4)
+                {
+                    y = 7;
+                }
+            }
+            else if (hour == 3) // 3 saatlik ders ise.
+            {
+                x = slotId / 4;
+                if (slotId % 4 == 0)
+                {
+                    y = 0;
+                }
+                if (slotId % 4 == 1)
+                {
+                    y = 2;
+                }
+                if (slotId % 4 == 2)
+                {
+                    y = 4;
+                }
+                if (slotId % 4 == 3)
+                {
+                    y = 5;
+                }
+            }
+            #endregion
+
+            List<Slot> temp = new List<Slot>(hour);
+
+            if (hour == 1)
+            {
+                temp.Add(TimeTable[x, y]);
+            }
+            else if (hour == 2)
+            {
+                temp.Add(TimeTable[x, y]);
+                temp.Add(TimeTable[x, y + 1]);
+            }
+            else if (hour == 3)
+            {
+                temp.Add(TimeTable[x, y]);
+                temp.Add(TimeTable[x, y + 1]);
+                temp.Add(TimeTable[x, y + 2]);
+            }
+            else
+            {
+                return null;
+            }
+
+            return temp;
+        }
+
+        private int GetX(int slotId, int hour)
+        {
+            int x = 0;
+            int y = 0;
+
+            if (slotId > 24)
+                return -1;
+
+            #region determine x,y
+            if (hour == 1) // bir saatlik ders ise.
+            {
+                if (slotId % 5 < 3)
+                {
+                    x = slotId / 5;
+                    y = slotId % 5 + 2;
+                }
+                else
+                {
+                    x = slotId / 5;
+                    y = slotId % 5 + 4;
+                }
+
+            }
+            else if (hour == 2) // 2 saatlik ders ise.
+            {
+                x = slotId / 5;
+                if (slotId % 5 == 0)
+                {
+                    y = 0;
+                }
+                if (slotId % 5 == 1)
+                {
+                    y = 2;
+                }
+                if (slotId % 5 == 2)
+                {
+                    y = 3;
+                }
+                if (slotId % 5 == 3)
+                {
+                    y = 5;
+                }
+                if (slotId % 5 == 4)
+                {
+                    y = 7;
+                }
+            }
+            else if (hour == 3) // 3 saatlik ders ise.
+            {
+                x = slotId / 4;
+                if (slotId % 4 == 0)
+                {
+                    y = 0;
+                }
+                if (slotId % 4 == 1)
+                {
+                    y = 2;
+                }
+                if (slotId % 4 == 2)
+                {
+                    y = 4;
+                }
+                if (slotId % 4 == 3)
+                {
+                    y = 5;
+                }
+            }
+            #endregion
+
+            return x;
+        }
+        private int GetY(int slotId, int hour)
+        {
+            int x = 0;
+            int y = 0;
+
+            if (slotId > 24)
+                return -1;
+
+            #region determine x,y
+            if (hour == 1) // bir saatlik ders ise.
+            {
+                if (slotId % 5 < 3)
+                {
+                    x = slotId / 5;
+                    y = slotId % 5 + 2;
+                }
+                else
+                {
+                    x = slotId / 5;
+                    y = slotId % 5 + 4;
+                }
+
+            }
+            else if (hour == 2) // 2 saatlik ders ise.
+            {
+                x = slotId / 5;
+                if (slotId % 5 == 0)
+                {
+                    y = 0;
+                }
+                if (slotId % 5 == 1)
+                {
+                    y = 2;
+                }
+                if (slotId % 5 == 2)
+                {
+                    y = 3;
+                }
+                if (slotId % 5 == 3)
+                {
+                    y = 5;
+                }
+                if (slotId % 5 == 4)
+                {
+                    y = 7;
+                }
+            }
+            else if (hour == 3) // 3 saatlik ders ise.
+            {
+                x = slotId / 4;
+                if (slotId % 4 == 0)
+                {
+                    y = 0;
+                }
+                if (slotId % 4 == 1)
+                {
+                    y = 2;
+                }
+                if (slotId % 4 == 2)
+                {
+                    y = 4;
+                }
+                if (slotId % 4 == 3)
+                {
+                    y = 5;
+                }
+            }
+            #endregion
+
+            return y;
+        }
 
         /* filling scheduling table for 1-hour class by using slot number 
         9-10	-	-	-	-	-
@@ -522,7 +948,11 @@ namespace ConsoleApp.Models
             }
         }
 
-        static List<Collision> calculate_collisionSemesterWithBaseCourses(Slot[,] timeTable, int[,] array2, int minimumCollision, int semester, bool elective = false)
+
+
+        #region Collisions
+
+        static List<Collision> calculate_collisionBaseLectureWithFaculty(Slot[,] timeTable, int[,] array2, int minimumCollision, int semester, bool elective = false)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -533,12 +963,11 @@ namespace ConsoleApp.Models
 
                     if (tempSlot.Courses.Count(x => x.Semester == semester && x.Elective == elective) > minimumCollision && array2[i, j] > minimumCollision)
                     {
-
                         Collision tempCollision = new Collision
                         {
-                            Type = CollisionType.CourseCollision,
+                            Type = CollisionType.BaseLectureWithFaculty,
                             Result = tempSlot.Courses.Count(x => x.Semester == semester && x.Elective == elective) + array2[i, j] - 1,
-                            Reason = "collision with faculty course"
+                            Reason = "collision between Base Lecture with Faculty course"
                         };
                         tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Semester == semester && x.Elective == elective));
 
@@ -548,6 +977,32 @@ namespace ConsoleApp.Models
             }
             return collisionList;
         }
+        static List<Collision> calculate_collisionInSemester(Slot[,] timeTable, int minimumCollision, int semester, bool elective = false)
+        {
+            List<Collision> collisionList = new List<Collision>();
+            for (int i = 0; i < 5; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    Slot tempSlot = timeTable[i, j];
+
+                    if (tempSlot.Courses.FindAll(x => x.Semester == semester && x.Elective == elective).Count > minimumCollision)
+                    {
+                        Collision tempCollision = new Collision
+                        {
+                            Type = CollisionType.BaseLectureWithBase,
+                            Result = tempSlot.Courses.FindAll(x => x.Semester == semester && x.Elective == elective).Count - 1,
+                            Reason = "base course collision in same semester"
+                        };
+                        tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Semester == semester && x.Elective == elective));
+
+                        collisionList.Add(tempCollision);
+                    }
+                }
+            }
+            return collisionList;
+        }
+
         static List<Collision> calculate_collisionElectiveWithBaseCourses(Slot[,] timeTable, int[,] array2, int minimumCollision)
         {
             List<Collision> collisionList = new List<Collision>();
@@ -628,28 +1083,6 @@ namespace ConsoleApp.Models
             return collisionList;
         }
 
-        static List<Collision> calculate_collisionInSemester(Slot[,] timeTable, int minimumCollision, int semester, bool elective = false)
-        {
-            List<Collision> collisionList = new List<Collision>();
-            for (int i = 0; i < 5; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    Slot tempSlot = timeTable[i, j];
-
-                    if (tempSlot.Courses.FindAll(x => x.Semester == semester && x.Elective == elective).Count > minimumCollision)
-                    {
-                        Collision tempCollision = new Collision();
-                        tempCollision.Result = tempSlot.Courses.FindAll(x => x.Semester == semester && x.Elective == elective).Count - 1;
-                        tempCollision.Reason = "base course collision in same semester";
-                        tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Semester == semester && x.Elective == elective));
-
-                        collisionList.Add(tempCollision);
-                    }
-                }
-            }
-            return collisionList;
-        }
         static List<Collision> calculate_collisionInSemesters(Slot[,] timeTable, int minimumCollision, List<int> semesters, bool compareElective = false)
         {
             List<Collision> collisionList = new List<Collision>();
