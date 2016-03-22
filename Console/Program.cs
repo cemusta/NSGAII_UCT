@@ -2,6 +2,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading;
 
 namespace ConsoleApp
@@ -605,9 +606,23 @@ namespace ConsoleApp
                 childPopulation.Decode(ProblemObj);
                 childPopulation.Evaluate(ProblemObj);
 
+
                 mixedPopulation.Merge(parentPopulation, childPopulation, ProblemObj);
 
+                //mixedPopulation.Decode(ProblemObj);
+                //mixedPopulation.Evaluate(ProblemObj);
+                //mixedPopulation.HillClimb(ProblemObj);
+
                 fill_nondominated_sort(mixedPopulation, parentPopulation);
+
+                parentPopulation.Decode(ProblemObj);
+                parentPopulation.Evaluate(ProblemObj);
+                parentPopulation.HillClimb(ProblemObj);
+
+                Individual bestChild = parentPopulation.IndList.OrderBy(x=> x.CollisionList.Count()).First();
+
+
+                int minimumResult = parentPopulation.IndList.Min(x => x.CollisionList.Sum(y => y.Result));
 
                 /* Comment following four lines if information for all
                 generations is not desired, it will speed up the execution */
@@ -619,11 +634,12 @@ namespace ConsoleApp
                     DisplayObj.PlotPopulation(parentPopulation, ProblemObj, i);
                 }
 
-                Console.WriteLine($" gen = {i}");
+                Console.WriteLine($" gen = {i} min = {minimumResult}");
+                Console.WriteLine($" best: coll  = {bestChild.CollisionList.Count} result = {bestChild.CollisionList.Sum(y => y.Result)} obj0:{bestChild.Obj[0]} obj1:{bestChild.Obj[1]} obj2:{bestChild.Obj[2]}");
 
-                #if DEBUG
-                Thread.Sleep(200);
-                #endif
+//#if DEBUG
+//Thread.Sleep(200);
+//#endif
             }
             #endregion
 

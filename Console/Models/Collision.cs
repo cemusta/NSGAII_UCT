@@ -9,6 +9,7 @@ namespace ConsoleApp.Models
         public CollisionType Type;
         public string Reason;
         public int Result;
+        public int Obj = -1;
         public string Printable
         {
             get

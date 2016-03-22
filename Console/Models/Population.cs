@@ -39,7 +39,6 @@ namespace ConsoleApp.Models
         {
             IndList.Clear();
 
-
             for (int i = 0; i < pop1.IndList.Count; i++)
             {
                 IndList.Add( new Individual(pop1.IndList[i], problem));                
@@ -58,6 +57,12 @@ namespace ConsoleApp.Models
             }
         }
 
-
+        public void HillClimb(ProblemDefinition problemObj)
+        {
+            for (int i = 0; i < this.IndList.Count; i++)
+            {
+                IndList[i].HillClimb(problemObj);
+            }
+        }
     }
 }
