@@ -26,7 +26,7 @@ namespace ConsoleApp.Models
                     yr[x] = pop.IndList[x].Obj[GnuplotObjective2 - 1];
                 }
 
-                GnuPlot.Plot(xr, yr, $"title 'Generation #{genNo} of {problem.GenCount}' pt 1");
+                GnuPlot.Plot(xr, yr, $"title 'Generation #{genNo} of {problem.GenCount}' with points pointtype 8 lc rgb 'blue'");
                 GnuPlot.Set($"xlabel \"obj[{GnuplotObjective1 - 1}]\"");
                 GnuPlot.Set($"ylabel \"obj[{GnuplotObjective2 - 1}]\"");
 

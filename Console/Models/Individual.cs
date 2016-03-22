@@ -180,6 +180,8 @@ namespace ConsoleApp.Models
         {
             CollisionList.Clear();
 
+            #region fill variables
+
             Slot[,] timeTable = new Slot[5, 9];
             for (int x = 0; x < 5; x++)
             {
@@ -193,7 +195,7 @@ namespace ConsoleApp.Models
             Obj[1] = 0;
             Obj[2] = 0;
 
-            #region fill variables new
+           
             for (int j = 0; j < problemObj.BinaryVariableCount; j++) //ders sayisi kadar.
             {
                 int slotId = (int)Xbin[j];

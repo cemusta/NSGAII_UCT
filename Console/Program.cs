@@ -621,9 +621,9 @@ namespace ConsoleApp
 
                 Console.WriteLine($" gen = {i}");
 
-#if DEBUG
+                #if DEBUG
                 Thread.Sleep(200);
-#endif
+                #endif
             }
             #endregion
 
