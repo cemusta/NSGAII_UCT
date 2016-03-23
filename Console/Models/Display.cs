@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ConsoleApp.Models
 {
@@ -12,7 +14,7 @@ namespace ConsoleApp.Models
         public int GnuplotAngle2;
 
         ///* Function to display the current population for the subsequent generation */
-        public void PlotPopulation(Population pop, ProblemDefinition problem, int genNo = 0, Individual best = null)
+        public void PlotPopulation(Population pop, ProblemDefinition problem, int genNo = 0, List<Individual> best = null)
         {
             Console.WriteLine(" printing gnuplot");
             if (GnuplotChoice != 3)
@@ -36,9 +38,15 @@ namespace ConsoleApp.Models
 
                 if (best != null)
                 {
-                    var x = new double[]{ best.Obj[GnuplotObjective1 - 1] };
-                    var y = new double[] { best.Obj[GnuplotObjective2 - 1] };
-                    GnuPlot.Plot(x,y, "title 'best' with points pointtype 6 lc rgb 'red'");
+                    var x = new double[best.Count()];
+                    var y = new double[best.Count()];
+
+                    for (int i = 0; i < best.Count(); i++)
+                    {
+                        x[i] = best[i].Obj[GnuplotObjective1 - 1];
+                        y[i] = best[i].Obj[GnuplotObjective2 - 1];
+                    }
+                    GnuPlot.Plot(x,y, $"title 'best ({best.First().TotalResult})' with points pointtype 6 lc rgb 'red'");
                 }
 
                 GnuPlot.Set($"xlabel \"obj[{GnuplotObjective1 - 1}]\"");
@@ -67,10 +75,19 @@ namespace ConsoleApp.Models
 
                 if (best != null)
                 {
-                    var x = new double[] { best.Obj[GnuplotObjective1 - 1] };
-                    var y = new double[] { best.Obj[GnuplotObjective2 - 1] };
-                    var z = new double[] { best.Obj[GnuplotObjective3 - 1] };
-                    GnuPlot.SPlot(x, y, z, "title 'best' with points pointtype 6 lc rgb 'red'");
+
+                    var x = new double[best.Count()];
+                    var y = new double[best.Count()];
+                    var z = new double[best.Count()];
+
+                    for (int i = 0; i < best.Count(); i++)
+                    {
+                        x[i] = best[i].Obj[GnuplotObjective1 - 1];
+                        y[i] = best[i].Obj[GnuplotObjective2 - 1];
+                        z[i] = best[i].Obj[GnuplotObjective3 - 1];
+                    }
+
+                    GnuPlot.SPlot(x, y, z, $"title 'best ({best.First().TotalResult})' with points pointtype 6 lc rgb 'red'");
                 }
 
                 GnuPlot.Set($"xlabel \"obj[{GnuplotObjective1 - 1}]\"");

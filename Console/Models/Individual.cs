@@ -105,8 +105,49 @@ namespace ConsoleApp.Models
 
         }
 
+        private void Copy(Individual ind, ProblemDefinition problem)
+        {
+            CollisionList.Clear();
+            TotalResult = 0;
+
+            Rank = ind.Rank;
+            ConstrViolation = ind.ConstrViolation;
+            CrowdDist = ind.CrowdDist;
+            if (ind._nRealVar > 0)
+            {
+                for (int i = 0; i < ind._nRealVar; i++)
+                {
+                    Xreal[i] = ind.Xreal[i];
+                }
+            }
+            if (ind._nBinVar > 0)
+            {
+                for (int i = 0; i < ind._nBinVar; i++)
+                {
+                    SlotId[i] = ind.SlotId[i];
+                    for (int j = 0; j < problem.nbits[i]; j++)
+                    {
+                        Gene[i, j] = ind.Gene[i, j];
+                    }
+                }
+            }
+            for (int i = 0; i < ind._nObj; i++)
+            {
+                Obj[i] = ind.Obj[i];
+            }
+            if (ind._nCons > 0)
+            {
+                for (int i = 0; i < ind._nCons; i++)
+                {
+                    Constr[i] = ind.Constr[i];
+                }
+            }
+
+        }
+
         public void Decode(ProblemDefinition problem)
         {
+            TotalResult = 0;
             CollisionList.Clear();
 
             if (problem.BinaryVariableCount == 0)
@@ -122,13 +163,15 @@ namespace ConsoleApp.Models
                         sum += (int)Math.Pow(2, problem.nbits[j] - 1 - k);
                     }
                 }
-                SlotId[j] = problem.min_binvar[j] + sum * (problem.max_binvar[j] - problem.min_binvar[j]) / (Math.Pow(2, problem.nbits[j]) - 1);
+
+                SlotId[j] = (int)(problem.min_binvar[j] + sum * (problem.max_binvar[j] - problem.min_binvar[j]) / (Math.Pow(2, problem.nbits[j]) - 1));
             }
         }
 
         private void ChangeGene(int geneId, int value, ProblemDefinition problem)
         {
-            int valueToAdd = value;
+            int valueToAdd = (int)(problem.min_binvar[geneId] + value * ((Math.Pow(2, problem.nbits[geneId]) - 1) / problem.max_binvar[geneId] - problem.min_binvar[geneId]));
+
             int bits = problem.nbits[geneId];
             for (int k = bits - 1; k >= 0; k--)
             {
@@ -427,6 +470,13 @@ namespace ConsoleApp.Models
             if (CollisionList.Count > 0)
             {
                 bool continueClimb = false;
+                Individual original = new Individual(this,problemObj);
+                original.Decode(problemObj);
+                original.Evaluate(problemObj);
+
+                int tCollisionImprovement = 0;
+                int tResultImprovement = 0;
+
                 do
                 {
                     var oldCollisionCount = CollisionList.Count;
@@ -439,8 +489,6 @@ namespace ConsoleApp.Models
                     int newResult = CollisionList.Sum(x => x.Result);
                     var resultImprovement = oldResult - newResult;
                     var collisionImprovement = oldCollisionCount - CollisionList.Count;
-
-                    //Console.WriteLine("improvement!!!");
 
                     if (collisionImprovement > 0)
                     {
@@ -455,11 +503,17 @@ namespace ConsoleApp.Models
                         continueClimb = false;
                     }
 
+                    tCollisionImprovement += collisionImprovement;
+                    tResultImprovement += resultImprovement;
+
                 } while (continueClimb);
 
-                Decode(problemObj);
-                EvaluateProblem(problemObj);
-
+                if (tCollisionImprovement < 0 || tResultImprovement < 0)
+                {
+                    Copy(original,problemObj);
+                    Decode(problemObj);
+                    EvaluateProblem(problemObj);
+                }
             }
         }
 
@@ -467,231 +521,254 @@ namespace ConsoleApp.Models
         {
             bool UseSemiFit = false;
             Random rnd = new Random(1);
+
             var tempColl = CollisionList.ToList();
 
             if (tempColl.Count > 0)
             {
 
-                foreach (var collision in tempColl)
+                while (tempColl.Count > 0)
                 {
+                    var randomColl = rnd.Next(tempColl.Count);
+                    var collision = tempColl[randomColl];
+                    tempColl.RemoveAt(randomColl);
+
                     if (collision.CrashingCourses.Count == 0)
                         continue;
-
-                    Course firstOne = collision.CrashingCourses.First();
 
                     List<int> fittingSlots = new List<int>();
                     List<int> semiFittingSlots = new List<int>();
 
-                    int maxSlot = firstOne.Duration == 3 ? 20 : 25;
-                    List<int> TestedSlots = new List<int>(maxSlot);
-                    for (int i = 0; i < maxSlot; i++)
+                    bool doneClimbing = false;
+
+                    #region Course type collisions
+                    foreach (var firstOne in collision.CrashingCourses.OrderBy(x => x.Duration)) //önce küçügü koy bir yerlere
                     {
-                        TestedSlots.Add(i);
-                    }
-                    bool fittingSlot = false;
-                    bool semiFittingSlot = false;
-
-                    int semester = firstOne.Semester;
-                    int duration = firstOne.Duration;
-
-                    while(TestedSlots.Count>0)
-                    {
-                        var randomSlotToTest = rnd.Next(TestedSlots.Count);
-                        int i = TestedSlots[randomSlotToTest];
-                        TestedSlots.RemoveAt(randomSlotToTest);
-
-                        var temp = GetSlot(i, duration);
-                        int day = GetX(i, duration);
-                        int hour = GetY(i, duration);
-
-                        #region Check Fitting
-                        for (int j = 0; j < duration; j++)
+                        int maxSlot = firstOne.Duration == 3 ? 20 : 25;
+                        List<int> testSlots = new List<int>(maxSlot);
+                        for (int i = 0; i < maxSlot; i++)
                         {
-                            fittingSlot = true;
-                            semiFittingSlot = false;
-                            temp[j].Courses.RemoveAll(x => x.Id == firstOne.Id);
+                            testSlots.Add(i);
+                        }
+                        bool fittingSlot = false;
+                        bool semiFittingSlot = false;
 
-                            if (!firstOne.Elective)
+                        int semester = firstOne.Semester;
+                        int duration = firstOne.Duration;
+
+                        while (testSlots.Count > 0)
+                        {
+                            var randomSlotToTest = rnd.Next(testSlots.Count);
+                            int i = testSlots[randomSlotToTest];
+                            testSlots.RemoveAt(randomSlotToTest);
+
+                            var temp = GetSlot(i, duration);
+                            int day = GetX(i, duration);
+                            int hour = GetY(i, duration);
+
+                            #region Check Fitting
+                            for (int j = 0; j < duration; j++)
                             {
-                                if (problemObj.Scheduling[semester - 1][day, hour] > 0) //base vs faculty collision, same semester.
+                                fittingSlot = true;
+                                semiFittingSlot = false;
+                                temp[j].Courses.RemoveAll(x => x.Id == firstOne.Id);
+
+                                #region base vs faculty same semester
+                                if (!firstOne.Elective)
                                 {
-                                    fittingSlot = false;
-                                    break;
-                                }
-                            }
-
-                            if (!firstOne.Elective)
-                            {
-                                if (temp[j].Courses.Count(x => x.Semester == semester && !x.Elective) > 0) //base vs base collision, same semester.
-                                {
-                                    fittingSlot = false;
-                                    break;
-                                }
-                            }
-
-                            if (!firstOne.Elective) //todo: bu obj1 ??? birşeyler yapak.
-                            {
-                                if (semester - 2 >= 0)
-                                {
-                                    if (problemObj.Scheduling[semester - 2][day, hour] > 0) //base vs faculty collision, -1 semester.
-                                    {
-                                        if (UseSemiFit)
-                                            semiFittingSlot = true;
-                                        else
-                                        {
-                                            fittingSlot = false;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (semester < 8)
-                                {
-                                    if (problemObj.Scheduling[semester][day, hour] > 0) //base vs faculty collision, +1 semester.
-                                    {
-                                        if (UseSemiFit)
-                                            semiFittingSlot = true;
-                                        else
-                                        {
-                                            fittingSlot = false;
-                                            break;
-                                        }
-                                       
-                                    }
-                                }
-                            }
-
-                            if (!firstOne.Elective) //todo: bu obj1 ??? birşeyler yapak.
-                            {
-                                if (semester - 1 > 0)
-                                {
-                                    if (temp[j].Courses.Count(x => x.Semester == semester - 1 && !x.Elective) > 0) //base check faculty collision, -1 semester.
-                                    {
-                                        if (UseSemiFit)
-                                            semiFittingSlot = true;
-                                        else
-                                        {
-                                            fittingSlot = false;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (semester + 1 < 9)
-                                {
-                                    if (temp[j].Courses.Count(x => x.Semester == semester + 1 && !x.Elective) > 0) //base check faculty collision, +1 semester.
-                                    {
-                                        if (UseSemiFit)
-                                            semiFittingSlot = true;
-                                        else
-                                        {
-                                            fittingSlot = false;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (firstOne.Type == 1) //lab ise
-                            {
-                                if (problemObj.LabScheduling[day, hour] > 4) //base vs faculty collision, same semester.
-                                {
-                                    fittingSlot = false;
-                                    break;
-                                }
-                            }
-
-                            if (temp[j].Courses.Count(x => x.TeacherId == firstOne.TeacherId) > 0) //check teacher collision
-                            {
-                                fittingSlot = false;
-                                break;
-                            }
-
-                            //todo: obj2 og. gor. gunluk 4 saatten fazla pespese dersinin olmamasi
-
-                            //todo: obj2 og. gor. boş gununun olması
-
-                            //todo: obj2 lab ve lecture farklı günlerde olsun
-
-                            if (firstOne.Elective)
-                            {
-                                if (temp[j].Courses.Count(x => x.Elective) > 0) //elective vs elective collision, all semesters.
-                                {
-                                    fittingSlot = false;
-                                    break;
-                                }
-                            }
-
-                            //todo: obj2 Elective vs Faculty in semester 6 7 8
-
-                            //elective vs base courses in semester
-                            if (firstOne.Elective)
-                            {
-                                if (temp[j].Courses.Count(x => x.Semester == 8 & !x.Elective) > 0) //elective vs base collision, #8 semester.
-                                {
-                                    fittingSlot = false;
-                                    break;
-                                }
-
-                                if (temp[j].Courses.Count(x => x.Semester == 7 & !x.Elective) > 0) //elective vs base collision, #7 semester.
-                                {
-                                    fittingSlot = false;
-                                    break;
-                                }
-
-                                if (temp[j].Courses.Count(x => x.Semester == 6 & !x.Elective) > 0) //todo: obj1 elective vs base collision, #6 semester.
-                                {
-                                    if (UseSemiFit)
-                                        semiFittingSlot = true;
-                                    else
+                                    if (problemObj.Scheduling[semester - 1][day, hour] > 0) //base vs faculty collision, same semester.
                                     {
                                         fittingSlot = false;
                                         break;
                                     }
                                 }
-                            }
-                        }
-                        #endregion
+                                #endregion
 
-                        if (fittingSlot)
-                        {
-                            if (semiFittingSlot)
+                                #region base vs base same semester
+                                if (!firstOne.Elective)
+                                {
+                                    if (temp[j].Courses.Count(x => x.Semester == semester && !x.Elective) > 0) //base vs base collision, same semester.
+                                    {
+                                        fittingSlot = false;
+                                        break;
+                                    }
+                                }
+                                #endregion
+
+                                #region base vs faculty +1 -1
+                                if (!firstOne.Elective) //todo: bu obj1 ??? birşeyler yapak.
+                                {
+                                    if (semester - 2 >= 0)
+                                    {
+                                        if (problemObj.Scheduling[semester - 2][day, hour] > 0) //base vs faculty collision, -1 semester.
+                                        {
+                                            if (UseSemiFit)
+                                                semiFittingSlot = true;
+                                            else
+                                            {
+                                                fittingSlot = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (semester < 8)
+                                    {
+                                        if (problemObj.Scheduling[semester][day, hour] > 0) //base vs faculty collision, +1 semester.
+                                        {
+                                            if (UseSemiFit)
+                                                semiFittingSlot = true;
+                                            else
+                                            {
+                                                fittingSlot = false;
+                                                break;
+                                            }
+
+                                        }
+                                    }
+                                }
+                                #endregion
+
+                                #region base vs base +1 -1
+                                if (!firstOne.Elective) //todo: bu obj1 ??? birşeyler yapak.
+                                {
+                                    if (semester - 1 > 0)
+                                    {
+                                        if (temp[j].Courses.Count(x => x.Semester == semester - 1 && !x.Elective) > 0) //base vs base collision, -1 semester.
+                                        {
+                                            if (UseSemiFit)
+                                                semiFittingSlot = true;
+                                            else
+                                            {
+                                                fittingSlot = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (semester + 1 < 9)
+                                    {
+                                        if (temp[j].Courses.Count(x => x.Semester == semester + 1 && !x.Elective) > 0) //base vs base faculty collision, +1 semester.
+                                        {
+                                            if (UseSemiFit)
+                                                semiFittingSlot = true;
+                                            else
+                                            {
+                                                fittingSlot = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                #endregion
+
+                                #region LAB base vs faculty 
+                                if (firstOne.Type == 1) //lab ise
+                                {
+                                    if (problemObj.LabScheduling[day, hour] > 4) //base vs faculty collision, same semester.
+                                    {
+                                        fittingSlot = false;
+                                        break;
+                                    }
+                                }
+                                #endregion
+
+                                #region Teacher coll
+                                if (temp[j].Courses.Count(x => x.TeacherId == firstOne.TeacherId) > 0) //check teacher collision
+                                {
+                                    fittingSlot = false;
+                                    break;
+                                }
+                                #endregion
+
+                                //todo: obj2 og. gor. gunluk 4 saatten fazla pespese dersinin olmamasi
+
+                                //todo: obj2 og. gor. boş gununun olması
+
+                                //todo: obj2 lab ve lecture farklı günlerde olsun
+
+                                if (firstOne.Elective)
+                                {
+                                    if (temp[j].Courses.Count(x => x.Elective) > 0) //elective vs elective collision, all semesters.
+                                    {
+                                        fittingSlot = false;
+                                        break;
+                                    }
+                                }
+
+                                //todo: obj2 Elective vs Faculty in semester 6 7 8
+
+                                //elective vs base courses in semester
+                                if (firstOne.Elective)
+                                {
+                                    if (temp[j].Courses.Count(x => x.Semester == 8 & !x.Elective) > 0) //elective vs base collision, #8 semester.
+                                    {
+                                        fittingSlot = false;
+                                        break;
+                                    }
+
+                                    if (temp[j].Courses.Count(x => x.Semester == 7 & !x.Elective) > 0) //elective vs base collision, #7 semester.
+                                    {
+                                        fittingSlot = false;
+                                        break;
+                                    }
+
+                                    if (temp[j].Courses.Count(x => x.Semester == 6 & !x.Elective) > 0) //todo: obj1 elective vs base collision, #6 semester.
+                                    {
+                                        if (UseSemiFit)
+                                            semiFittingSlot = true;
+                                        else
+                                        {
+                                            fittingSlot = false;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+#endregion
+
+                            if (fittingSlot)
                             {
-                                semiFittingSlots.Add(i);
-                            }
-                            else
-                            { 
-                                fittingSlots.Add(i);
-                                break;
+                                if (semiFittingSlot)
+                                {
+                                    semiFittingSlots.Add(i);
+                                }
+                                else
+                                {
+                                    fittingSlots.Add(i);
+                                    break;
+                                }
                             }
                         }
+
+                        if (fittingSlots.Count > 0)
+                        {
+                            int selectedSlot = fittingSlots[rnd.Next(fittingSlots.Count)];
+
+                            ChangeGene(firstOne.Id, selectedSlot, problemObj);
+                            SlotId[firstOne.Id] = selectedSlot;
+                            doneClimbing = true;
+                            break;
+                        }
+                        else if (semiFittingSlots.Count > 0)
+                        {
+                            //int selectedSlot = semiFittingSlots[rnd.Next(fittingSlots.Count)];
+
+                            //ChangeGene(firstOne.Id, selectedSlot, problemObj);
+                            //SlotId[firstOne.Id] = selectedSlot;
+                            //break;
+                        }
+                        else
+                        {
+                            //no fit
+                        }
                     }
+#endregion
 
-                    if (fittingSlots.Count > 0)
-                    {
-                        int selectedSlot = fittingSlots[rnd.Next(fittingSlots.Count)];
-
-                        ChangeGene(firstOne.Id, selectedSlot, problemObj);
-                        SlotId[firstOne.Id] = selectedSlot;
+                    if (doneClimbing)
                         break;
-                    }
-                    else if (semiFittingSlots.Count > 0)
-                    {
-                        //int selectedSlot = semiFittingSlots[rnd.Next(fittingSlots.Count)];
-
-                        //ChangeGene(firstOne.Id, selectedSlot, problemObj);
-                        //SlotId[firstOne.Id] = selectedSlot;
-                        //break;
-                    }
-                    else
-                    {
-                        //no fit
-                    }
-
 
                 }
             }
         }
-
-
 
         private List<Slot> GetSlot(int slotId, int hour)
         {

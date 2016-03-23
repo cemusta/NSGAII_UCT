@@ -608,26 +608,26 @@ namespace ConsoleApp
                 childPopulation.HillClimb(ProblemObj);
 
                 mixedPopulation.Merge(parentPopulation, childPopulation, ProblemObj);
-                mixedPopulation.Decode(ProblemObj);
-                mixedPopulation.Evaluate(ProblemObj);
+                //mixedPopulation.Decode(ProblemObj);
+                //mixedPopulation.Evaluate(ProblemObj);
 
                 fill_nondominated_sort(mixedPopulation, parentPopulation);
 
                 parentPopulation.Decode(ProblemObj);
                 parentPopulation.Evaluate(ProblemObj);
-    
-                
-                Individual bestChild = parentPopulation.IndList.OrderBy(x=> x.CollisionList.Count).First();
-                int index =
-                    parentPopulation.IndList.FindIndex(x => x.CollisionList.Count == bestChild.CollisionList.Count);
-
-                parentPopulation.IndList[index].Decode(ProblemObj);
-                parentPopulation.IndList[index].Evaluate(ProblemObj);
-                parentPopulation.IndList[index].HillClimb(ProblemObj);
-                parentPopulation.IndList[index].Decode(ProblemObj);
-                parentPopulation.IndList[index].Evaluate(ProblemObj);
 
                 int minimumResult = parentPopulation.IndList.Min(x => x.TotalResult);
+
+                //IOrderedEnumerable<Individual> bestChild = parentPopulation.IndList.OrderBy(x=> x.CollisionList.Count).ThenBy(x=>x.TotalResult).Min(x=> x.TotalResult);
+                var result = minimumResult;
+                var bestChild = parentPopulation.IndList.Where(x => x.TotalResult == result).ToList();
+
+                foreach (var child in bestChild)
+                {
+                    child.HillClimb(ProblemObj);
+                }
+                //parentPopulation.IndList[index].HillClimb(ProblemObj);
+                minimumResult = parentPopulation.IndList.Min(x => x.TotalResult);
 
                 /* Comment following four lines if information for all
                 generations is not desired, it will speed up the execution */
@@ -636,11 +636,12 @@ namespace ConsoleApp
                 //fflush(fpt4);*/
                 if (DisplayObj.GnuplotChoice != 0)
                 {
-                    DisplayObj.PlotPopulation(parentPopulation, ProblemObj, i,bestChild);
+                    DisplayObj.PlotPopulation(parentPopulation, ProblemObj, i,bestChild.ToList());
                 }
 
+                var bc = bestChild.First();
                 Console.WriteLine($" gen = {i} min = {minimumResult}");
-                Console.WriteLine($" best: coll  = {parentPopulation.IndList[index].CollisionList.Count} result = {parentPopulation.IndList[index].TotalResult} obj0:{parentPopulation.IndList[index].Obj[0]} obj1:{parentPopulation.IndList[index].Obj[1]} obj2:{parentPopulation.IndList[index].Obj[2]}");
+                Console.WriteLine($" best: coll  = {bc.CollisionList.Count} result = {bc.TotalResult} obj0:{bc.Obj[0]} obj1:{bc.Obj[1]} obj2:{bc.Obj[2]}");
 
 //#if DEBUG
 //Thread.Sleep(200);
