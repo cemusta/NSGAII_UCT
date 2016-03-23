@@ -10,7 +10,7 @@ namespace ConsoleApp.Models
         public int Rank { get; set; }
         public double[] Xreal { get; set; }
         public int[,] Gene { get; set; }
-        public double[] SlotId { get; set; }
+        public int[] SlotId { get; set; }
         public int[] Obj { get; set; }
         public double[] Constr { get; set; }
         public double CrowdDist { get; set; }
@@ -41,7 +41,7 @@ namespace ConsoleApp.Models
 
             if (nBinVar != 0)
             {
-                SlotId = new double[nBinVar];
+                SlotId = new int[nBinVar];
                 Gene = new int[nBinVar, nMaxBit];
             }
 
@@ -60,7 +60,7 @@ namespace ConsoleApp.Models
 
             if (ind._nBinVar != 0)
             {
-                SlotId = new double[ind._nBinVar];
+                SlotId = new int[ind._nBinVar];
                 Gene = new int[ind._nBinVar, ind._nMaxBit];
             }
 
