@@ -366,31 +366,38 @@ namespace ConsoleApp.Models
                 {
                     //og. gor. gunluk 4 saatten fazla pespese dersinin olmamasi
                     var y = calculate_collisionTeacherConsicutive(TimeTable, j, 4);
-                    Obj[2] += 1;
-                    Collision tempCollision = new Collision
+                    if (y > 0)
                     {
-                        Obj = 2,
-                        Type = CollisionType.TeacherCollision,
-                        TeacherId = j,
-                        Result = y, // how many crash
-                        Reason = "Teacher has consicutive course crash."
-                    };
-                    CollisionList.Add(tempCollision);
+                        Obj[2] += 1;
+                        Collision tempCollision = new Collision
+                        {
+                            Obj = 2,
+                            Type = CollisionType.TeacherCollision,
+                            TeacherId = j,
+                            Result = 1, // how many crash
+                            Reason = "Teacher has consicutive course crash."
+                        };
+                        CollisionList.Add(tempCollision);
+                    }
                     //teacher have at most 4 consective lesson per day
                 }
                 {
                     //og. gor. boş gununun olması
                     var y = calculate_collisionTeacherFreeDay(TimeTable, j);
-                    Obj[2] += y;
-                    Collision tempCollision = new Collision
+                    if (y > 0)
                     {
-                        Obj = 2,
-                        Type = CollisionType.TeacherCollision,
-                        TeacherId = j,
-                        Result = y, // 1
-                        Reason = "Teacher doesnt have free day"
-                    };
-                    CollisionList.Add(tempCollision);
+                        Obj[2] += 1;
+                        Collision tempCollision = new Collision
+                        {
+                            Obj = 2,
+                            Type = CollisionType.TeacherCollision,
+                            TeacherId = j,
+                            Result = 1, // 1
+                            Reason = "Teacher doesnt have free day"
+                        };
+                        CollisionList.Add(tempCollision);
+                    }
+
                 }
                 /* teacher have free day*/
             }
@@ -1377,14 +1384,14 @@ namespace ConsoleApp.Models
                 {
                     Slot tempSlot = timeTable[i, j];
 
-                    if (tempSlot.Courses.Any(x => x.TeacherId == teacherId) || tempSlot.meetingHour)
+                    if (tempSlot.Courses.Any(x => x.TeacherId == teacherId) || tempSlot.meetingHour) //dersi veya meetingi varsa ++
                     {
                         counter++;
                     }
                     else {
-                        counter = 0;
+                        counter = 0; // ara varsa 0'la
                     }
-                    if (counter >= maxConsecutiveHour)
+                    if (counter > maxConsecutiveHour)
                     {
                         result++;
                     }

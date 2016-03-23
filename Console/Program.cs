@@ -608,8 +608,8 @@ namespace ConsoleApp
                 childPopulation.HillClimb(ProblemObj);
 
                 mixedPopulation.Merge(parentPopulation, childPopulation, ProblemObj);
-                //mixedPopulation.Decode(ProblemObj);
-                //mixedPopulation.Evaluate(ProblemObj);
+                mixedPopulation.Decode(ProblemObj);
+                mixedPopulation.Evaluate(ProblemObj);
 
                 fill_nondominated_sort(mixedPopulation, parentPopulation);
 
@@ -622,10 +622,10 @@ namespace ConsoleApp
                 var result = minimumResult;
                 var bestChild = parentPopulation.IndList.Where(x => x.TotalResult == result).ToList();
 
-                foreach (var child in bestChild)
-                {
-                    child.HillClimb(ProblemObj);
-                }
+                //foreach (var child in bestChild)
+                //{
+                //    child.HillClimb(ProblemObj);
+                //}
                 //parentPopulation.IndList[index].HillClimb(ProblemObj);
                 minimumResult = parentPopulation.IndList.Min(x => x.TotalResult);
 
