@@ -465,7 +465,8 @@ namespace ConsoleApp.Models
 
         private void HillClimber(ProblemDefinition problemObj)
         {
-            Random rnd = new Random();
+            bool UseSemiFit = false;
+            Random rnd = new Random(1);
             var tempColl = CollisionList.ToList();
 
             if (tempColl.Count > 0)
@@ -473,7 +474,7 @@ namespace ConsoleApp.Models
 
                 foreach (var collision in tempColl)
                 {
-                    if(collision.CrashingCourses.Count ==0)
+                    if (collision.CrashingCourses.Count == 0)
                         continue;
 
                     Course firstOne = collision.CrashingCourses.First();
@@ -482,14 +483,23 @@ namespace ConsoleApp.Models
                     List<int> semiFittingSlots = new List<int>();
 
                     int maxSlot = firstOne.Duration == 3 ? 20 : 25;
+                    List<int> TestedSlots = new List<int>(maxSlot);
+                    for (int i = 0; i < maxSlot; i++)
+                    {
+                        TestedSlots.Add(i);
+                    }
                     bool fittingSlot = false;
                     bool semiFittingSlot = false;
 
                     int semester = firstOne.Semester;
                     int duration = firstOne.Duration;
 
-                    for (int i = 0; i < maxSlot; i++)
+                    while(TestedSlots.Count>0)
                     {
+                        var randomSlotToTest = rnd.Next(TestedSlots.Count);
+                        int i = TestedSlots[randomSlotToTest];
+                        TestedSlots.RemoveAt(randomSlotToTest);
+
                         var temp = GetSlot(i, duration);
                         int day = GetX(i, duration);
                         int hour = GetY(i, duration);
@@ -525,14 +535,27 @@ namespace ConsoleApp.Models
                                 {
                                     if (problemObj.Scheduling[semester - 2][day, hour] > 0) //base vs faculty collision, -1 semester.
                                     {
-                                        semiFittingSlot = true;
+                                        if (UseSemiFit)
+                                            semiFittingSlot = true;
+                                        else
+                                        {
+                                            fittingSlot = false;
+                                            break;
+                                        }
                                     }
                                 }
                                 if (semester < 8)
                                 {
                                     if (problemObj.Scheduling[semester][day, hour] > 0) //base vs faculty collision, +1 semester.
                                     {
-                                        semiFittingSlot = true;
+                                        if (UseSemiFit)
+                                            semiFittingSlot = true;
+                                        else
+                                        {
+                                            fittingSlot = false;
+                                            break;
+                                        }
+                                       
                                     }
                                 }
                             }
@@ -543,14 +566,26 @@ namespace ConsoleApp.Models
                                 {
                                     if (temp[j].Courses.Count(x => x.Semester == semester - 1 && !x.Elective) > 0) //base check faculty collision, -1 semester.
                                     {
-                                        semiFittingSlot = true;
+                                        if (UseSemiFit)
+                                            semiFittingSlot = true;
+                                        else
+                                        {
+                                            fittingSlot = false;
+                                            break;
+                                        }
                                     }
                                 }
                                 if (semester + 1 < 9)
                                 {
                                     if (temp[j].Courses.Count(x => x.Semester == semester + 1 && !x.Elective) > 0) //base check faculty collision, +1 semester.
                                     {
-                                        semiFittingSlot = true;
+                                        if (UseSemiFit)
+                                            semiFittingSlot = true;
+                                        else
+                                        {
+                                            fittingSlot = false;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -604,7 +639,13 @@ namespace ConsoleApp.Models
 
                                 if (temp[j].Courses.Count(x => x.Semester == 6 & !x.Elective) > 0) //todo: obj1 elective vs base collision, #6 semester.
                                 {
-                                    semiFittingSlot = true;
+                                    if (UseSemiFit)
+                                        semiFittingSlot = true;
+                                    else
+                                    {
+                                        fittingSlot = false;
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -617,8 +658,10 @@ namespace ConsoleApp.Models
                                 semiFittingSlots.Add(i);
                             }
                             else
-                                fittingSlots.Add(i); //todo:performans için burada continue deyip geçebiliriz... veya 3 tane bulunca. ???
-
+                            { 
+                                fittingSlots.Add(i);
+                                break;
+                            }
                         }
                     }
 
