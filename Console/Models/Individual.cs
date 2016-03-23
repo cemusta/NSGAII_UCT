@@ -54,6 +54,13 @@ namespace ConsoleApp.Models
         public Individual(Individual ind, ProblemDefinition problem)
         {
             CollisionList = new List<Collision>();
+            TotalResult = 0;
+
+            _nRealVar = ind._nRealVar;
+            _nBinVar = ind._nBinVar;
+            _nMaxBit = ind._nMaxBit;
+            _nObj = ind._nObj;
+            _nCons = ind._nCons;
 
             if (ind._nRealVar != 0)
                 Xreal = new double[_nRealVar];
@@ -470,7 +477,7 @@ namespace ConsoleApp.Models
             if (CollisionList.Count > 0)
             {
                 bool continueClimb = false;
-                Individual original = new Individual(this,problemObj);
+                Individual original = new Individual(this, problemObj);
                 original.Decode(problemObj);
                 original.Evaluate(problemObj);
 
@@ -484,7 +491,7 @@ namespace ConsoleApp.Models
 
                     HillClimber(problemObj);
                     Decode(problemObj);
-                    EvaluateProblem(problemObj);
+                    Evaluate(problemObj);
 
                     int newResult = CollisionList.Sum(x => x.Result);
                     var resultImprovement = oldResult - newResult;
@@ -493,10 +500,16 @@ namespace ConsoleApp.Models
                     if (collisionImprovement > 0)
                     {
                         continueClimb = true;
+                        original = new Individual(this, problemObj);
+                        original.Decode(problemObj);
+                        original.Evaluate(problemObj);
                     }
                     else if (collisionImprovement == 0 && resultImprovement > 0)
                     {
                         continueClimb = true;
+                        original = new Individual(this, problemObj);
+                        original.Decode(problemObj);
+                        original.Evaluate(problemObj);
                     }
                     else
                     {
@@ -508,11 +521,11 @@ namespace ConsoleApp.Models
 
                 } while (continueClimb);
 
-                if (tCollisionImprovement < 0 || tResultImprovement < 0)
+                if (tCollisionImprovement < 0 || tResultImprovement < 0) //todo check sanki geri almıyor.
                 {
-                    Copy(original,problemObj);
+                    this.Copy(original, problemObj);
                     Decode(problemObj);
-                    EvaluateProblem(problemObj);
+                    Evaluate(problemObj);
                 }
             }
         }
@@ -542,9 +555,9 @@ namespace ConsoleApp.Models
                     bool doneClimbing = false;
 
                     #region Course type collisions
-                    foreach (var firstOne in collision.CrashingCourses.OrderBy(x => x.Duration)) //önce küçügü koy bir yerlere
+                    foreach (var crashingCourse in collision.CrashingCourses.OrderBy(x => x.Duration)) //önce küçügü koy bir yerlere
                     {
-                        int maxSlot = firstOne.Duration == 3 ? 20 : 25;
+                        int maxSlot = crashingCourse.Duration == 3 ? 20 : 25;
                         List<int> testSlots = new List<int>(maxSlot);
                         for (int i = 0; i < maxSlot; i++)
                         {
@@ -553,8 +566,8 @@ namespace ConsoleApp.Models
                         bool fittingSlot = false;
                         bool semiFittingSlot = false;
 
-                        int semester = firstOne.Semester;
-                        int duration = firstOne.Duration;
+                        int semester = crashingCourse.Semester;
+                        int duration = crashingCourse.Duration;
 
                         while (testSlots.Count > 0)
                         {
@@ -571,12 +584,12 @@ namespace ConsoleApp.Models
                             {
                                 fittingSlot = true;
                                 semiFittingSlot = false;
-                                temp[j].Courses.RemoveAll(x => x.Id == firstOne.Id);
+                                temp[j].Courses.RemoveAll(x => x.Id == crashingCourse.Id);
 
                                 #region base vs faculty same semester
-                                if (!firstOne.Elective)
+                                if (!crashingCourse.Elective)
                                 {
-                                    if (problemObj.Scheduling[semester - 1][day, hour] > 0) //base vs faculty collision, same semester.
+                                    if (problemObj.Scheduling[semester - 1][day, hour + j] > 0) //base vs faculty collision, same semester.
                                     {
                                         fittingSlot = false;
                                         break;
@@ -585,7 +598,7 @@ namespace ConsoleApp.Models
                                 #endregion
 
                                 #region base vs base same semester
-                                if (!firstOne.Elective)
+                                if (!crashingCourse.Elective)
                                 {
                                     if (temp[j].Courses.Count(x => x.Semester == semester && !x.Elective) > 0) //base vs base collision, same semester.
                                     {
@@ -596,11 +609,11 @@ namespace ConsoleApp.Models
                                 #endregion
 
                                 #region base vs faculty +1 -1
-                                if (!firstOne.Elective) //todo: bu obj1 ??? birşeyler yapak.
+                                if (!crashingCourse.Elective) //todo: bu obj1 ??? birşeyler yapak.
                                 {
                                     if (semester - 2 >= 0)
                                     {
-                                        if (problemObj.Scheduling[semester - 2][day, hour] > 0) //base vs faculty collision, -1 semester.
+                                        if (problemObj.Scheduling[semester - 2][day, hour + j] > 0) //base vs faculty collision, -1 semester.
                                         {
                                             if (UseSemiFit)
                                                 semiFittingSlot = true;
@@ -613,7 +626,7 @@ namespace ConsoleApp.Models
                                     }
                                     if (semester < 8)
                                     {
-                                        if (problemObj.Scheduling[semester][day, hour] > 0) //base vs faculty collision, +1 semester.
+                                        if (problemObj.Scheduling[semester][day, hour + j] > 0) //base vs faculty collision, +1 semester.
                                         {
                                             if (UseSemiFit)
                                                 semiFittingSlot = true;
@@ -629,7 +642,7 @@ namespace ConsoleApp.Models
                                 #endregion
 
                                 #region base vs base +1 -1
-                                if (!firstOne.Elective) //todo: bu obj1 ??? birşeyler yapak.
+                                if (!crashingCourse.Elective) //todo: bu obj1 ??? birşeyler yapak.
                                 {
                                     if (semester - 1 > 0)
                                     {
@@ -661,9 +674,9 @@ namespace ConsoleApp.Models
                                 #endregion
 
                                 #region LAB base vs faculty 
-                                if (firstOne.Type == 1) //lab ise
+                                if (crashingCourse.Type == 1) //lab ise
                                 {
-                                    if (problemObj.LabScheduling[day, hour] > 4) //base vs faculty collision, same semester.
+                                    if (problemObj.LabScheduling[day, hour + j] > 4) //base vs faculty collision, same semester.
                                     {
                                         fittingSlot = false;
                                         break;
@@ -672,7 +685,7 @@ namespace ConsoleApp.Models
                                 #endregion
 
                                 #region Teacher coll
-                                if (temp[j].Courses.Count(x => x.TeacherId == firstOne.TeacherId) > 0) //check teacher collision
+                                if (temp[j].Courses.Count(x => x.TeacherId == crashingCourse.TeacherId) > 0) //check teacher collision
                                 {
                                     fittingSlot = false;
                                     break;
@@ -683,9 +696,20 @@ namespace ConsoleApp.Models
 
                                 //todo: obj2 og. gor. boş gununun olması
 
+                                #region lab lecture collision
                                 //todo: obj2 lab ve lecture farklı günlerde olsun
+                                //if (crashingCourse.LabHour > 0) //lab'ı var.
+                                //{
+                                //    if (temp[j].Courses.Count(x => x.Code == crashingCourse.Code && x.Type == 1 ) > 0) //base vs base collision, same semester.
+                                //    {
+                                //        fittingSlot = false;
+                                //        break;
+                                //    }
+                                //}
+                                #endregion
 
-                                if (firstOne.Elective)
+                                #region Elective vs Elective
+                                if (crashingCourse.Elective)
                                 {
                                     if (temp[j].Courses.Count(x => x.Elective) > 0) //elective vs elective collision, all semesters.
                                     {
@@ -693,11 +717,33 @@ namespace ConsoleApp.Models
                                         break;
                                     }
                                 }
+                                #endregion
 
-                                //todo: obj2 Elective vs Faculty in semester 6 7 8
+                                #region Elective vs Faculty in semester 6 7 8
+                                //todo: obj2 
+                                if (crashingCourse.Elective)
+                                {
+                                    if (problemObj.Scheduling[5][day, hour + j] > 0) //base vs faculty collision, same semester.
+                                    {
+                                        fittingSlot = false;
+                                        break;
+                                    }
+                                    if (problemObj.Scheduling[6][day, hour + j] > 0) //base vs faculty collision, same semester.
+                                    {
+                                        fittingSlot = false;
+                                        break;
+                                    }
+                                    if (problemObj.Scheduling[7][day, hour + j] > 0) //base vs faculty collision, same semester.
+                                    {
+                                        fittingSlot = false;
+                                        break;
+                                    }
+                                }
+                                #endregion
 
+                                #region Elective vs Base
                                 //elective vs base courses in semester
-                                if (firstOne.Elective)
+                                if (crashingCourse.Elective)
                                 {
                                     if (temp[j].Courses.Count(x => x.Semester == 8 & !x.Elective) > 0) //elective vs base collision, #8 semester.
                                     {
@@ -722,8 +768,9 @@ namespace ConsoleApp.Models
                                         }
                                     }
                                 }
+                                #endregion
                             }
-#endregion
+                            #endregion
 
                             if (fittingSlot)
                             {
@@ -743,8 +790,8 @@ namespace ConsoleApp.Models
                         {
                             int selectedSlot = fittingSlots[rnd.Next(fittingSlots.Count)];
 
-                            ChangeGene(firstOne.Id, selectedSlot, problemObj);
-                            SlotId[firstOne.Id] = selectedSlot;
+                            ChangeGene(crashingCourse.Id, selectedSlot, problemObj);
+                            SlotId[crashingCourse.Id] = selectedSlot;
                             doneClimbing = true;
                             break;
                         }
@@ -761,7 +808,7 @@ namespace ConsoleApp.Models
                             //no fit
                         }
                     }
-#endregion
+                    #endregion
 
                     if (doneClimbing)
                         break;
