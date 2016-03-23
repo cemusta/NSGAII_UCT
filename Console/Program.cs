@@ -605,24 +605,29 @@ namespace ConsoleApp
 
                 childPopulation.Decode(ProblemObj);
                 childPopulation.Evaluate(ProblemObj);
-
+                childPopulation.HillClimb(ProblemObj);
 
                 mixedPopulation.Merge(parentPopulation, childPopulation, ProblemObj);
-
-                //mixedPopulation.Decode(ProblemObj);
-                //mixedPopulation.Evaluate(ProblemObj);
-                //mixedPopulation.HillClimb(ProblemObj);
+                mixedPopulation.Decode(ProblemObj);
+                mixedPopulation.Evaluate(ProblemObj);
 
                 fill_nondominated_sort(mixedPopulation, parentPopulation);
 
                 parentPopulation.Decode(ProblemObj);
                 parentPopulation.Evaluate(ProblemObj);
-                parentPopulation.HillClimb(ProblemObj);
+    
+                
+                Individual bestChild = parentPopulation.IndList.OrderBy(x=> x.CollisionList.Count).First();
+                int index =
+                    parentPopulation.IndList.FindIndex(x => x.CollisionList.Count == bestChild.CollisionList.Count);
 
-                Individual bestChild = parentPopulation.IndList.OrderBy(x=> x.CollisionList.Count()).First();
+                parentPopulation.IndList[index].Decode(ProblemObj);
+                parentPopulation.IndList[index].Evaluate(ProblemObj);
+                parentPopulation.IndList[index].HillClimb(ProblemObj);
+                parentPopulation.IndList[index].Decode(ProblemObj);
+                parentPopulation.IndList[index].Evaluate(ProblemObj);
 
-
-                int minimumResult = parentPopulation.IndList.Min(x => x.CollisionList.Sum(y => y.Result));
+                int minimumResult = parentPopulation.IndList.Min(x => x.TotalResult);
 
                 /* Comment following four lines if information for all
                 generations is not desired, it will speed up the execution */
@@ -631,11 +636,11 @@ namespace ConsoleApp
                 //fflush(fpt4);*/
                 if (DisplayObj.GnuplotChoice != 0)
                 {
-                    DisplayObj.PlotPopulation(parentPopulation, ProblemObj, i);
+                    DisplayObj.PlotPopulation(parentPopulation, ProblemObj, i,bestChild);
                 }
 
                 Console.WriteLine($" gen = {i} min = {minimumResult}");
-                Console.WriteLine($" best: coll  = {bestChild.CollisionList.Count} result = {bestChild.CollisionList.Sum(y => y.Result)} obj0:{bestChild.Obj[0]} obj1:{bestChild.Obj[1]} obj2:{bestChild.Obj[2]}");
+                Console.WriteLine($" best: coll  = {parentPopulation.IndList[index].CollisionList.Count} result = {parentPopulation.IndList[index].TotalResult} obj0:{parentPopulation.IndList[index].Obj[0]} obj1:{parentPopulation.IndList[index].Obj[1]} obj2:{parentPopulation.IndList[index].Obj[2]}");
 
 //#if DEBUG
 //Thread.Sleep(200);

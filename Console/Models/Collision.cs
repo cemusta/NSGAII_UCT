@@ -28,6 +28,7 @@ namespace ConsoleApp.Models
 
         public Collision(CollisionType type = CollisionType.CourseCollision)
         {
+            Result = 0;
             TeacherId = 0;
             Type = type;
             CrashingCourses = new List<Course>();

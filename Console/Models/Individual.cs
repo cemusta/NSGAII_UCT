@@ -14,6 +14,7 @@ namespace ConsoleApp.Models
         public double[] Obj { get; set; }
         public double[] Constr { get; set; }
         public double CrowdDist { get; set; }
+        public int TotalResult;
 
         public List<Collision> CollisionList { get; set; }
 
@@ -106,6 +107,8 @@ namespace ConsoleApp.Models
 
         public void Decode(ProblemDefinition problem)
         {
+            CollisionList.Clear();
+
             if (problem.BinaryVariableCount == 0)
                 return;
 
@@ -197,6 +200,7 @@ namespace ConsoleApp.Models
 
         private void EvaluateProblem(ProblemDefinition problemObj)
         {
+            TotalResult = 0;
             CollisionList.Clear();
 
             #region fill variables
@@ -414,6 +418,8 @@ namespace ConsoleApp.Models
             //todo: dekanlık derslerinin sectionları??
             #endregion
 
+            TotalResult = (int)Obj[0] + (int)Obj[1] + (int)Obj[2];
+
         }
 
         public void HillClimb(ProblemDefinition problemObj)
@@ -450,24 +456,34 @@ namespace ConsoleApp.Models
                     }
 
                 } while (continueClimb);
+
+                Decode(problemObj);
+                EvaluateProblem(problemObj);
+
             }
         }
 
         private void HillClimber(ProblemDefinition problemObj)
         {
-            var tempColl = CollisionList.OrderBy(x => x.Obj).ToList();
+            Random rnd = new Random();
+            var tempColl = CollisionList.ToList();
 
             if (tempColl.Count > 0)
             {
 
                 foreach (var collision in tempColl)
                 {
+                    if(collision.CrashingCourses.Count ==0)
+                        continue;
+
                     Course firstOne = collision.CrashingCourses.First();
 
                     List<int> fittingSlots = new List<int>();
+                    List<int> semiFittingSlots = new List<int>();
 
                     int maxSlot = firstOne.Duration == 3 ? 20 : 25;
                     bool fittingSlot = false;
+                    bool semiFittingSlot = false;
 
                     int semester = firstOne.Semester;
                     int duration = firstOne.Duration;
@@ -478,9 +494,11 @@ namespace ConsoleApp.Models
                         int day = GetX(i, duration);
                         int hour = GetY(i, duration);
 
+                        #region Check Fitting
                         for (int j = 0; j < duration; j++)
                         {
                             fittingSlot = true;
+                            semiFittingSlot = false;
                             temp[j].Courses.RemoveAll(x => x.Id == firstOne.Id);
 
                             if (!firstOne.Elective)
@@ -507,16 +525,14 @@ namespace ConsoleApp.Models
                                 {
                                     if (problemObj.Scheduling[semester - 2][day, hour] > 0) //base vs faculty collision, -1 semester.
                                     {
-                                        fittingSlot = false;
-                                        break;
+                                        semiFittingSlot = true;
                                     }
                                 }
                                 if (semester < 8)
                                 {
                                     if (problemObj.Scheduling[semester][day, hour] > 0) //base vs faculty collision, +1 semester.
                                     {
-                                        fittingSlot = false;
-                                        break;
+                                        semiFittingSlot = true;
                                     }
                                 }
                             }
@@ -527,16 +543,14 @@ namespace ConsoleApp.Models
                                 {
                                     if (temp[j].Courses.Count(x => x.Semester == semester - 1 && !x.Elective) > 0) //base check faculty collision, -1 semester.
                                     {
-                                        fittingSlot = false;
-                                        break;
+                                        semiFittingSlot = true;
                                     }
                                 }
                                 if (semester + 1 < 9)
                                 {
                                     if (temp[j].Courses.Count(x => x.Semester == semester + 1 && !x.Elective) > 0) //base check faculty collision, +1 semester.
                                     {
-                                        fittingSlot = false;
-                                        break;
+                                        semiFittingSlot = true;
                                     }
                                 }
                             }
@@ -590,27 +604,43 @@ namespace ConsoleApp.Models
 
                                 if (temp[j].Courses.Count(x => x.Semester == 6 & !x.Elective) > 0) //todo: obj1 elective vs base collision, #6 semester.
                                 {
-                                    fittingSlot = false;
-                                    break;
+                                    semiFittingSlot = true;
                                 }
                             }
-
                         }
+                        #endregion
 
                         if (fittingSlot)
                         {
-                            fittingSlots.Add(i); //todo:performans için burada continue deyip geçebiliriz... veya 3 tane bulunca. ???
+                            if (semiFittingSlot)
+                            {
+                                semiFittingSlots.Add(i);
+                            }
+                            else
+                                fittingSlots.Add(i); //todo:performans için burada continue deyip geçebiliriz... veya 3 tane bulunca. ???
+
                         }
                     }
 
                     if (fittingSlots.Count > 0)
                     {
-                        Random rnd = new Random();
                         int selectedSlot = fittingSlots[rnd.Next(fittingSlots.Count)];
 
                         ChangeGene(firstOne.Id, selectedSlot, problemObj);
                         SlotId[firstOne.Id] = selectedSlot;
                         break;
+                    }
+                    else if (semiFittingSlots.Count > 0)
+                    {
+                        //int selectedSlot = semiFittingSlots[rnd.Next(fittingSlots.Count)];
+
+                        //ChangeGene(firstOne.Id, selectedSlot, problemObj);
+                        //SlotId[firstOne.Id] = selectedSlot;
+                        //break;
+                    }
+                    else
+                    {
+                        //no fit
                     }
 
 
@@ -1342,110 +1372,6 @@ namespace ConsoleApp.Models
             }
             return collisionList;
         }
-
-        //static int calculate_collision1(List<int>[,] array, int minimumCollision)
-        //{
-        //    int result = 0;
-        //    for (int i = 0; i < 5; i++)
-        //    {
-        //        for (int j = 0; j < 9; j++)
-        //        {
-        //            if (array[i, j].Count > minimumCollision)
-        //            {
-        //                result += array[i, j].Count - 1;
-        //            }
-        //        }
-        //    }
-        //    return result;
-        //}
-
-        //static int calculate_collision6(List<int>[,] array)
-        //{
-        //    int result = 0;
-        //    List<int> day = new List<int>(5);
-        //    for (int i = 0; i < 5; i++)
-        //    {
-        //        for (int j = 0; j < 9; j++)
-        //        {
-        //            for (int k = 0; k < (int)array[i, j].Count; k++)
-        //            {
-        //                day.Add(array[i, j][k]);
-        //            }
-        //        }
-        //        for (int j = 0; j < (int)day.Count; j++)
-        //        {
-        //            for (int k = 0; k < (int)day.Count; k++)
-        //            {
-        //                if (j != k && CourseList[j].Code.Equals(CourseList[k].Code))
-        //                {
-        //                    var type1 = CourseList[j].Type;
-        //                    var type2 = CourseList[k].Type;
-        //                    if (type1 != type2 && type1 + type2 <= 1)
-        //                    {
-        //                        result++;
-        //                    }
-        //                }
-        //            }
-        //        }
-        //        day.Clear();
-        //    }
-        //    return result;
-        //}
-
-
-        // collision of CSE courses at the same time
-
-        // collision of CSE courses -1 0(calculate_collision) +1 semester
-
-        //static int calculate_collision2(List<int>[,] array1, int[,] array2, int minimumCollision)
-        //{
-        //    int result = 0;
-        //    for (int i = 0; i < 5; i++)
-        //    {
-        //        for (int j = 0; j < 9; j++)
-        //        {
-        //            if (array1[i, j].Count > minimumCollision && array2[i, j] > minimumCollision)
-        //            {
-        //                var x = array1[i, j].Count + array2[i, j] - 1;
-        //                result += x;
-        //            }
-        //        }
-        //    }
-        //    return result;
-        //}
-
-
-        //static int calculate_collision7(List<int>[,] array1, List<int>[,] array2, int minimumCollision)
-        //{
-        //    int result = 0;
-        //    for (int i = 0; i < 5; i++) //dönem
-        //    {
-        //        for (int j = 0; j < 9; j++) // saat
-        //        {
-        //            if (array1[i, j].Count > minimumCollision && array2[i, j].Count > minimumCollision) //ikiside min col'u geçiyorsa.
-        //            {
-
-        //                for (int k = 0; k < array2[i, j].Count; k++)
-        //                {
-        //                    for (int l = 0; l < array1[i, j].Count; l++)
-        //                    {
-        //                        if (!is_prerequisite(array1[i, j][l], array2[i, j][k]))
-        //                        {
-        //                            result++;
-        //                        }
-        //                    }
-        //                }
-
-        //            }
-        //        }
-        //    }
-        //    return result;
-        //}
-
-        //static bool is_prerequisite(int preIndexOfCourseList, int postIndexOfCourseList)
-        //{
-        //    return CourseList[postIndexOfCourseList].prerequisites.Contains(preIndexOfCourseList);
-        //}
 
         #endregion
 
