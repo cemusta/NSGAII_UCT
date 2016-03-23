@@ -579,9 +579,9 @@ namespace ConsoleApp
             parentPopulation.Decode(ProblemObj);
             parentPopulation.Evaluate(ProblemObj);
             assign_rank_and_crowding_distance(parentPopulation);
-            ReportPopulation(parentPopulation, writer1);
+            parentPopulation.ReportPopulation(writer1, ProblemObj);
             writer4.WriteLine("# gen = 1");
-            ReportPopulation(parentPopulation, writer4);
+            parentPopulation.ReportPopulation(writer4, ProblemObj);
             Console.WriteLine(" gen = 1");
 
             if (DisplayObj.GnuplotChoice != 0)
@@ -634,6 +634,7 @@ namespace ConsoleApp
                 //*fprintf(fpt4,"# gen = %d\n",i);
                 //ReportPopulation(parent_pop,fpt4);
                 //fflush(fpt4);*/
+
                 if (DisplayObj.GnuplotChoice != 0)
                 {
                     DisplayObj.PlotPopulation(parentPopulation, ProblemObj, i,bestChild.ToList());
@@ -651,8 +652,8 @@ namespace ConsoleApp
 
             #region prepare final reports
             Console.WriteLine($" Generations finished, now reporting solutions");
-            ReportPopulation(parentPopulation, writer2);
-            ReportFeasiblePopulation(parentPopulation, writer3);
+            parentPopulation.ReportPopulation(writer2,ProblemObj);
+            parentPopulation.ReportFeasiblePopulation( writer3, ProblemObj);
 
             if (ProblemObj.RealVariableCount != 0)
             {
@@ -1075,94 +1076,6 @@ namespace ConsoleApp
                 }
             }
         }
-        #endregion
-
-        #region report.c
-
-        /* Function to print the information of a population in a file */
-        static void ReportPopulation(Population pop, StreamWriter writer)
-        {
-            int i, j, k;
-            for (i = 0; i < ProblemObj.PopulationSize; i++)
-            {
-                for (j = 0; j < ProblemObj.ObjectiveCount; j++)
-                {
-                    writer.Write($"{pop.IndList[i].Obj[j].ToString("E")}\t");
-                }
-                if (ProblemObj.ConstraintCount != 0)
-                {
-                    for (j = 0; j < ProblemObj.ConstraintCount; j++)
-                    {
-                        writer.Write($"{pop.IndList[i].Constr[j].ToString("E")}\t");
-                    }
-                }
-                if (ProblemObj.RealVariableCount != 0)
-                {
-                    for (j = 0; j < ProblemObj.RealVariableCount; j++)
-                    {
-                        writer.Write($"{pop.IndList[i].Xreal[j].ToString("E")}\t");
-                    }
-                }
-                if (ProblemObj.BinaryVariableCount != 0)
-                {
-                    for (j = 0; j < ProblemObj.BinaryVariableCount; j++)
-                    {
-                        for (k = 0; k < ProblemObj.nbits[j]; k++)
-                        {
-                            writer.Write($"{pop.IndList[i].Gene[j, k]}\t");
-                        }
-                    }
-                }
-                writer.Write($"{pop.IndList[i].ConstrViolation.ToString("E")}\t");
-                writer.Write($"{pop.IndList[i].Rank}\t");
-                writer.Write($"{pop.IndList[i].CrowdDist.ToString("E")}\n");
-            }
-
-        }
-
-        /* Function to print the information of feasible and non-dominated population in a file */
-        static void ReportFeasiblePopulation(Population pop, StreamWriter writer)
-        {
-            int i, j, k;
-            for (i = 0; i < ProblemObj.PopulationSize; i++)
-            {
-                if (pop.IndList[i].ConstrViolation == 0.0 && pop.IndList[i].Rank == 1)
-                {
-                    for (j = 0; j < ProblemObj.ObjectiveCount; j++)
-                    {
-                        writer.Write($"{pop.IndList[i].Obj[j].ToString("E")}\t");
-                    }
-                    if (ProblemObj.ConstraintCount != 0)
-                    {
-                        for (j = 0; j < ProblemObj.ConstraintCount; j++)
-                        {
-                            writer.Write($"{pop.IndList[i].Constr[j].ToString("E")}\t");
-                        }
-                    }
-                    if (ProblemObj.RealVariableCount != 0)
-                    {
-                        for (j = 0; j < ProblemObj.RealVariableCount; j++)
-                        {
-                            writer.Write($"{pop.IndList[i].Xreal[j].ToString("E")}\t");
-                        }
-                    }
-                    if (ProblemObj.BinaryVariableCount != 0)
-                    {
-                        for (j = 0; j < ProblemObj.BinaryVariableCount; j++)
-                        {
-                            for (k = 0; k < ProblemObj.nbits[j]; k++)
-                            {
-                                writer.Write($"{pop.IndList[i].Gene[j, k]}\t");
-                            }
-                        }
-                    }
-                    writer.Write($"{pop.IndList[i].ConstrViolation.ToString("E")}\t");
-                    writer.Write($"{pop.IndList[i].Rank}\t");
-                    writer.Write($"{ pop.IndList[i].CrowdDist.ToString("E")}\n");
-                }
-            }
-        }
-
         #endregion
 
         #region list.c

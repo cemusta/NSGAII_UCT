@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 
 namespace ConsoleApp.Models
 {
@@ -64,5 +65,97 @@ namespace ConsoleApp.Models
                 IndList[i].HillClimb(problemObj);
             }
         }
+
+
+        /* Function to print the information of a population in a file */
+        public void ReportPopulation(StreamWriter writer, ProblemDefinition problemObj)
+        {
+            int i, j, k;
+            for (i = 0; i < problemObj.PopulationSize; i++)
+            {
+                for (j = 0; j < problemObj.ObjectiveCount; j++)
+                {
+                    writer.Write($"{IndList[i].Obj[j].ToString()}\t");
+                }
+
+                if (problemObj.ConstraintCount != 0)
+                {
+                    for (j = 0; j < problemObj.ConstraintCount; j++)
+                    {
+                        writer.Write($"{IndList[i].Constr[j].ToString("E")}\t");
+                    }
+                }
+
+                if (problemObj.RealVariableCount != 0)
+                {
+                    for (j = 0; j < problemObj.RealVariableCount; j++)
+                    {
+                        writer.Write($"{IndList[i].Xreal[j].ToString("E")}\t");
+                    }
+                }
+
+                if (problemObj.BinaryVariableCount != 0)
+                {
+                    for (j = 0; j < problemObj.BinaryVariableCount; j++)
+                    {
+                        for (k = 0; k < problemObj.nbits[j]; k++)
+                        {
+                            writer.Write($"{IndList[i].Gene[j, k]}\t");
+                        }
+                    }
+                }
+
+                writer.Write($"{IndList[i].ConstrViolation.ToString("E")}\t");
+
+                writer.Write($"{IndList[i].Rank}\t");
+
+                writer.Write($"{IndList[i].CrowdDist.ToString("E")}\n");
+            }
+
+        }
+
+        /* Function to print the information of feasible and non-dominated population in a file */
+        public void ReportFeasiblePopulation(StreamWriter writer,ProblemDefinition problemObj)
+        {
+            int i, j, k;
+            for (i = 0; i < problemObj.PopulationSize; i++)
+            {
+                if (IndList[i].ConstrViolation == 0.0 && IndList[i].Rank == 1)
+                {
+                    for (j = 0; j < problemObj.ObjectiveCount; j++)
+                    {
+                        writer.Write($"{IndList[i].Obj[j].ToString()}\t");
+                    }
+                    if (problemObj.ConstraintCount != 0)
+                    {
+                        for (j = 0; j < problemObj.ConstraintCount; j++)
+                        {
+                            writer.Write($"{IndList[i].Constr[j].ToString("E")}\t");
+                        }
+                    }
+                    if (problemObj.RealVariableCount != 0)
+                    {
+                        for (j = 0; j < problemObj.RealVariableCount; j++)
+                        {
+                            writer.Write($"{IndList[i].Xreal[j].ToString("E")}\t");
+                        }
+                    }
+                    if (problemObj.BinaryVariableCount != 0)
+                    {
+                        for (j = 0; j < problemObj.BinaryVariableCount; j++)
+                        {
+                            for (k = 0; k < problemObj.nbits[j]; k++)
+                            {
+                                writer.Write($"{IndList[i].Gene[j, k]}\t");
+                            }
+                        }
+                    }
+                    writer.Write($"{IndList[i].ConstrViolation.ToString("E")}\t");
+                    writer.Write($"{IndList[i].Rank}\t");
+                    writer.Write($"{ IndList[i].CrowdDist.ToString("E")}\n");
+                }
+            }
+        }
+
     }
 }

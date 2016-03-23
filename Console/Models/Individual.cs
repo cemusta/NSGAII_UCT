@@ -11,7 +11,7 @@ namespace ConsoleApp.Models
         public double[] Xreal { get; set; }
         public int[,] Gene { get; set; }
         public double[] SlotId { get; set; }
-        public double[] Obj { get; set; }
+        public int[] Obj { get; set; }
         public double[] Constr { get; set; }
         public double CrowdDist { get; set; }
         public int TotalResult;
@@ -45,7 +45,7 @@ namespace ConsoleApp.Models
                 Gene = new int[nBinVar, nMaxBit];
             }
 
-            Obj = new double[nObj];
+            Obj = new int[nObj];
 
             if (nCons != 0)
                 Constr = new double[nCons];
@@ -64,7 +64,7 @@ namespace ConsoleApp.Models
                 Gene = new int[ind._nBinVar, ind._nMaxBit];
             }
 
-            Obj = new double[ind._nObj];
+            Obj = new int[ind._nObj];
 
             if (ind._nCons != 0)
                 Constr = new double[ind._nCons];
