@@ -595,6 +595,7 @@ namespace ConsoleApp
             writer4.Flush();
             writer5.Flush();
 
+            int totalHill = 0;
             #endregion
 
             #region generation loop
@@ -605,11 +606,11 @@ namespace ConsoleApp
 
                 childPopulation.Decode(ProblemObj);
                 childPopulation.Evaluate(ProblemObj);
-                childPopulation.HillClimb(ProblemObj);
+                //childPopulation.HillClimb(ProblemObj);
 
                 mixedPopulation.Merge(parentPopulation, childPopulation, ProblemObj);
-                mixedPopulation.Decode(ProblemObj);
-                mixedPopulation.Evaluate(ProblemObj);
+                //mixedPopulation.Decode(ProblemObj);
+                //mixedPopulation.Evaluate(ProblemObj);
 
                 fill_nondominated_sort(mixedPopulation, parentPopulation);
 
@@ -624,7 +625,10 @@ namespace ConsoleApp
 
                 //foreach (var child in bestChild)
                 //{
-                //    child.HillClimb(ProblemObj);
+                int imp = bestChild.First().HillClimb(ProblemObj);
+                Console.WriteLine($"hill: {imp} total: {totalHill+imp}");
+                if (imp > 0)
+                    totalHill += imp;
                 //}
                 //parentPopulation.IndList[index].HillClimb(ProblemObj);
                 minimumResult = parentPopulation.IndList.Min(x => x.TotalResult);
@@ -632,7 +636,7 @@ namespace ConsoleApp
                 /* Comment following four lines if information for all
                 generations is not desired, it will speed up the execution */
                 //*fprintf(fpt4,"# gen = %d\n",i);
-                //ReportPopulation(parent_pop,fpt4);
+                //parent_pop.ReportPopulation(fpt4,ProblemObj);
                 //fflush(fpt4);*/
 
                 if (DisplayObj.GnuplotChoice != 0)

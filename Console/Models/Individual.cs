@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace ConsoleApp.Models
 {
@@ -479,8 +480,11 @@ namespace ConsoleApp.Models
 
         }
 
-        public void HillClimb(ProblemDefinition problemObj)
+        public int HillClimb(ProblemDefinition problemObj)
         {
+            int tCollisionImprovement = 0;
+            int tResultImprovement = 0;
+
             if (CollisionList.Count > 0)
             {
                 bool continueClimb = false;
@@ -488,8 +492,6 @@ namespace ConsoleApp.Models
                 original.Decode(problemObj);
                 original.Evaluate(problemObj);
 
-                int tCollisionImprovement = 0;
-                int tResultImprovement = 0;
 
                 do
                 {
@@ -533,14 +535,18 @@ namespace ConsoleApp.Models
                     this.Copy(original, problemObj);
                     Decode(problemObj);
                     Evaluate(problemObj);
+                    tResultImprovement = 0;
                 }
             }
+            return tResultImprovement;
         }
 
         private void HillClimber(ProblemDefinition problemObj)
         {
             bool UseSemiFit = false;
-            Random rnd = new Random(1);
+            Random rnd = new Random(DateTime.Now.Millisecond);
+
+            byte[] random = new Byte[100];
 
             var tempColl = CollisionList.ToList();
 
