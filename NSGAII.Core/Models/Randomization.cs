@@ -1,12 +1,15 @@
-﻿namespace ConsoleApp.Models
+﻿namespace NSGAII.Models
 {
     public class Randomization
     {
-
-
         double seed = 0; //never assigned?
         double[] oldrand = new double[55];
         int jrand;
+
+        public Randomization(double dSeed)
+        {
+            seed = dSeed;
+        }
 
         /* Get seed number for random and start it up */
         public void Randomize()
