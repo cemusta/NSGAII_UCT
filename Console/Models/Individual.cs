@@ -19,11 +19,11 @@ namespace ConsoleApp.Models
 
         public List<Collision> CollisionList { get; set; }
 
-        private readonly int _nRealVar;
-        private readonly int _nBinVar;
-        private readonly int _nMaxBit;
-        private readonly int _nObj;
-        private readonly int _nCons;
+        private int _nRealVar;
+        private int _nBinVar;
+        private int _nMaxBit;
+        private int _nObj;
+        private int _nCons;
 
         public readonly Slot[,] TimeTable = new Slot[5, 9];
 
@@ -113,8 +113,14 @@ namespace ConsoleApp.Models
 
         }
 
-        private void Copy(Individual ind, ProblemDefinition problem)
+        public void Copy(Individual ind, ProblemDefinition problem)
         {
+            _nRealVar = ind._nRealVar;
+            _nBinVar = ind._nBinVar;
+            _nMaxBit = ind._nMaxBit;
+            _nObj = ind._nObj;
+            _nCons = ind._nCons;
+
             CollisionList.Clear();
             TotalResult = 0;
 

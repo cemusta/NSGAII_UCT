@@ -1421,48 +1421,6 @@ namespace ConsoleApp
         }
         #endregion
 
-        #region MergePopulation.c
-
-        /* Routine to copy an individual 'ind1' into another individual 'ind2' */
-        static void CopyIndividual(Individual ind1, Individual ind2)
-        {
-            ind2.Rank = ind1.Rank;
-            ind2.ConstrViolation = ind1.ConstrViolation;
-            ind2.CrowdDist = ind1.CrowdDist;
-            if (ProblemObj.RealVariableCount != 0)
-            {
-                for (int i = 0; i < ProblemObj.RealVariableCount; i++)
-                {
-                    ind2.Xreal[i] = ind1.Xreal[i];
-                }
-            }
-            if (ProblemObj.BinaryVariableCount != 0)
-            {
-                for (int i = 0; i < ProblemObj.BinaryVariableCount; i++)
-                {
-                    ind2.SlotId[i] = ind1.SlotId[i];
-                    for (int j = 0; j < ProblemObj.nbits[i]; j++)
-                    {
-                        ind2.Gene[i, j] = ind1.Gene[i, j];
-                    }
-                }
-            }
-            for (int i = 0; i < ProblemObj.ObjectiveCount; i++)
-            {
-                ind2.Obj[i] = ind1.Obj[i];
-            }
-            if (ProblemObj.ConstraintCount != 0)
-            {
-                for (int i = 0; i < ProblemObj.ConstraintCount; i++)
-                {
-                    ind2.Constr[i] = ind1.Constr[i];
-                }
-            }
-
-        }
-
-        #endregion
-
         #region fillnds.c
 
         /* Routine to perform non-dominated sorting */
@@ -1545,8 +1503,9 @@ namespace ConsoleApp
                 {
                     do
                     {
-                        CopyIndividual(mixedPop.IndList[temp2.index], newPop.IndList[i]);
-                        //newPop.IndList[i] = new Individual(mixedPop.IndList[temp2.index],ProblemObj);
+                        newPop.IndList[i].Copy(mixedPop.IndList[temp2.index],ProblemObj);
+                        //CopyIndividual(mixedPop.IndList[temp2.index], newPop.IndList[i]);
+                        
                         newPop.IndList[i].Rank = rank;
                         archieveSize += 1;
                         temp2 = temp2.child;
@@ -1594,7 +1553,8 @@ namespace ConsoleApp
             quicksort_dist(mixedPop, dist, frontSize);
             for (i = count, j = frontSize - 1; i < ProblemObj.PopulationSize; i++, j--)
             {
-                CopyIndividual(mixedPop.IndList[dist[j]], newPop.IndList[i]);
+                newPop.IndList[i].Copy(mixedPop.IndList[dist[j]],ProblemObj);
+                //CopyIndividual(mixedPop.IndList[dist[j]], newPop.IndList[i]);
                 //newPop.IndList[i] = new Individual(mixedPop.IndList[dist[j]], ProblemObj);
 
             }
