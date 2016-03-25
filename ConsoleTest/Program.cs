@@ -6,7 +6,7 @@ namespace ConsoleTest
     {
         static void Main(string[] args)
         {
-            UCTProblem test = new UCTProblem(0.75,200,10000,3,0,43,0,true);
+            UCTProblem test = new UCTProblem(0.75,400,10000,3,0,43,0,false);
 
             test.FirstGeneration();
 
@@ -14,6 +14,10 @@ namespace ConsoleTest
             {
                 test.NextGeneration();
             }
+
+            test.WriteBestGeneration();
+
+            test.WriteBestGeneration();
 
         }
     }
