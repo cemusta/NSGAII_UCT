@@ -625,10 +625,10 @@ namespace ConsoleApp
 
                 //foreach (var child in bestChild)
                 //{
-                int imp = bestChild.First().HillClimb(ProblemObj);
-                Console.WriteLine($"hill: {imp} total: {totalHill+imp}");
-                if (imp > 0)
-                    totalHill += imp;
+                //int imp = bestChild.First().HillClimb(ProblemObj);
+                //Console.WriteLine($"hill: {imp} total: {totalHill+imp}");
+                //if (imp > 0)
+                //    totalHill += imp;
                 //}
                 //parentPopulation.IndList[index].HillClimb(ProblemObj);
                 minimumResult = parentPopulation.IndList.Min(x => x.TotalResult);
