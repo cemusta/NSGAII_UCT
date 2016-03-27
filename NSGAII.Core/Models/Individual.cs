@@ -24,7 +24,7 @@ namespace NSGAII.Models
         private int _nObj;
         private int _nCons;
 
-        private readonly Slot[,] TimeTable = new Slot[5, 9];
+        public readonly Slot[,] TimeTable = new Slot[5, 9];
 
         public Individual(int nRealVar, int nBinVar, int nMaxBit, int nObj, int nCons)
         {

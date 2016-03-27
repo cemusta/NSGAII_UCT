@@ -81,6 +81,8 @@ namespace NSGAII
             CreatePopulationObject();
         }
 
+
+
         private void ReadBinaryValues()
         {
             try
@@ -393,7 +395,8 @@ namespace NSGAII
 
         private void WriteStartParams()
         {
-            var file = File.OpenWrite(ProblemObj.Title + "_params.out");
+            System.IO.Directory.CreateDirectory("report");
+            var file = File.OpenWrite("report\\" + ProblemObj.Title + "_params.out");
             StreamWriter writer = new StreamWriter(file);
             writer.Write("# This file contains information about inputs as read by the program\n");
             writer.Flush();
@@ -549,6 +552,7 @@ namespace NSGAII
             }
         }
 
+
         public void WriteCurrentGeneration()
         {
             ParentPopulation.ReportPopulation(ProblemObj, "current", "This file contains the data of current generation", CurrentGeneration);
@@ -563,6 +567,8 @@ namespace NSGAII
         {
             ParentPopulation.ReportPopulation(ProblemObj, "best", "This file contains the data of best individuals");
         }
+
+
 
 
         #region NSGAII stuff
