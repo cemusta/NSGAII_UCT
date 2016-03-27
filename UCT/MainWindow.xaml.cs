@@ -86,15 +86,25 @@ namespace UCT
             if (_uctproblem.CurrentGeneration == 0)
             {
                 _uctproblem.FirstGeneration();
+                LogBox.Items.Insert(0, _uctproblem.BestReport());
+                LogBox.Items.Insert(0, _uctproblem.GenerationReport());
             }
-            else if (_uctproblem.CurrentGeneration < _uctproblem.ProblemObj.MaxGeneration)
+            else if (_uctproblem.CurrentGeneration <= _uctproblem.ProblemObj.MaxGeneration)
             {
                 _uctproblem.NextGeneration();
+                LogBox.Items.Insert(0, _uctproblem.BestReport());
+                LogBox.Items.Insert(0, _uctproblem.GenerationReport());
+            }
+            else
+            {
+                generationTimer.Stop();
+                LogBox.Items.Insert(0, "Problem reached upper generation limit.");
+                _uctproblem.WriteBestGeneration();
+                _uctproblem.WriteFinalGeneration();
             }
 
-            LogBox.Items.Insert(0, _uctproblem.BestReport());
-            LogBox.Items.Insert(0, _uctproblem.GenerationReport());
-            
+
+
         }
 
         private void PlotNow_Click(object sender, RoutedEventArgs e)
