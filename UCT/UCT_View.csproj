@@ -103,6 +103,12 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NSGAII.Core\NSGAII.Core.csproj">
+      <Project>{128456b1-67ca-4ac6-9c6a-023bd6a6342b}</Project>
+      <Name>NSGAII.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
+using System.Windows.Threading;
+using NSGAII;
 
 namespace UCT
 {
@@ -12,80 +12,16 @@ namespace UCT
     /// </summary>
     public partial class MainWindow : Window
     {
-        public List<Globals.CourseDetail> CourseList;
-        public List<string> TearcherList;
+        UCTProblem _uctproblem;
+        readonly DispatcherTimer generationTimer;
 
         public MainWindow()
         {
-            CourseList = new List<Globals.CourseDetail>();
-            TearcherList = new List<string>();
             InitializeComponent();
-            ReadValues();
-        }
-
-        private void ReadValues()
-        {
-            CourseList.Clear();
-            TearcherList.Clear();
-            sp.Children.Clear();
-
-            try  //todo better input handling
-            {
-                FileStream courseListFilestream = File.OpenRead("course_list.csv");
-                StreamReader reader = new StreamReader(courseListFilestream);
-
-                string line = reader.ReadLine();
-                int course_count = int.Parse(line); //43 gibi bir sayı dönüyor
-
-                Console.WriteLine($"SIZE: {course_count} \n");
-
-                for (int course_ID = 0; course_ID < course_count; course_ID++)
-                {
-                    line = reader.ReadLine();
-                    //Console.WriteLine($"{line}\n");
-
-                    var parts = line.Split(new char[] { ';' });
-                    // token = strtok(record, ";");
-
-                    for (int i = 0; i < parts.Length; i++)
-                    {
-                        Console.WriteLine($"{i}.{parts[i]}");
-                    }
-                    Console.WriteLine();
-
-                    CourseList.Add(new Globals.CourseDetail(parts[0], parts[1], int.Parse(parts[2]), int.Parse(parts[3]), int.Parse(parts[4]), int.Parse(parts[5]), int.Parse(parts[6])));
-
-                    if (TearcherList.Contains(parts[1]))
-                    {
-                        TearcherList.Add(parts[1]);
-                    }
-
-                }
-
-                for (int i = 0; i < CourseList.Count; i++)
-                {
-                    Label newLabel = new Label();
-
-                    newLabel.Content = $"{CourseList[i].PrintableName}";
-                    newLabel.Name = "CourseL" + i.ToString();
-                    newLabel.Margin = new Thickness(2, 3, 2, 3);
-                    newLabel.BorderThickness = new Thickness(1, 1, 1, 1);
-                    newLabel.BorderBrush = Brushes.Black;
-
-                    sp.Children.Add(newLabel);
-                }
-
-            }
-            catch (FileNotFoundException ex)
-            {
-                Console.WriteLine($"Input file missing.\n EX: {ex.FileName}");
-                return;
-            }
-        }
-
-        private void ReadX_Click(object sender, RoutedEventArgs e)
-        {
-            ReadValues();
+            EnableGenerationControls(false);
+            generationTimer = new DispatcherTimer();
+            generationTimer.Tick += generationTimer_Tick;
+            generationTimer.Interval = new TimeSpan(0, 0, 0, 0, 1);
         }
 
         private void Thumb_DragDelta(object sender, System.Windows.Controls.Primitives.DragDeltaEventArgs e)
@@ -94,6 +30,121 @@ namespace UCT
 
             Canvas.SetLeft(thumb, Canvas.GetLeft(thumb) + e.HorizontalChange);
             Canvas.SetTop(thumb, Canvas.GetTop(thumb) + e.VerticalChange);
+        }
+
+        public void EnableGenerationControls(bool state = true)
+        {
+            StartPauseGeneration.IsEnabled = state;
+            StepGeneration.IsEnabled = state;
+            PlotNow.IsEnabled = state;
+            chkUsePlot.IsEnabled = state;
+            ReportBest.IsEnabled = state;
+        }
+
+        private void CreateProblem_Click(object sender, RoutedEventArgs e)
+        {
+            _uctproblem = new UCTProblem(0.75, 400, 10000, 3, 0, 43, 0, false);
+            ProblemTitle.Content = _uctproblem.ProblemObj.Title;
+            EnableGenerationControls();
+        }
+
+        private void generationTimer_Tick(object sender, EventArgs e)
+        {
+            if (_uctproblem.CurrentGeneration == 0)
+            {
+                _uctproblem.FirstGeneration();
+            }
+            else if (_uctproblem.CurrentGeneration < _uctproblem.ProblemObj.MaxGeneration)
+            {
+                _uctproblem.NextGeneration();
+            }
+
+            listBox1.Items.Add(_uctproblem.GenerationReport());
+            listBox1.Items.Add(_uctproblem.BestReport());
+        }
+
+        private void StartPauseGeneration_Click(object sender, RoutedEventArgs e)
+        {
+            if (generationTimer.IsEnabled)
+            {
+                StepGeneration.IsEnabled = true;
+                StartPauseGeneration.Content = "Start";
+                generationTimer.Stop();
+            }
+            else
+            {
+                StepGeneration.IsEnabled = false;
+                StartPauseGeneration.Content = "Stop";
+                generationTimer.Start();
+            }
+        }
+
+        private void StepGeneration_Click(object sender, RoutedEventArgs e)
+        {
+            if (!generationTimer.IsEnabled)
+            {
+                if (_uctproblem.CurrentGeneration == 0)
+                {
+                    _uctproblem.FirstGeneration();
+                }
+                else if (_uctproblem.CurrentGeneration < _uctproblem.ProblemObj.MaxGeneration)
+                {
+                    _uctproblem.NextGeneration();
+                }
+
+                listBox1.Items.Add(_uctproblem.GenerationReport());
+                listBox1.Items.Add(_uctproblem.BestReport());
+            }
+        }
+
+        private void PlotNow_Click(object sender, RoutedEventArgs e)
+        {
+            _uctproblem.PlotNow();
+        }
+
+        private void chkUsePlot_Click(object sender, RoutedEventArgs e)
+        {
+            if (chkUsePlot.IsChecked ?? false)
+            {
+                PlotNow.IsEnabled = false;
+                _uctproblem.UsePlot = true;
+            }
+            else
+            {
+                PlotNow.IsEnabled = true;
+                _uctproblem.UsePlot = false;
+            }
+        }
+
+        private void OpenProblem_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+
+            // Set filter for file extension and default file extension 
+            dlg.DefaultExt = ".out";
+            dlg.Filter = "Problem out (*.out)|*.out";
+
+            // Display OpenFileDialog by calling ShowDialog method 
+            bool? result = dlg.ShowDialog();
+
+            // Get the selected file name and display in a TextBox 
+            if (result == true)
+            {
+                // Open document 
+                string filename = dlg.FileName;
+               
+            }
+
+        }
+
+        private void ReportBest_Click(object sender, RoutedEventArgs e)
+        {
+            if (_uctproblem.CurrentGeneration == 0)
+                return;
+
+            MainTab.SelectedIndex = 1;
+
+
         }
     }
 }

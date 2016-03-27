@@ -12,10 +12,10 @@ namespace NSGAII
 
         public double Seed;
         public bool UsePlot;
-        private int _currentGeneration;
+        public int CurrentGeneration { get; private set; }
         public ProblemDefinition ProblemObj;
         public Randomization RandomizationObj;
-        public Display DisplayObj;
+        private readonly Display DisplayObj;
 
         public Population ParentPopulation;
         public Population ChildPopulation;
@@ -25,7 +25,7 @@ namespace NSGAII
 
         public UCTProblem(double dSeed, int nPopulation, int nMaxGeneration, int nObjective, int nConstraint, int nBinaryVar, int nRealVar, bool usePlot = false)
         {
-            _currentGeneration = 1;
+            CurrentGeneration = 0;
             Seed = dSeed;
             if (Seed <= 0.0 || Seed >= 1.0)
             {
@@ -40,7 +40,7 @@ namespace NSGAII
             ProblemObj = new ProblemDefinition(title)
             {
                 PopulationSize = nPopulation,
-                GenCount = nMaxGeneration,
+                MaxGeneration = nMaxGeneration,
                 ObjectiveCount = nObjective,
                 ConstraintCount = nConstraint,
                 BinaryVariableCount = nBinaryVar,
@@ -70,7 +70,7 @@ namespace NSGAII
             RandomizationObj.Randomize();
 
             DisplayObj = new Display();
-            InitDisplay(true, true, new[] {0, 1, 2});
+            InitDisplay(true, true, new[] { 0, 1, 2 });
 
             ReadScheduling();
             ReadLab();
@@ -83,100 +83,117 @@ namespace NSGAII
 
         private void ReadBinaryValues()
         {
-            FileStream fileStr = File.OpenRead("binary.in");
-            StreamReader reader = new StreamReader(fileStr);
-            string line;
-
-            ProblemObj.nbits = new int[ProblemObj.BinaryVariableCount];
-            ProblemObj.min_binvar = new double[ProblemObj.BinaryVariableCount];
-            ProblemObj.max_binvar = new double[ProblemObj.BinaryVariableCount];
-            for (int i = 0; i < ProblemObj.BinaryVariableCount; i++)
+            try
             {
+                FileStream fileStr = File.OpenRead("binary.in");
+                StreamReader reader = new StreamReader(fileStr);
+                string line;
+
+                ProblemObj.nbits = new int[ProblemObj.BinaryVariableCount];
+                ProblemObj.min_binvar = new double[ProblemObj.BinaryVariableCount];
+                ProblemObj.max_binvar = new double[ProblemObj.BinaryVariableCount];
+                for (int i = 0; i < ProblemObj.BinaryVariableCount; i++)
+                {
+                    line = reader.ReadLine();
+                    var parts = line.Split(new char[] { ' ' });
+                    ProblemObj.nbits[i] = int.Parse(parts[0]);
+                    if (ProblemObj.nbits[i] > ProblemObj.MaxBitCount)
+                        ProblemObj.MaxBitCount = ProblemObj.nbits[i];
+                    if (ProblemObj.nbits[i] < 1)
+                    {
+                        throw new Exception("Wrong number of bits for binary variable entered, hence exiting");
+                    }
+
+                    ProblemObj.min_binvar[i] = double.Parse(parts[1]);
+
+                    ProblemObj.max_binvar[i] = double.Parse(parts[2]);
+
+                    if (ProblemObj.max_binvar[i] <= ProblemObj.min_binvar[i])
+                    {
+                        throw new Exception(
+                            " Wrong limits entered for the min and max bounds of binary variable entered, hence exiting");
+                    }
+                }
+
                 line = reader.ReadLine();
-                var parts = line.Split(new char[] {' '});
-                ProblemObj.nbits[i] = int.Parse(parts[0]);
-                if (ProblemObj.nbits[i] > ProblemObj.MaxBitCount)
-                    ProblemObj.MaxBitCount = ProblemObj.nbits[i];
-                if (ProblemObj.nbits[i] < 1)
+                ProblemObj.BinaryCrossoverProbability = double.Parse(line);
+                if (ProblemObj.BinaryCrossoverProbability < 0.0 || ProblemObj.BinaryCrossoverProbability > 1.0)
                 {
-                    throw new Exception("Wrong number of bits for binary variable entered, hence exiting");
+                    ProblemObj.BinaryCrossoverProbability = 0.75;
                 }
 
-                ProblemObj.min_binvar[i] = double.Parse(parts[1]);
-
-                ProblemObj.max_binvar[i] = double.Parse(parts[2]);
-
-                if (ProblemObj.max_binvar[i] <= ProblemObj.min_binvar[i])
+                line = reader.ReadLine();
+                ProblemObj.BinaryMutationProbability = double.Parse(line);
+                if (ProblemObj.BinaryMutationProbability < 0.0 || ProblemObj.BinaryMutationProbability > 1.0)
                 {
-                    throw new Exception(
-                        " Wrong limits entered for the min and max bounds of binary variable entered, hence exiting");
+                    ProblemObj.BinaryMutationProbability = 0.0232558;
                 }
             }
-
-            line = reader.ReadLine();
-            ProblemObj.BinaryCrossoverProbability = double.Parse(line);
-            if (ProblemObj.BinaryCrossoverProbability < 0.0 || ProblemObj.BinaryCrossoverProbability > 1.0)
+            catch (Exception)
             {
-                ProblemObj.BinaryCrossoverProbability = 0.75;
+                throw;
             }
 
-            line = reader.ReadLine();
-            ProblemObj.BinaryMutationProbability = double.Parse(line);
-            if (ProblemObj.BinaryMutationProbability < 0.0 || ProblemObj.BinaryMutationProbability > 1.0)
-            {
-                ProblemObj.BinaryMutationProbability = 0.0232558;
-            }
 
         }
 
         private void ReadRealValues()
         {
-            FileStream fileStr = File.OpenRead("real.in");
-            StreamReader reader = new StreamReader(fileStr);
-            string line;
-
-            ProblemObj.min_realvar = new double[ProblemObj.RealVariableCount];
-            ProblemObj.max_realvar = new double[ProblemObj.RealVariableCount];
-            for (int i = 0; i < ProblemObj.RealVariableCount; i++)
+            try
             {
-                line = reader.ReadLine();
-                ProblemObj.min_realvar[i] = double.Parse(line);
+                FileStream fileStr = File.OpenRead("real.in");
+                StreamReader reader = new StreamReader(fileStr);
+                string line;
 
-                line = reader.ReadLine();
-                ProblemObj.max_realvar[i] = double.Parse(line);
-                if (ProblemObj.max_realvar[i] <= ProblemObj.min_realvar[i])
+                ProblemObj.min_realvar = new double[ProblemObj.RealVariableCount];
+                ProblemObj.max_realvar = new double[ProblemObj.RealVariableCount];
+                for (int i = 0; i < ProblemObj.RealVariableCount; i++)
                 {
-                    throw new Exception("Wrong limits entered for the min and max bounds of real variable");
+                    line = reader.ReadLine();
+                    ProblemObj.min_realvar[i] = double.Parse(line);
+
+                    line = reader.ReadLine();
+                    ProblemObj.max_realvar[i] = double.Parse(line);
+                    if (ProblemObj.max_realvar[i] <= ProblemObj.min_realvar[i])
+                    {
+                        throw new Exception("Wrong limits entered for the min and max bounds of real variable");
+                    }
+                }
+
+                line = Console.ReadLine();
+                ProblemObj.RealCrossoverProbability = double.Parse(line);
+                if (ProblemObj.RealCrossoverProbability < 0.0 || ProblemObj.RealCrossoverProbability > 1.0)
+                {
+                    throw new Exception("Entered value of probability of Crossover of real variables is out of bounds");
+                }
+
+                line = Console.ReadLine();
+                ProblemObj.RealMutationProbability = double.Parse(line);
+                if (ProblemObj.RealMutationProbability < 0.0 || ProblemObj.RealMutationProbability > 1.0)
+                {
+                    throw new Exception("Entered value of probability of mutation of real variables is out of bounds");
+                }
+
+                line = Console.ReadLine();
+                ProblemObj.CrossoverDistributionIndex = double.Parse(line);
+                if (ProblemObj.CrossoverDistributionIndex <= 0)
+                {
+                    throw new Exception(" Wrong value of distribution index for Crossover entered, hence exiting \n");
+                }
+
+                line = Console.ReadLine();
+                ProblemObj.MutationDistributionIndex = double.Parse(line);
+                if (ProblemObj.MutationDistributionIndex <= 0)
+                {
+                    throw new Exception("Wrong value of distribution index for mutation entered");
                 }
             }
+            catch (Exception)
+            {
 
-            line = Console.ReadLine();
-            ProblemObj.RealCrossoverProbability = double.Parse(line);
-            if (ProblemObj.RealCrossoverProbability < 0.0 || ProblemObj.RealCrossoverProbability > 1.0)
-            {
-                throw new Exception("Entered value of probability of Crossover of real variables is out of bounds");
-            }
-            
-            line = Console.ReadLine();
-            ProblemObj.RealMutationProbability = double.Parse(line);
-            if (ProblemObj.RealMutationProbability < 0.0 || ProblemObj.RealMutationProbability > 1.0)
-            {
-                throw new Exception("Entered value of probability of mutation of real variables is out of bounds");
-            }
-            
-            line = Console.ReadLine();
-            ProblemObj.CrossoverDistributionIndex = double.Parse(line);
-            if (ProblemObj.CrossoverDistributionIndex <= 0)
-            {
-                throw new Exception(" Wrong value of distribution index for Crossover entered, hence exiting \n");
+                throw;
             }
 
-            line = Console.ReadLine();
-            ProblemObj.MutationDistributionIndex = double.Parse(line);
-            if (ProblemObj.MutationDistributionIndex <= 0)
-            {
-                throw new Exception("Wrong value of distribution index for mutation entered");
-            }
         }
 
         private void InitDisplay(bool useGnuplot, bool use3D, int[] arrGnuplotObjective)
@@ -335,7 +352,7 @@ namespace NSGAII
                 Console.WriteLine(ex.Message);
                 throw;
             }
-            
+
 
         }
 
@@ -383,7 +400,7 @@ namespace NSGAII
 
 
             writer.WriteLine($" Population size = {ProblemObj.PopulationSize}");
-            writer.WriteLine($" Number of generations = {ProblemObj.GenCount}");
+            writer.WriteLine($" Number of generations = {ProblemObj.MaxGeneration}");
             writer.WriteLine($" Number of objective functions = {ProblemObj.ObjectiveCount}");
             writer.WriteLine($" Number of constraints = {ProblemObj.ConstraintCount}");
             writer.WriteLine($" Number of real variables = {ProblemObj.RealVariableCount}");
@@ -436,28 +453,31 @@ namespace NSGAII
 
         public void FirstGeneration()
         {
+            CurrentGeneration++;
+
             ParentPopulation.Initialize(ProblemObj, RandomizationObj);
 
             ParentPopulation.Decode(ProblemObj);
             ParentPopulation.Evaluate(ProblemObj);
-            assign_rank_and_crowding_distance(ParentPopulation,ProblemObj,RandomizationObj);
+            assign_rank_and_crowding_distance(ParentPopulation, ProblemObj, RandomizationObj);
 
-            ParentPopulation.ReportPopulation(ProblemObj,"initial", "This file contains the data of final population");
-            
-            ParentPopulation.ReportPopulation(ProblemObj,"current", "This file contains the data of current generation", _currentGeneration);
+            ParentPopulation.ReportPopulation(ProblemObj, "initial", "This file contains the data of final population");
+
+            ParentPopulation.ReportPopulation(ProblemObj, "current", "This file contains the data of current generation", CurrentGeneration);
 
             if (UsePlot)
             {
-                DisplayObj.PlotPopulation(ParentPopulation, ProblemObj, 1);
+                DisplayObj.PlotPopulation(ParentPopulation, ProblemObj, CurrentGeneration);
             }
 
-            _currentGeneration++;
         }
 
         public void NextGeneration()
         {
-            Selection(ParentPopulation, ChildPopulation,ProblemObj,RandomizationObj);
-            MutatePopulation(ChildPopulation,ProblemObj,RandomizationObj);
+            CurrentGeneration++;
+
+            Selection(ParentPopulation, ChildPopulation, ProblemObj, RandomizationObj);
+            MutatePopulation(ChildPopulation, ProblemObj, RandomizationObj);
 
             ChildPopulation.Decode(ProblemObj);
             ChildPopulation.Evaluate(ProblemObj);
@@ -486,7 +506,6 @@ namespace NSGAII
             //    totalHill += imp;
             //}
 
-            minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
 
             /* Comment following four lines if information for all
             generations is not desired, it will speed up the execution */
@@ -496,29 +515,53 @@ namespace NSGAII
 
             if (UsePlot)
             {
-                DisplayObj.PlotPopulation(ParentPopulation, ProblemObj, _currentGeneration, bestChild.ToList());
+                DisplayObj.PlotPopulation(ParentPopulation, ProblemObj, CurrentGeneration, bestChild.ToList());
             }
 
-            var bc = bestChild.First();
-            Console.WriteLine($" gen = {_currentGeneration} min = {minimumResult}");
-            Console.WriteLine($" best: coll  = {bc.CollisionList.Count} result = {bc.TotalResult} obj0:{bc.Obj[0]} obj1:{bc.Obj[1]} obj2:{bc.Obj[2]}");
+            Console.WriteLine(GenerationReport());
+            Console.WriteLine(BestReport());
 
-            _currentGeneration++;
+
+        }
+
+        public string GenerationReport()
+        {
+            int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+            return ($" gen = {CurrentGeneration} min = {minimumResult}");
+        }
+
+        public string BestReport()
+        {
+            int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+            var result = minimumResult;
+            var bc = ParentPopulation.IndList.First(x => x.TotalResult == result);
+            return ($" best: coll  = {bc.CollisionList.Count} result = {bc.TotalResult} obj0:{bc.Obj[0]} obj1:{bc.Obj[1]} obj2:{bc.Obj[2]}");
+
+        }
+
+        public void PlotNow()
+        {
+            if (CurrentGeneration != 0)
+            {
+                int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+                var bestChild = ParentPopulation.IndList.Where(x => x.TotalResult == minimumResult).ToList();
+                DisplayObj.PlotPopulation(ParentPopulation, ProblemObj, CurrentGeneration, bestChild.ToList());
+            }
         }
 
         public void WriteCurrentGeneration()
         {
-            ParentPopulation.ReportPopulation(ProblemObj, "current", "This file contains the data of current generation", _currentGeneration);
+            ParentPopulation.ReportPopulation(ProblemObj, "current", "This file contains the data of current generation", CurrentGeneration);
         }
 
         public void WriteFinalGeneration()
         {
-            ParentPopulation.ReportPopulation(ProblemObj, "current", "This file contains the data of final generation", _currentGeneration);
+            ParentPopulation.ReportPopulation(ProblemObj, "final", "This file contains the data of final generation", CurrentGeneration);
         }
 
         public void WriteBestGeneration()
         {
-            ParentPopulation.ReportPopulation(ProblemObj, "current", "This file contains the data of best individuals");
+            ParentPopulation.ReportPopulation(ProblemObj, "best", "This file contains the data of best individuals");
         }
 
 

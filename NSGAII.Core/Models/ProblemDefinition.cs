@@ -21,7 +21,7 @@ namespace NSGAII.Models
         public double BinaryMutationProbability;
         public double CrossoverDistributionIndex;
         public double MutationDistributionIndex;
-        public int GenCount;
+        public int MaxGeneration;
                
         public int BinaryMutationCount;      //for reporting only.
         public int RealMutationCount;        //for reporting only

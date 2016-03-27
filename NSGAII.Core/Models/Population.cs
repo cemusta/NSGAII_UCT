@@ -69,14 +69,15 @@ namespace NSGAII.Models
         /* Function to print the information of a population in a file */
         public void ReportPopulation(ProblemDefinition problemObj, string name, string info, int generation = 0)
         {
-            var file = File.OpenWrite($"{problemObj.Title}_{name}_pop.out");
+            System.IO.Directory.CreateDirectory("report"); 
+            var file = File.OpenWrite($"report\\{problemObj.Title}_{name}_pop.out");
             StreamWriter writer = new StreamWriter(file);
             writer.WriteLine($"# {info}");
             writer.WriteLine($"# of objectives = {problemObj.ObjectiveCount}, # of constraints = {problemObj.ConstraintCount}, # of real_var = {problemObj.RealVariableCount}, # of bits of bin_var = {problemObj.TotalBinaryBitLength}, constr_violation, rank, crowding_distance");
 
             if (generation > 0)
             {
-                writer.WriteLine($"# Generation no: {generation}/{problemObj.GenCount}");
+                writer.WriteLine($"# Generation no: {generation}/{problemObj.MaxGeneration}");
             }
 
             for (int i = 0; i < problemObj.PopulationSize; i++)
@@ -125,8 +126,14 @@ namespace NSGAII.Models
         }
 
         /* Function to print the information of feasible and non-dominated population in a file */
-        public void ReportFeasiblePopulation(StreamWriter writer,ProblemDefinition problemObj)
+        public void ReportFeasiblePopulation(ProblemDefinition problemObj, string name, string info)
         {
+            System.IO.Directory.CreateDirectory("report");
+            var file = File.OpenWrite($"{problemObj.Title}_{name}_pop.out");
+            StreamWriter writer = new StreamWriter(file);
+            writer.WriteLine($"# {info}");
+            writer.WriteLine($"# of objectives = {problemObj.ObjectiveCount}, # of constraints = {problemObj.ConstraintCount}, # of real_var = {problemObj.RealVariableCount}, # of bits of bin_var = {problemObj.TotalBinaryBitLength}, constr_violation, rank, crowding_distance");
+
             for (int i = 0; i < problemObj.PopulationSize; i++)
             {
                 if (IndList[i].ConstrViolation == 0.0 && IndList[i].Rank == 1)
@@ -164,6 +171,9 @@ namespace NSGAII.Models
                     writer.Write($"{ IndList[i].CrowdDist.ToString("E")}\n");
                 }
             }
+
+            writer.Flush();
+            writer.Close();
         }
 
     }

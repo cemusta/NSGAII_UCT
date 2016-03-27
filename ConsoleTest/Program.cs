@@ -10,14 +10,14 @@ namespace ConsoleTest
 
             test.FirstGeneration();
 
-            for (int i = 0; i < test.ProblemObj.GenCount; i++)
+            for (int i = 0; i < test.ProblemObj.MaxGeneration; i++)
             {
                 test.NextGeneration();
             }
 
             test.WriteBestGeneration();
 
-            test.WriteBestGeneration();
+            test.WriteFinalGeneration();
 
         }
     }

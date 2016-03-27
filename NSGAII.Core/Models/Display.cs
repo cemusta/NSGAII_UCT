@@ -31,7 +31,7 @@ namespace NSGAII.Models
                     GnuPlot.HoldOn();
                 }
 
-                GnuPlot.Plot(xr, yr, $"title 'Generation #{genNo} of {problem.GenCount}' with points pointtype 8 lc rgb 'blue'");
+                GnuPlot.Plot(xr, yr, $"title 'Generation #{genNo} of {problem.MaxGeneration}' with points pointtype 8 lc rgb 'blue'");
 
                 if (best != null)
                 {
@@ -68,7 +68,7 @@ namespace NSGAII.Models
                     GnuPlot.HoldOn();
                 }
 
-                GnuPlot.SPlot(xr, yr, zr, $"title 'Generation #{genNo} of {problem.GenCount}' with points pointtype 8 lc rgb 'blue'");
+                GnuPlot.SPlot(xr, yr, zr, $"title 'Generation #{genNo} of {problem.MaxGeneration}' with points pointtype 8 lc rgb 'blue'");
 
                 if (best != null)
                 {
