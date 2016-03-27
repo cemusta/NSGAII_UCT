@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -43,12 +45,43 @@ namespace UCT
 
         private void CreateProblem_Click(object sender, RoutedEventArgs e)
         {
-            _uctproblem = new UCTProblem(0.75, 400, 10000, 3, 0, 43, 0, false);
+            _uctproblem = new UCTProblem(0.75, 200, 10000, 3, 0, 43, 0, false);
             ProblemTitle.Content = _uctproblem.ProblemObj.Title;
             EnableGenerationControls();
+            //CreateProblem.IsEnabled = false;
+            LogBox.Items.Clear();
         }
 
-        private void generationTimer_Tick(object sender, EventArgs e)
+        private async void generationTimer_Tick(object sender, EventArgs e)
+        {
+            await NextGeneration();
+        }
+
+        private void StartPauseGeneration_Click(object sender, RoutedEventArgs e)
+        {
+            if (generationTimer.IsEnabled)
+            {
+                StepGeneration.IsEnabled = true;
+                StartPauseGeneration.Content = "Continue";
+                generationTimer.Stop();
+            }
+            else
+            {
+                StepGeneration.IsEnabled = false;
+                StartPauseGeneration.Content = "Pause";
+                generationTimer.Start();
+            }
+        }
+
+        private async void StepGeneration_Click(object sender, RoutedEventArgs e)
+        {
+            if (!generationTimer.IsEnabled)
+            {
+                await NextGeneration();
+            }
+        }
+
+        public async Task NextGeneration()
         {
             if (_uctproblem.CurrentGeneration == 0)
             {
@@ -59,42 +92,9 @@ namespace UCT
                 _uctproblem.NextGeneration();
             }
 
-            listBox1.Items.Add(_uctproblem.GenerationReport());
-            listBox1.Items.Add(_uctproblem.BestReport());
-        }
-
-        private void StartPauseGeneration_Click(object sender, RoutedEventArgs e)
-        {
-            if (generationTimer.IsEnabled)
-            {
-                StepGeneration.IsEnabled = true;
-                StartPauseGeneration.Content = "Start";
-                generationTimer.Stop();
-            }
-            else
-            {
-                StepGeneration.IsEnabled = false;
-                StartPauseGeneration.Content = "Stop";
-                generationTimer.Start();
-            }
-        }
-
-        private void StepGeneration_Click(object sender, RoutedEventArgs e)
-        {
-            if (!generationTimer.IsEnabled)
-            {
-                if (_uctproblem.CurrentGeneration == 0)
-                {
-                    _uctproblem.FirstGeneration();
-                }
-                else if (_uctproblem.CurrentGeneration < _uctproblem.ProblemObj.MaxGeneration)
-                {
-                    _uctproblem.NextGeneration();
-                }
-
-                listBox1.Items.Add(_uctproblem.GenerationReport());
-                listBox1.Items.Add(_uctproblem.BestReport());
-            }
+            LogBox.Items.Insert(0, _uctproblem.BestReport());
+            LogBox.Items.Insert(0, _uctproblem.GenerationReport());
+            
         }
 
         private void PlotNow_Click(object sender, RoutedEventArgs e)
@@ -132,7 +132,7 @@ namespace UCT
             {
                 // Open document 
                 string filename = dlg.FileName;
-               
+
             }
 
         }
@@ -143,6 +143,25 @@ namespace UCT
                 return;
 
             MainTab.SelectedIndex = 1;
+
+            int minimumResult = _uctproblem.ParentPopulation.IndList.Min(x => x.TotalResult);
+            var result = minimumResult;
+            var bc = _uctproblem.ParentPopulation.IndList.First(x => x.TotalResult == result);
+            bc.Decode(_uctproblem.ProblemObj);
+            bc.Evaluate(_uctproblem.ProblemObj);
+
+            MainTT.Clear();
+
+            for (int i = 0; i < 5; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    foreach (var course in bc.TimeTable[i, j].Courses)
+                    {
+                        MainTT.ControlArray[i, j].Text += course.PrintableName + "\n";
+                    }
+                }
+            }
 
 
         }

@@ -17,7 +17,7 @@
                     <Button x:Name="OpenProblem" Content="Open" Margin="0,10,10,0" VerticalAlignment="Top" RenderTransformOrigin="-0.333,-2.467" HorizontalAlignment="Right" Width="75" Click="OpenProblem_Click"/>
                     <Label x:Name="ProblemTitle" Content="" HorizontalAlignment="Left" Margin="139,7,0,0" VerticalAlignment="Top" Width="98"/>
                     <Label x:Name="label" Content="ID:" HorizontalAlignment="Left" Margin="110,7,0,0" VerticalAlignment="Top"/>
-                    <ListBox x:Name="listBox1" Margin="110,52,33,10"/>
+                    <ListBox x:Name="LogBox" Margin="110,52,33,10"/>
                     <Button x:Name="StartPauseGeneration" Content="Start" HorizontalAlignment="Left" Margin="10,52,0,0" VerticalAlignment="Top" Width="75" Click="StartPauseGeneration_Click"/>
                     <CheckBox x:Name="chkUsePlot" Content="use Gnuplot" HorizontalAlignment="Left" Margin="452,13,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.333,1.4" Click="chkUsePlot_Click"/>
                     <Button x:Name="PlotNow" Content="plot Now" Margin="0,10,213,0" VerticalAlignment="Top" RenderTransformOrigin="-0.333,-2.467" HorizontalAlignment="Right" Width="75" Click="PlotNow_Click"/>
@@ -32,7 +32,7 @@
                             <StackPanel x:Name="sp" ScrollViewer.HorizontalScrollBarVisibility="Visible" CanVerticallyScroll="True" ScrollViewer.CanContentScroll="True" CanHorizontallyScroll="True"/>
                         </ScrollViewer>
                     </Border>
-                    <local:TimeTable Margin="10,35,196,10"/>
+                    <local:TimeTable x:Name="MainTT" Margin="10,35,196,10"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Options and stuff " />

@@ -9,7 +9,7 @@
              d:DesignHeight="400" d:DesignWidth="500">
     <Border BorderBrush="Silver" BorderThickness="1">
 
-        <Grid>
+        <Grid x:Name="TimeTableGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="15*"/>
                 <RowDefinition Height="30*"/>
