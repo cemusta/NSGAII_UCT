@@ -58,6 +58,7 @@
     <Compile Include="Models\Population.cs" />
     <Compile Include="Models\ProblemDefinition.cs" />
     <Compile Include="Models\Slot.cs" />
+    <Compile Include="SerializationHelper.cs" />
     <Compile Include="UCTProblem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\Randomization.cs" />

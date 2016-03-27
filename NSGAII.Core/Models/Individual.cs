@@ -9,7 +9,7 @@ namespace NSGAII.Models
         public double ConstrViolation { get; set; }
         public int Rank { get; set; }
         public double[] Xreal { get; set; }
-        public int[,] Gene { get; set; }
+        public List<List<int>> Gene { get; set; }
         public int[] SlotId { get; set; }
         public int[] Obj { get; set; }
         public double[] Constr { get; set; }
@@ -24,7 +24,7 @@ namespace NSGAII.Models
         private int _nObj;
         private int _nCons;
 
-        public readonly Slot[,] TimeTable = new Slot[5, 9];
+        public readonly List<List<Slot>> TimeTable;
 
         public Individual(int nRealVar, int nBinVar, int nMaxBit, int nObj, int nCons)
         {
@@ -42,13 +42,24 @@ namespace NSGAII.Models
             if (nBinVar != 0)
             {
                 SlotId = new int[nBinVar];
-                Gene = new int[nBinVar, nMaxBit];
+                Gene = new List<List<int>>();
+                for (int i = 0; i < nBinVar; i++)
+                {
+                    Gene.Add(new List<int>(nMaxBit));
+                    for (int j = 0; j < nMaxBit; j++)
+                    {
+                        Gene[i].Add(0);
+                    }
+                }
+                //Gene = new int[nBinVar, nMaxBit];
             }
 
             Obj = new int[nObj];
 
             if (nCons != 0)
                 Constr = new double[nCons];
+
+            TimeTable = new List<List<Slot>>();
         }
 
         public Individual(Individual ind, ProblemDefinition problem)
@@ -68,7 +79,16 @@ namespace NSGAII.Models
             if (ind._nBinVar != 0)
             {
                 SlotId = new int[ind._nBinVar];
-                Gene = new int[ind._nBinVar, ind._nMaxBit];
+                Gene = new List<List<int>>();
+                for (int i = 0; i < ind._nBinVar; i++)
+                {
+                    Gene.Add(new List<int>(ind._nBinVar));
+                    for (int j = 0; j < _nMaxBit; j++)
+                    {
+                        Gene[i].Add(0);
+                    }
+                }
+                //Gene = new int[ind._nBinVar, ind._nMaxBit];
             }
 
             Obj = new int[ind._nObj];
@@ -94,7 +114,7 @@ namespace NSGAII.Models
                     SlotId[i] = ind.SlotId[i];
                     for (int j = 0; j < problem.nbits[i]; j++)
                     {
-                        Gene[i, j] = ind.Gene[i, j];
+                        Gene[i][j] = ind.Gene[i][j];
                     }
                 }
             }
@@ -110,6 +130,13 @@ namespace NSGAII.Models
                 }
             }
 
+            TimeTable = new List<List<Slot>>();
+
+        }
+
+        public Individual()
+        {
+            TimeTable = new List<List<Slot>>();
         }
 
         public void Copy(Individual ind, ProblemDefinition problem)
@@ -140,7 +167,7 @@ namespace NSGAII.Models
                     SlotId[i] = ind.SlotId[i];
                     for (int j = 0; j < problem.nbits[i]; j++)
                     {
-                        Gene[i, j] = ind.Gene[i, j];
+                        Gene[i][j] = ind.Gene[i][j];
                     }
                 }
             }
@@ -171,7 +198,7 @@ namespace NSGAII.Models
                 var sum = 0;
                 for (int k = 0; k < problem.nbits[j]; k++)
                 {
-                    if (Gene[j, k] == 1)
+                    if (Gene[j][ k] == 1)
                     {
                         sum += (int)Math.Pow(2, problem.nbits[j] - 1 - k);
                     }
@@ -193,11 +220,11 @@ namespace NSGAII.Models
                 if (valueToAdd % modulus == divident)
                 {
                     valueToAdd = valueToAdd - divident;
-                    Gene[geneId, k] = 1;
+                    Gene[geneId][ k] = 1;
                 }
                 else
                 {
-                    Gene[geneId, k] = 0;
+                    Gene[geneId][k] = 0;
                 }
             }
 
@@ -222,11 +249,11 @@ namespace NSGAII.Models
                     {
                         if (randomObj.RandomPercent() <= 0.5)
                         {
-                            Gene[j, k] = 0;
+                            Gene[j][ k] = 0;
                         }
                         else
                         {
-                            Gene[j, k] = 1;
+                            Gene[j][k] = 1;
                         }
                     }
                 }
@@ -261,12 +288,13 @@ namespace NSGAII.Models
 
             #region fill variables
 
-            //Slot[,] timeTable = new Slot[5, 9];
+            TimeTable.Clear();
             for (int x = 0; x < 5; x++)
             {
+                TimeTable.Add(new List<Slot>());
                 for (int y = 0; y < 9; y++)
                 {
-                    TimeTable[x, y] = new Slot(problemObj.TeacherList.Count);
+                    TimeTable[x].Add(new Slot(problemObj.TeacherList.Count));
                 }
             }
 
@@ -277,7 +305,7 @@ namespace NSGAII.Models
 
             for (int j = 0; j < problemObj.BinaryVariableCount; j++) //ders sayisi kadar.
             {
-                int slotId = (int)SlotId[j];
+                int slotId = SlotId[j];
                 adding_course_timeTable(TimeTable, slotId, problemObj.CourseList[j]);
             }
 
@@ -286,7 +314,7 @@ namespace NSGAII.Models
                 for (int y = 0; y < 9; y++)
                 {
                     if (problemObj.Meeting[x, y] > 0)
-                        TimeTable[x, y].meetingHour = true; // meeting hours
+                        TimeTable[x][y].meetingHour = true; // meeting hours
                 }
             }
             #endregion
@@ -297,7 +325,7 @@ namespace NSGAII.Models
             //dönem ici dekanlik/bolum dersi cakismasi todo: scheduling'in normal slot halinde gelmesi lazım
             for (int j = 0; j < 8; j++)
             {
-                List<Collision> col = calculate_collisionBaseLectureWithFaculty(TimeTable, problemObj.Scheduling[j], 0, j + 1, 0);
+                List<Collision> col = calculate_collisionBaseLectureWithFaculty(TimeTable, problemObj.Scheduling[j], 0, j + 1);
                 var result = col.Sum(item => item.Result);
                 Obj[0] += result;
                 CollisionList.AddRange(col);
@@ -344,7 +372,7 @@ namespace NSGAII.Models
             #region Lab Count
             //aynı saatte 4'ten fazla lab olmaması lazim todo: hangi lab? inputtan alacaz.
             {
-                List<Collision> labcol = calculate_LabCollision(TimeTable, 4, 0);
+                List<Collision> labcol = calculate_LabCollision(TimeTable, 4);
                 var y = labcol.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(labcol);
@@ -362,7 +390,7 @@ namespace NSGAII.Models
 
                 {
                     //og. gor. aynı saatte baska dersinin olmaması
-                    List<Collision> col = calculate_TeacherCollision(TimeTable, j, 1, 0);
+                    List<Collision> col = calculate_TeacherCollision(TimeTable, j, 1);
                     var yy1 = col.Sum(item => item.Result);
                     Obj[0] += yy1;
                     CollisionList.AddRange(col);
@@ -418,7 +446,7 @@ namespace NSGAII.Models
                 //}
                 //Obj[2] += x;  //todo: sayılar tutmuyor.
 
-                List<Collision> col = calculate_LectureLabCollision(TimeTable, 2);
+                List<Collision> col = calculate_LectureLabCollision(TimeTable);
                 var y = col.Sum(item => item.Result);
                 Obj[2] += y;
                 CollisionList.AddRange(col);
@@ -427,7 +455,7 @@ namespace NSGAII.Models
             #region Elecive vs Elective
             //elective vs elective collision
             {
-                List<Collision> col = calculate_ElectiveCollision(TimeTable, 1, 0);
+                List<Collision> col = calculate_ElectiveCollision(TimeTable, 1);
                 var y = col.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(col);
@@ -465,13 +493,13 @@ namespace NSGAII.Models
                 CollisionList.AddRange(col);
                 col.Clear();
 
-                col = calculate_collisionElectiveWithSemester(TimeTable, 0, 7, 0);
+                col = calculate_collisionElectiveWithSemester(TimeTable, 0, 7);
                 y = col.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(col);
                 col.Clear();
 
-                col = calculate_collisionElectiveWithSemester(TimeTable, 0, 8, 0);
+                col = calculate_collisionElectiveWithSemester(TimeTable, 0, 8);
                 y = col.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(col);
@@ -481,7 +509,7 @@ namespace NSGAII.Models
             //todo: dekanlık derslerinin sectionları??
             #endregion
 
-            TotalResult = (int)Obj[0] + (int)Obj[1] + (int)Obj[2];
+            TotalResult = Obj[0] + Obj[1] + Obj[2];
 
         }
 
@@ -492,7 +520,7 @@ namespace NSGAII.Models
 
             if (CollisionList.Count > 0)
             {
-                bool continueClimb = false;
+                bool continueClimb;
                 Individual original = new Individual(this, problemObj);
                 original.Decode(problemObj);
                 original.Evaluate(problemObj);
@@ -537,7 +565,7 @@ namespace NSGAII.Models
 
                 if (tCollisionImprovement < 0 || tResultImprovement < 0) //todo check sanki geri almıyor.
                 {
-                    this.Copy(original, problemObj);
+                    Copy(original, problemObj);
                     Decode(problemObj);
                     Evaluate(problemObj);
                     tResultImprovement = 0;
@@ -550,8 +578,6 @@ namespace NSGAII.Models
         {
             bool UseSemiFit = false;
             Random rnd = new Random(DateTime.Now.Millisecond);
-
-            byte[] random = new Byte[100];
 
             var tempColl = CollisionList.ToList();
 
@@ -908,18 +934,18 @@ namespace NSGAII.Models
 
             if (hour == 1)
             {
-                temp.Add(TimeTable[x, y]);
+                temp.Add(TimeTable[x][y]);
             }
             else if (hour == 2)
             {
-                temp.Add(TimeTable[x, y]);
-                temp.Add(TimeTable[x, y + 1]);
+                temp.Add(TimeTable[x][y]);
+                temp.Add(TimeTable[x][y + 1]);
             }
             else if (hour == 3)
             {
-                temp.Add(TimeTable[x, y]);
-                temp.Add(TimeTable[x, y + 1]);
-                temp.Add(TimeTable[x, y + 2]);
+                temp.Add(TimeTable[x][y]);
+                temp.Add(TimeTable[x][y + 1]);
+                temp.Add(TimeTable[x][y + 2]);
             }
             else
             {
@@ -932,69 +958,30 @@ namespace NSGAII.Models
         private int GetX(int slotId, int hour)
         {
             int x = 0;
-            int y = 0;
 
             if (slotId > 24)
                 return -1;
 
-            #region determine x,y
+            #region determine x
             if (hour == 1) // bir saatlik ders ise.
             {
                 if (slotId % 5 < 3)
                 {
                     x = slotId / 5;
-                    y = slotId % 5 + 2;
                 }
                 else
                 {
                     x = slotId / 5;
-                    y = slotId % 5 + 4;
                 }
 
             }
             else if (hour == 2) // 2 saatlik ders ise.
             {
                 x = slotId / 5;
-                if (slotId % 5 == 0)
-                {
-                    y = 0;
-                }
-                if (slotId % 5 == 1)
-                {
-                    y = 2;
-                }
-                if (slotId % 5 == 2)
-                {
-                    y = 3;
-                }
-                if (slotId % 5 == 3)
-                {
-                    y = 5;
-                }
-                if (slotId % 5 == 4)
-                {
-                    y = 7;
-                }
             }
             else if (hour == 3) // 3 saatlik ders ise.
             {
                 x = slotId / 4;
-                if (slotId % 4 == 0)
-                {
-                    y = 0;
-                }
-                if (slotId % 4 == 1)
-                {
-                    y = 2;
-                }
-                if (slotId % 4 == 2)
-                {
-                    y = 4;
-                }
-                if (slotId % 4 == 3)
-                {
-                    y = 5;
-                }
             }
             #endregion
 
@@ -1002,30 +989,26 @@ namespace NSGAII.Models
         }
         private int GetY(int slotId, int hour)
         {
-            int x = 0;
             int y = 0;
 
             if (slotId > 24)
                 return -1;
 
-            #region determine x,y
+            #region determine y
             if (hour == 1) // bir saatlik ders ise.
             {
                 if (slotId % 5 < 3)
                 {
-                    x = slotId / 5;
                     y = slotId % 5 + 2;
                 }
                 else
                 {
-                    x = slotId / 5;
                     y = slotId % 5 + 4;
                 }
 
             }
             else if (hour == 2) // 2 saatlik ders ise.
             {
-                x = slotId / 5;
                 if (slotId % 5 == 0)
                 {
                     y = 0;
@@ -1049,7 +1032,6 @@ namespace NSGAII.Models
             }
             else if (hour == 3) // 3 saatlik ders ise.
             {
-                x = slotId / 4;
                 if (slotId % 4 == 0)
                 {
                     y = 0;
@@ -1105,7 +1087,7 @@ namespace NSGAII.Models
         16-17	-	-	-	-	-
         17-18	-	-	-	-	-
         */
-        static void adding_course_timeTable(Slot[,] array, int slotId, Course cor)
+        static void adding_course_timeTable(List<List<Slot>> array, int slotId, Course cor)
         {
             int x;
             int y = 0;
@@ -1121,10 +1103,10 @@ namespace NSGAII.Models
                     x = slotId / 5;
                     y = slotId % 5 + 4;
                 }
-                array[x, y].Courses.Add(cor);
-                array[x, y].Teacher[cor.TeacherId]++;
+                array[x][y].Courses.Add(cor);
+                array[x][y].Teacher[cor.TeacherId]++;
                 if (cor.Type == 1)
-                    array[x, y].labCount++;
+                    array[x][y].labCount++;
             }
             else if (cor.Duration == 2) // 2 saatlik ders ise.
             {
@@ -1149,16 +1131,16 @@ namespace NSGAII.Models
                 {
                     y = 7;
                 }
-                array[x, y].Courses.Add(cor);
-                array[x, y].Teacher[cor.TeacherId]++;
+                array[x][y].Courses.Add(cor);
+                array[x][y].Teacher[cor.TeacherId]++;
                 if (cor.Type == 1)
-                    array[x, y].labCount++;
+                    array[x][y].labCount++;
 
                 y++;
-                array[x, y].Courses.Add(cor);
-                array[x, y].Teacher[cor.TeacherId]++;
+                array[x][y].Courses.Add(cor);
+                array[x][y].Teacher[cor.TeacherId]++;
                 if (cor.Type == 1)
-                    array[x, y].labCount++;
+                    array[x][y].labCount++;
             }
             else if (cor.Duration == 3) // 3 saatlik ders ise.
             {
@@ -1179,20 +1161,20 @@ namespace NSGAII.Models
                 {
                     y = 5;
                 }
-                array[x, y].Courses.Add(cor);
-                array[x, y].Teacher[cor.TeacherId]++;
+                array[x][y].Courses.Add(cor);
+                array[x][y].Teacher[cor.TeacherId]++;
                 if (cor.Type == 1)
-                    array[x, y].labCount++;
+                    array[x][y].labCount++;
                 y++;
-                array[x, y].Courses.Add(cor);
-                array[x, y].Teacher[cor.TeacherId]++;
+                array[x][y].Courses.Add(cor);
+                array[x][y].Teacher[cor.TeacherId]++;
                 if (cor.Type == 1)
-                    array[x, y].labCount++;
+                    array[x][y].labCount++;
                 y++;
-                array[x, y].Courses.Add(cor);
-                array[x, y].Teacher[cor.TeacherId]++;
+                array[x][y].Courses.Add(cor);
+                array[x][y].Teacher[cor.TeacherId]++;
                 if (cor.Type == 1)
-                    array[x, y].labCount++;
+                    array[x][y].labCount++;
             }
         }
 
@@ -1200,14 +1182,14 @@ namespace NSGAII.Models
 
         #region Collisions
 
-        static List<Collision> calculate_collisionBaseLectureWithFaculty(Slot[,] timeTable, int[,] array2, int minimumCollision, int semester, int obj = 0)
+        static List<Collision> calculate_collisionBaseLectureWithFaculty(List<List<Slot>> timeTable, int[,] array2, int minimumCollision, int semester, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    Slot tempSlot = timeTable[i, j];
+                    Slot tempSlot = timeTable[i][j];
 
                     if (tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision && array2[i, j] > minimumCollision)
                     {
@@ -1226,14 +1208,14 @@ namespace NSGAII.Models
             }
             return collisionList;
         }
-        static List<Collision> calculate_collisionInSemester(Slot[,] timeTable, int minimumCollision, int semester, int obj = 0)
+        static List<Collision> calculate_collisionInSemester(List<List<Slot>> timeTable, int minimumCollision, int semester, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    Slot tempSlot = timeTable[i, j];
+                    Slot tempSlot = timeTable[i][j];
 
                     if (tempSlot.Courses.FindAll(x => x.Semester == semester && !x.Elective).Count > minimumCollision)
                     {
@@ -1252,14 +1234,14 @@ namespace NSGAII.Models
             }
             return collisionList;
         }
-        static List<Collision> calculate_collisionInSemesters(Slot[,] timeTable, int minimumCollision, List<int> semesters, int obj = 0)
+        static List<Collision> calculate_collisionInSemesters(List<List<Slot>> timeTable, int minimumCollision, List<int> semesters, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    Slot tempSlot = timeTable[i, j];
+                    Slot tempSlot = timeTable[i][j];
 
                     List<Course> selectedSemesterCourses;
 
@@ -1297,14 +1279,14 @@ namespace NSGAII.Models
             }
             return collisionList;
         }
-        static List<Collision> calculate_LabCollision(Slot[,] timeTable, int minimumCollision, int obj = 0)
+        static List<Collision> calculate_LabCollision(List<List<Slot>> timeTable, int minimumCollision, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    Slot tempSlot = timeTable[i, j];
+                    Slot tempSlot = timeTable[i][j];
 
                     if (tempSlot.labCount > minimumCollision)
                     {
@@ -1326,14 +1308,14 @@ namespace NSGAII.Models
             return collisionList;
         }
 
-        static List<Collision> calculate_TeacherCollision(Slot[,] timeTable, int teacherId, int minimumCollision, int obj = 0)
+        static List<Collision> calculate_TeacherCollision(List<List<Slot>> timeTable, int teacherId, int minimumCollision, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    Slot tempSlot = timeTable[i, j];
+                    Slot tempSlot = timeTable[i][j];
 
                     int hours = tempSlot.Courses.FindAll(x => x.TeacherId == teacherId).Count;
                     if (tempSlot.meetingHour)
@@ -1359,14 +1341,14 @@ namespace NSGAII.Models
             }
             return collisionList;
         }
-        static int calculate_collisionTeacherFreeDay(Slot[,] timeTable, int teacherId)
+        static int calculate_collisionTeacherFreeDay(List<List<Slot>> timeTable, int teacherId)
         {
             for (int i = 0; i < 5; i++) //gun
             {
                 var counter = 0;
                 for (int j = 0; j < 9; j++) //dersler
                 {
-                    Slot tempSlot = timeTable[i, j];
+                    Slot tempSlot = timeTable[i][j];
 
                     if (tempSlot.Courses.Any(x => x.TeacherId == teacherId) || tempSlot.meetingHour)
                     {
@@ -1385,7 +1367,7 @@ namespace NSGAII.Models
 
             return 1;
         }
-        static int calculate_collisionTeacherConsicutive(Slot[,] timeTable, int teacherId, int maxConsecutiveHour)
+        static int calculate_collisionTeacherConsicutive(List<List<Slot>> timeTable, int teacherId, int maxConsecutiveHour)
         {
             int result = 0;
             for (int i = 0; i < 5; i++)
@@ -1393,7 +1375,7 @@ namespace NSGAII.Models
                 var counter = 0;
                 for (int j = 0; j < 9; j++)
                 {
-                    Slot tempSlot = timeTable[i, j];
+                    Slot tempSlot = timeTable[i][j];
 
                     if (tempSlot.Courses.Any(x => x.TeacherId == teacherId) || tempSlot.meetingHour) //dersi veya meetingi varsa ++
                     {
@@ -1412,7 +1394,7 @@ namespace NSGAII.Models
             return result;
         }
 
-        static List<Collision> calculate_LectureLabCollision(Slot[,] timeTable, int obj = 2)
+        static List<Collision> calculate_LectureLabCollision(List<List<Slot>> timeTable, int obj = 2)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1422,7 +1404,7 @@ namespace NSGAII.Models
 
                 for (int j = 0; j < 9; j++)
                 {
-                    Slot tempSlot = timeTable[i, j];
+                    Slot tempSlot = timeTable[i][j];
 
                     lectures.AddRange(tempSlot.Courses.Where(x => x.Type == 0));
                     labs.AddRange(tempSlot.Courses.Where(x => x.Type == 1));
@@ -1461,14 +1443,14 @@ namespace NSGAII.Models
             return collisionList;
         }
 
-        static List<Collision> calculate_ElectiveCollision(Slot[,] timeTable, int minimumCollision, int obj = 0)
+        static List<Collision> calculate_ElectiveCollision(List<List<Slot>> timeTable, int minimumCollision, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    Slot tempSlot = timeTable[i, j];
+                    Slot tempSlot = timeTable[i][j];
 
                     if (tempSlot.Courses.FindAll(x => x.Elective).Count > minimumCollision)
                     {
@@ -1488,14 +1470,14 @@ namespace NSGAII.Models
             return collisionList;
         }
 
-        static List<Collision> calculate_collisionElectiveWithBaseCourses(Slot[,] timeTable, int[,] array2, int minimumCollision, int obj = 2)
+        static List<Collision> calculate_collisionElectiveWithBaseCourses(List<List<Slot>> timeTable, int[,] array2, int minimumCollision, int obj = 2)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    Slot tempSlot = timeTable[i, j];
+                    Slot tempSlot = timeTable[i][j];
 
                     if (tempSlot.Courses.Count(x => x.Elective) > minimumCollision && array2[i, j] > minimumCollision)
                     {
@@ -1516,14 +1498,14 @@ namespace NSGAII.Models
             return collisionList;
         }
 
-        static List<Collision> calculate_collisionElectiveWithSemester(Slot[,] timeTable, int minimumCollision, int semester, int obj = 0)
+        static List<Collision> calculate_collisionElectiveWithSemester(List<List<Slot>> timeTable, int minimumCollision, int semester, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    Slot tempSlot = timeTable[i, j];
+                    Slot tempSlot = timeTable[i][j];
 
                     if (tempSlot.Courses.Count(x => x.Elective) > minimumCollision && tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision)
                     {

@@ -34,6 +34,12 @@ namespace NSGAII.Models
             CrashingCourses = new List<Course>();
         }
 
+        public Collision()
+        {
+            Result = 0;
+            TeacherId = 0;
+            CrashingCourses = new List<Course>();
+        }
     }
 
     public enum CollisionType

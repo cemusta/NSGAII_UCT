@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using NSGAII.Models;
 
 namespace NSGAII
@@ -81,7 +81,10 @@ namespace NSGAII
             CreatePopulationObject();
         }
 
+        private UCTProblem()
+        {
 
+        }
 
         private void ReadBinaryValues()
         {
@@ -395,7 +398,7 @@ namespace NSGAII
 
         private void WriteStartParams()
         {
-            System.IO.Directory.CreateDirectory("report");
+            Directory.CreateDirectory("report");
             var file = File.OpenWrite("report\\" + ProblemObj.Title + "_params.out");
             StreamWriter writer = new StreamWriter(file);
             writer.Write("# This file contains information about inputs as read by the program\n");
@@ -553,6 +556,7 @@ namespace NSGAII
         }
 
 
+
         public void WriteCurrentGeneration()
         {
             ParentPopulation.ReportPopulation(ProblemObj, "current", "This file contains the data of current generation", CurrentGeneration);
@@ -566,6 +570,36 @@ namespace NSGAII
         public void WriteBestGeneration()
         {
             ParentPopulation.ReportPopulation(ProblemObj, "best", "This file contains the data of best individuals");
+        }
+
+
+        public static UCTProblem LoadFromFile(string filename)
+        {
+            try
+            {
+                var readFile = File.ReadAllText(filename, Encoding.UTF8);
+
+                return SerializationHelper.DeserializeObject<UCTProblem>(readFile);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public static bool SaveToFile(UCTProblem uctToSave, string filename)
+        {
+            try
+            {
+                var textToSave = SerializationHelper.SerializeObject(uctToSave);
+
+                File.WriteAllText(filename + ".problem", textToSave, Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+            return true;
         }
 
 
@@ -773,26 +807,26 @@ namespace NSGAII
                     }
                     for (j = 0; j < site1; j++)
                     {
-                        child1.Gene[i, j] = parent1.Gene[i, j];
-                        child2.Gene[i, j] = parent2.Gene[i, j];
+                        child1.Gene[i][j] = parent1.Gene[i][j];
+                        child2.Gene[i][j] = parent2.Gene[i][j];
                     }
                     for (j = site1; j < site2; j++)
                     {
-                        child1.Gene[i, j] = parent2.Gene[i, j];
-                        child2.Gene[i, j] = parent1.Gene[i, j];
+                        child1.Gene[i][j] = parent2.Gene[i][j];
+                        child2.Gene[i][j] = parent1.Gene[i][j];
                     }
                     for (j = site2; j < ProblemObj.nbits[i]; j++)
                     {
-                        child1.Gene[i, j] = parent1.Gene[i, j];
-                        child2.Gene[i, j] = parent2.Gene[i, j];
+                        child1.Gene[i][j] = parent1.Gene[i][j];
+                        child2.Gene[i][j] = parent2.Gene[i][j];
                     }
                 }
                 else
                 {
                     for (j = 0; j < ProblemObj.nbits[i]; j++)
                     {
-                        child1.Gene[i, j] = parent1.Gene[i, j];
-                        child2.Gene[i, j] = parent2.Gene[i, j];
+                        child1.Gene[i][j] = parent1.Gene[i][j];
+                        child2.Gene[i][j] = parent2.Gene[i][j];
                     }
                 }
             }
@@ -898,13 +932,13 @@ namespace NSGAII
                     prob = RandomizationObj.RandomPercent();
                     if (prob <= ProblemObj.BinaryMutationProbability)
                     {
-                        if (ind.Gene[j, k] == 0)
+                        if (ind.Gene[j][k] == 0)
                         {
-                            ind.Gene[j, k] = 1;
+                            ind.Gene[j][k] = 1;
                         }
                         else
                         {
-                            ind.Gene[j, k] = 0;
+                            ind.Gene[j][k] = 0;
                         }
                         ProblemObj.BinaryMutationCount += 1;
                     }

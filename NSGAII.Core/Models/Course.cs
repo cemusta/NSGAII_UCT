@@ -29,5 +29,7 @@ namespace NSGAII.Models {
             prerequisites = new List<int>();
         }
 
+        public Course() { }
+
     }
 }

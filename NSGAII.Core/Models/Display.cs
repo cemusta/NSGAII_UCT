@@ -11,6 +11,8 @@ namespace NSGAII.Models
         public int GnuplotObjective2;
         public int GnuplotObjective3;
 
+        public Display() { }
+
         ///* Function to display the current population for the subsequent generation */
         public void PlotPopulation(Population pop, ProblemDefinition problem, int genNo = 0, List<Individual> best = null)
         {            

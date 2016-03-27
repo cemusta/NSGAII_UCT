@@ -17,6 +17,8 @@ namespace NSGAII.Models
             }
         }
 
+        public Population() {}
+
         public void Decode(ProblemDefinition problem)
         {
             if (problem.BinaryVariableCount == 0)
@@ -58,18 +60,20 @@ namespace NSGAII.Models
             }
         }
 
-        public void HillClimb(ProblemDefinition problemObj)
+        public int HillClimb(ProblemDefinition problemObj)
         {
+            int retVal = 0;
             for (int i = 0; i < this.IndList.Count; i++)
             {
-                IndList[i].HillClimb(problemObj);
+                retVal += IndList[i].HillClimb(problemObj);
             }
+            return retVal;
         }
 
         /* Function to print the information of a population in a file */
         public void ReportPopulation(ProblemDefinition problemObj, string name, string info, int generation = 0)
         {
-            System.IO.Directory.CreateDirectory("report"); 
+            Directory.CreateDirectory("report"); 
             var file = File.OpenWrite($"report\\{problemObj.Title}_{name}_pop.out");
             StreamWriter writer = new StreamWriter(file);
             writer.WriteLine($"# {info}");
@@ -109,7 +113,7 @@ namespace NSGAII.Models
                     {
                         for (int k = 0; k < problemObj.nbits[j]; k++)
                         {
-                            writer.Write($"{IndList[i].Gene[j, k]}\t");
+                            writer.Write($"{IndList[i].Gene[j][ k]}\t");
                         }
                     }
                 }
@@ -128,7 +132,7 @@ namespace NSGAII.Models
         /* Function to print the information of feasible and non-dominated population in a file */
         public void ReportFeasiblePopulation(ProblemDefinition problemObj, string name, string info)
         {
-            System.IO.Directory.CreateDirectory("report");
+            Directory.CreateDirectory("report");
             var file = File.OpenWrite($"{problemObj.Title}_{name}_pop.out");
             StreamWriter writer = new StreamWriter(file);
             writer.WriteLine($"# {info}");
@@ -162,7 +166,7 @@ namespace NSGAII.Models
                         {
                             for (int k = 0; k < problemObj.nbits[j]; k++)
                             {
-                                writer.Write($"{IndList[i].Gene[j, k]}\t");
+                                writer.Write($"{IndList[i].Gene[j][k]}\t");
                             }
                         }
                     }

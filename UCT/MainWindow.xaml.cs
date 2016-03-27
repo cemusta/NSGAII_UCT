@@ -52,9 +52,9 @@ namespace UCT
             LogBox.Items.Clear();
         }
 
-        private async void generationTimer_Tick(object sender, EventArgs e)
+        private void generationTimer_Tick(object sender, EventArgs e)
         {
-            await NextGeneration();
+            NextGeneration();
         }
 
         private void StartPauseGeneration_Click(object sender, RoutedEventArgs e)
@@ -73,15 +73,15 @@ namespace UCT
             }
         }
 
-        private async void StepGeneration_Click(object sender, RoutedEventArgs e)
+        private void StepGeneration_Click(object sender, RoutedEventArgs e)
         {
             if (!generationTimer.IsEnabled)
             {
-                await NextGeneration();
+                NextGeneration();
             }
         }
 
-        public async Task NextGeneration()
+        public void NextGeneration()
         {
             if (_uctproblem.CurrentGeneration == 0)
             {
@@ -126,27 +126,6 @@ namespace UCT
             }
         }
 
-        private void OpenProblem_Click(object sender, RoutedEventArgs e)
-        {
-            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
-
-            // Set filter for file extension and default file extension 
-            dlg.DefaultExt = ".out";
-            dlg.Filter = "Problem out (*.out)|*.out";
-
-            // Display OpenFileDialog by calling ShowDialog method 
-            bool? result = dlg.ShowDialog();
-
-            // Get the selected file name and display in a TextBox 
-            if (result == true)
-            {
-                // Open document 
-                string filename = dlg.FileName;
-
-            }
-
-        }
-
         private void ReportBest_Click(object sender, RoutedEventArgs e)
         {
             if (_uctproblem.CurrentGeneration == 0)
@@ -166,7 +145,7 @@ namespace UCT
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    foreach (var course in bc.TimeTable[i, j].Courses)
+                    foreach (var course in bc.TimeTable[i][j].Courses)
                     {
                         MainTT.ControlArray[i, j].Text += course.PrintableName + "\n";
                     }
@@ -174,6 +153,32 @@ namespace UCT
             }
 
 
+        }
+
+        private void OpenProblem_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+
+            // Set filter for file extension and default file extension 
+            dlg.DefaultExt = ".out";
+            dlg.Filter = "Problem save (*.problem)|*.problem";
+
+            // Display OpenFileDialog by calling ShowDialog method 
+            bool? result = dlg.ShowDialog();
+
+            // Get the selected file name and display in a TextBox 
+            if (result == true)
+            {
+                // Open document 
+                string filename = dlg.FileName;
+                UCTProblem.LoadFromFile(filename);
+            }
+
+        }
+
+        private void SaveProblem_Click(object sender, RoutedEventArgs e)
+        {
+            UCTProblem.SaveToFile(_uctproblem, _uctproblem.ProblemObj.Title);
         }
     }
 }

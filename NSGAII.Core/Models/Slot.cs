@@ -20,5 +20,7 @@ namespace NSGAII.Models
             }
             labCount = 0;
         }
+
+        public Slot() { }
     }
 }

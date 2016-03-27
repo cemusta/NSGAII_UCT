@@ -11,6 +11,8 @@
             seed = dSeed;
         }
 
+        public Randomization() { }
+
         /* Get seed number for random and start it up */
         public void Randomize()
         {

@@ -45,5 +45,7 @@ namespace NSGAII.Models
         {
             Title = title;
         }
+
+        private ProblemDefinition() { }
     }
 }
