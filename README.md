@@ -1,8 +1,8 @@
 # NSGAII_UCT
 
-For basic usage, put all of the sample data into bin folder and start application with following command line:
+For basic usage, put all of the sample data into bin folder and start application.
 
-ConsoleApp 0.7 < params.in
+~~ConsoleApp 0.7 < params.in~~
 
 It will start GA for 200 population sized 10.000 generation for UCT problem.
 
