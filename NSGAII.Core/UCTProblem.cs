@@ -636,6 +636,31 @@ namespace NSGAII
         }
 
 
+        public void HillClimb()
+        {
+
+            ParentPopulation.Decode(ProblemObj);
+            ParentPopulation.Evaluate(ProblemObj);
+            ParentPopulation.HillClimb(ProblemObj);
+
+            int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+
+
+            var result = minimumResult;
+            var bestChild = ParentPopulation.IndList.Where(x => x.TotalResult == result).ToList();
+
+
+            if (UsePlot)
+            {
+                DisplayObj.PlotPopulation(ParentPopulation, ProblemObj, CurrentGeneration, bestChild.ToList());
+            }
+
+            Console.WriteLine(GenerationReport());
+            Console.WriteLine(BestReport());
+
+
+        }
+
 
 
         #region NSGAII stuff

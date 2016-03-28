@@ -95,10 +95,31 @@ namespace UCT
                 _uctproblem.WriteBestGeneration();
                 _uctproblem.WriteFinalGeneration();
             }
-
-
-
         }
+
+        public void HillClimb()
+        {
+            if (_uctproblem.CurrentGeneration == 0)
+            {
+                _uctproblem.FirstGeneration();
+                LogBox.Items.Insert(0, _uctproblem.BestReport());
+                LogBox.Items.Insert(0, _uctproblem.GenerationReport());
+            }
+            else if (_uctproblem.CurrentGeneration <= _uctproblem.ProblemObj.MaxGeneration)
+            {
+                _uctproblem.NextGeneration();
+                LogBox.Items.Insert(0, _uctproblem.BestReport());
+                LogBox.Items.Insert(0, _uctproblem.GenerationReport());
+            }
+            else
+            {
+                generationTimer.Stop();
+                LogBox.Items.Insert(0, "Problem reached upper generation limit.");
+                _uctproblem.WriteBestGeneration();
+                _uctproblem.WriteFinalGeneration();
+            }
+        }
+
 
         private void PlotNow_Click(object sender, RoutedEventArgs e)
         {
@@ -184,6 +205,19 @@ namespace UCT
             ProblemTitle.Content = "";
             EnableGenerationControls(false);
             LogBox.Items.Clear();
+        }
+
+
+
+        private void HillClimbButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_uctproblem == null)
+                return;
+
+            LogBox.Items.Insert(0, "HillClimbing Parent");
+            _uctproblem.HillClimb();
+            LogBox.Items.Insert(0, _uctproblem.BestReport());
+            LogBox.Items.Insert(0, _uctproblem.GenerationReport());
         }
     }
 }
