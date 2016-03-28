@@ -18,11 +18,11 @@ namespace NSGAII.Models
 
         public List<Collision> CollisionList { get; set; }
 
-        private int _nRealVar;
-        private int _nBinVar;
-        private int _nMaxBit;
-        private int _nObj;
-        private int _nCons;
+        public int _nRealVar;
+        public int _nBinVar;
+        public int _nMaxBit;
+        public int _nObj;
+        public int _nCons;
 
         public readonly List<List<Slot>> TimeTable;
 
@@ -137,6 +137,29 @@ namespace NSGAII.Models
         public Individual()
         {
             TimeTable = new List<List<Slot>>();
+
+            if (_nRealVar != 0)
+                Xreal = new double[_nRealVar];
+
+            if (_nBinVar != 0)
+            {
+                SlotId = new int[_nBinVar];
+                Gene = new List<List<int>>();
+                for (int i = 0; i < _nBinVar; i++)
+                {
+                    Gene.Add(new List<int>(_nMaxBit));
+                    for (int j = 0; j < _nMaxBit; j++)
+                    {
+                        Gene[i].Add(0);
+                    }
+                }
+                //Gene = new int[nBinVar, nMaxBit];
+            }
+
+            Obj = new int[_nObj];
+
+            if (_nCons != 0)
+                Constr = new double[_nCons];
         }
 
         public void Copy(Individual ind, ProblemDefinition problem)
@@ -313,7 +336,7 @@ namespace NSGAII.Models
             {
                 for (int y = 0; y < 9; y++)
                 {
-                    if (problemObj.Meeting[x, y] > 0)
+                    if (problemObj.Meeting[x][y] > 0)
                         TimeTable[x][y].meetingHour = true; // meeting hours
                 }
             }
@@ -633,7 +656,7 @@ namespace NSGAII.Models
                                 #region base vs faculty same semester
                                 if (!crashingCourse.Elective)
                                 {
-                                    if (problemObj.Scheduling[semester - 1][day, hour + j] > 0) //base vs faculty collision, same semester.
+                                    if (problemObj.Scheduling[semester - 1][day][hour + j] > 0) //base vs faculty collision, same semester.
                                     {
                                         fittingSlot = false;
                                         break;
@@ -657,7 +680,7 @@ namespace NSGAII.Models
                                 {
                                     if (semester - 2 >= 0)
                                     {
-                                        if (problemObj.Scheduling[semester - 2][day, hour + j] > 0) //base vs faculty collision, -1 semester.
+                                        if (problemObj.Scheduling[semester - 2][day][ hour + j] > 0) //base vs faculty collision, -1 semester.
                                         {
                                             if (UseSemiFit)
                                                 semiFittingSlot = true;
@@ -670,7 +693,7 @@ namespace NSGAII.Models
                                     }
                                     if (semester < 8)
                                     {
-                                        if (problemObj.Scheduling[semester][day, hour + j] > 0) //base vs faculty collision, +1 semester.
+                                        if (problemObj.Scheduling[semester][day][hour + j] > 0) //base vs faculty collision, +1 semester.
                                         {
                                             if (UseSemiFit)
                                                 semiFittingSlot = true;
@@ -720,7 +743,7 @@ namespace NSGAII.Models
                                 #region LAB base vs faculty 
                                 if (crashingCourse.Type == 1) //lab ise
                                 {
-                                    if (problemObj.LabScheduling[day, hour + j] > 4) //base vs faculty collision, same semester.
+                                    if (problemObj.LabScheduling[day][hour + j] > 4) //base vs faculty collision, same semester.
                                     {
                                         fittingSlot = false;
                                         break;
@@ -767,17 +790,17 @@ namespace NSGAII.Models
                                 //todo: obj2 
                                 if (crashingCourse.Elective)
                                 {
-                                    if (problemObj.Scheduling[5][day, hour + j] > 0) //base vs faculty collision, same semester.
+                                    if (problemObj.Scheduling[5][day][ hour + j] > 0) //base vs faculty collision, same semester.
                                     {
                                         fittingSlot = false;
                                         break;
                                     }
-                                    if (problemObj.Scheduling[6][day, hour + j] > 0) //base vs faculty collision, same semester.
+                                    if (problemObj.Scheduling[6][day][hour + j] > 0) //base vs faculty collision, same semester.
                                     {
                                         fittingSlot = false;
                                         break;
                                     }
-                                    if (problemObj.Scheduling[7][day, hour + j] > 0) //base vs faculty collision, same semester.
+                                    if (problemObj.Scheduling[7][day][hour + j] > 0) //base vs faculty collision, same semester.
                                     {
                                         fittingSlot = false;
                                         break;
@@ -1182,7 +1205,7 @@ namespace NSGAII.Models
 
         #region Collisions
 
-        static List<Collision> calculate_collisionBaseLectureWithFaculty(List<List<Slot>> timeTable, int[,] array2, int minimumCollision, int semester, int obj = 0)
+        static List<Collision> calculate_collisionBaseLectureWithFaculty(List<List<Slot>> timeTable, List<List<int>> array2, int minimumCollision, int semester, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1191,13 +1214,13 @@ namespace NSGAII.Models
                 {
                     Slot tempSlot = timeTable[i][j];
 
-                    if (tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision && array2[i, j] > minimumCollision)
+                    if (tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision && array2[i][j] > minimumCollision)
                     {
                         Collision tempCollision = new Collision
                         {
                             Obj = obj,
                             Type = CollisionType.BaseLectureWithFaculty,
-                            Result = tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) + array2[i, j] - 1,
+                            Result = tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) + array2[i][j] - 1,
                             Reason = "collision between Base Lecture with Faculty course"
                         };
                         tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Semester == semester && !x.Elective));
@@ -1470,7 +1493,7 @@ namespace NSGAII.Models
             return collisionList;
         }
 
-        static List<Collision> calculate_collisionElectiveWithBaseCourses(List<List<Slot>> timeTable, int[,] array2, int minimumCollision, int obj = 2)
+        static List<Collision> calculate_collisionElectiveWithBaseCourses(List<List<Slot>> timeTable, List<List<int>> array2, int minimumCollision, int obj = 2)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1479,14 +1502,14 @@ namespace NSGAII.Models
                 {
                     Slot tempSlot = timeTable[i][j];
 
-                    if (tempSlot.Courses.Count(x => x.Elective) > minimumCollision && array2[i, j] > minimumCollision)
+                    if (tempSlot.Courses.Count(x => x.Elective) > minimumCollision && array2[i][j] > minimumCollision)
                     {
 
                         Collision tempCollision = new Collision
                         {
                             Obj = obj,
                             Type = CollisionType.CourseCollision,
-                            Result = tempSlot.Courses.Count(x => x.Elective) + array2[i, j] - 1,
+                            Result = tempSlot.Courses.Count(x => x.Elective) + array2[i][j] - 1,
                             Reason = "collision with faculty course"
                         };
                         tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Elective));

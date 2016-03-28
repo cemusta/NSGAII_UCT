@@ -1,9 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Threading;
 using NSGAII;
 
@@ -26,14 +23,6 @@ namespace UCT
             generationTimer.Interval = new TimeSpan(0, 0, 0, 0, 1);
         }
 
-        private void Thumb_DragDelta(object sender, System.Windows.Controls.Primitives.DragDeltaEventArgs e)
-        {
-            UIElement thumb = e.Source as UIElement;
-
-            Canvas.SetLeft(thumb, Canvas.GetLeft(thumb) + e.HorizontalChange);
-            Canvas.SetTop(thumb, Canvas.GetTop(thumb) + e.VerticalChange);
-        }
-
         public void EnableGenerationControls(bool state = true)
         {
             StartPauseGeneration.IsEnabled = state;
@@ -41,6 +30,10 @@ namespace UCT
             PlotNow.IsEnabled = state;
             chkUsePlot.IsEnabled = state;
             ReportBest.IsEnabled = state;
+            CloseProblem.IsEnabled = state;
+            SaveProblem.IsEnabled = state;
+            CreateProblem.IsEnabled = !state;
+            OpenProblem.IsEnabled = !state;
         }
 
         private void CreateProblem_Click(object sender, RoutedEventArgs e)
@@ -171,7 +164,11 @@ namespace UCT
             {
                 // Open document 
                 string filename = dlg.FileName;
-                UCTProblem.LoadFromFile(filename);
+                _uctproblem = UCTProblem.LoadFromFile(filename);
+                ProblemTitle.Content = _uctproblem.ProblemObj.Title;
+                EnableGenerationControls();
+                //CreateProblem.IsEnabled = false;
+                LogBox.Items.Clear();
             }
 
         }
@@ -179,6 +176,14 @@ namespace UCT
         private void SaveProblem_Click(object sender, RoutedEventArgs e)
         {
             UCTProblem.SaveToFile(_uctproblem, _uctproblem.ProblemObj.Title);
+        }
+
+        private void CloseProblem_Click(object sender, RoutedEventArgs e)
+        {
+            _uctproblem = null;
+            ProblemTitle.Content = "";
+            EnableGenerationControls(false);
+            LogBox.Items.Clear();
         }
     }
 }

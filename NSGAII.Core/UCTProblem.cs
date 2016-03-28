@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,10 +13,10 @@ namespace NSGAII
 
         public double Seed;
         public bool UsePlot;
-        public int CurrentGeneration { get; private set; }
+        public int CurrentGeneration { get; set; }
         public ProblemDefinition ProblemObj;
         public Randomization RandomizationObj;
-        private readonly Display DisplayObj;
+        private Display DisplayObj;
 
         public Population ParentPopulation;
         public Population ChildPopulation;
@@ -55,7 +56,15 @@ namespace NSGAII
 
             for (int i = 0; i < 8; i++)
             {
-                ProblemObj.Scheduling.Add(new int[5, 9]);
+                ProblemObj.Scheduling.Add(new List<List<int>>());
+                for (int j = 0; j < 5; j++)
+                {
+                    ProblemObj.Scheduling[i].Add(new List<int>());
+                    for (int k = 0; k < 9; k++)
+                    {
+                        ProblemObj.Scheduling[i][j].Add(0);
+                    }
+                }
             }
 
             if (ProblemObj.BinaryVariableCount > 0)
@@ -257,7 +266,7 @@ namespace NSGAII
                         var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         for (int k = 0; k < 5; k++)
                         {
-                            ProblemObj.Scheduling[i][k, j] = int.Parse(parts[k]);
+                            ProblemObj.Scheduling[i][k][j] = int.Parse(parts[k]);
                         }
                     }
                     reader.ReadLine(); //trailing \n
@@ -272,6 +281,12 @@ namespace NSGAII
 
         private void ReadLab()
         {
+            ProblemObj.LabScheduling.Clear();
+            for (int k = 0; k < 5; k++)
+            {
+                ProblemObj.LabScheduling.Add(new List<int>());
+            }
+
             try
             {
                 FileStream inputLabsFile = File.OpenRead("lab_list.in");
@@ -282,7 +297,7 @@ namespace NSGAII
                     var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     for (int k = 0; k < 5; k++)
                     {
-                        ProblemObj.LabScheduling[k, j] = int.Parse(parts[k]);
+                        ProblemObj.LabScheduling[k].Add(int.Parse(parts[k]));
                     }
                 }
             }
@@ -295,6 +310,12 @@ namespace NSGAII
 
         private void ReadMeeting()
         {
+            ProblemObj.Meeting.Clear();
+            for (int k = 0; k < 5; k++)
+            {
+                ProblemObj.Meeting.Add(new List<int>());
+            }
+
             try
             {
                 FileStream meetingFile = File.OpenRead("Meeting.txt");
@@ -305,8 +326,8 @@ namespace NSGAII
                     var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     for (int k = 0; k < 5; k++)
                     {
-                        ProblemObj.Meeting[k, j] = int.Parse(parts[k]);
-                    }
+                        ProblemObj.Meeting[k].Add(int.Parse(parts[k]));
+            }
                 }
             }
             catch (Exception ex)
@@ -578,8 +599,20 @@ namespace NSGAII
             try
             {
                 var readFile = File.ReadAllText(filename, Encoding.UTF8);
+                var temp = SerializationHelper.DeserializeObject<UCTProblem>(readFile);
 
-                return SerializationHelper.DeserializeObject<UCTProblem>(readFile);
+                temp.DisplayObj = new Display();
+                temp.InitDisplay(true, true, new[] { 0, 1, 2 });
+
+                temp.ChildPopulation.Decode(temp.ProblemObj);
+                temp.MixedPopulation.Decode(temp.ProblemObj);
+                temp.ParentPopulation.Decode(temp.ProblemObj);
+
+                temp.ChildPopulation.Evaluate(temp.ProblemObj);
+                temp.MixedPopulation.Evaluate(temp.ProblemObj);
+                temp.ParentPopulation.Evaluate(temp.ProblemObj);
+
+                return temp;
             }
             catch (Exception ex)
             {

@@ -5,7 +5,7 @@ namespace NSGAII.Models
     public class Slot
     {
         public List<Course> Courses;
-        public Dictionary<int,int> Teacher;
+        public List<int> Teacher;
         public int labCount;
         public bool meetingHour;
 
@@ -13,10 +13,10 @@ namespace NSGAII.Models
         {
             meetingHour = false;
             Courses = new List<Course>();
-            Teacher = new Dictionary<int, int>(teacherCount);
+            Teacher = new List<int>(teacherCount);
             for (int i = 0; i < teacherCount; i++)
             {
-                Teacher.Add(i, 0);
+                Teacher.Add( 0);
             }
             labCount = 0;
         }

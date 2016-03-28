@@ -14,7 +14,7 @@
                 <Grid>
                     <Button x:Name="CreateProblem" Content="Create" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.333,-2.467" Click="CreateProblem_Click"/>
 
-                    <Button x:Name="OpenProblem" Content="Load" Margin="0,10,10,0" VerticalAlignment="Top" RenderTransformOrigin="-0.333,-2.467" HorizontalAlignment="Right" Width="75" Click="OpenProblem_Click"/>
+                    <Button x:Name="OpenProblem" Content="Load" Margin="10,234,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.333,-2.467" HorizontalAlignment="Left" Width="75" Click="OpenProblem_Click"/>
                     <Label x:Name="ProblemTitle" Content="" HorizontalAlignment="Left" Margin="139,7,0,0" VerticalAlignment="Top" Width="98"/>
                     <Label x:Name="label" Content="ID:" HorizontalAlignment="Left" Margin="110,7,0,0" VerticalAlignment="Top"/>
                     <ListBox x:Name="LogBox" Margin="110,52,33,10"/>
@@ -23,7 +23,8 @@
                     <Button x:Name="PlotNow" Content="plot Now" Margin="0,10,213,0" VerticalAlignment="Top" RenderTransformOrigin="-0.333,-2.467" HorizontalAlignment="Right" Width="75" Click="PlotNow_Click"/>
                     <Button x:Name="StepGeneration" Content="Step" HorizontalAlignment="Left" Margin="10,92,0,0" VerticalAlignment="Top" Width="75" Click="StepGeneration_Click"/>
                     <Button x:Name="ReportBest" Content="Report best" HorizontalAlignment="Left" Margin="10,131,0,0" VerticalAlignment="Top" Width="75" Click="ReportBest_Click"/>
-                    <Button x:Name="SaveProblem" Content="Save" HorizontalAlignment="Left" Margin="10,218,0,0" VerticalAlignment="Top" Width="75" Click="SaveProblem_Click"/>
+                    <Button x:Name="CloseProblem" Content="Close" HorizontalAlignment="Left" Margin="10,259,0,0" VerticalAlignment="Top" Width="75" Click="CloseProblem_Click"/>
+                    <Button x:Name="SaveProblem" Content="Save" HorizontalAlignment="Left" Margin="10,209,0,0" VerticalAlignment="Top" Width="75" Click="SaveProblem_Click"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Reporting    ">

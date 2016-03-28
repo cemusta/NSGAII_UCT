@@ -2,9 +2,9 @@
 {
     public class Randomization
     {
-        double seed = 0; //never assigned?
-        double[] oldrand = new double[55];
-        int jrand;
+        public double seed = 0; //never assigned?
+        public double[] oldrand = new double[55];
+        public int jrand;
 
         public Randomization(double dSeed)
         {

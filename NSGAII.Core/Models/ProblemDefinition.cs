@@ -37,9 +37,9 @@ namespace NSGAII.Models
 
         public readonly List<string> TeacherList = new List<string>(8);
         public readonly List<Course> CourseList = new List<Course>(8);
-        public readonly int[,] Meeting = new int[5, 9]; // bölüm hocalarının ortak meeting saatleri.
-        public readonly int[,] LabScheduling = new int[5, 9]; // labda dönem tutulmuyor 
-        public readonly List<int[,]> Scheduling = new List<int[,]>(8); //8 dönem, 5 gün, 9 ders   
+        public readonly List<List<int>> Meeting = new List<List<int>>(); // bölüm hocalarının ortak meeting saatleri.
+        public readonly List<List<int>> LabScheduling = new List<List<int>>(); // labda dönem tutulmuyor 
+        public readonly List<List<List<int>>> Scheduling = new List<List<List<int>>>(8); //8 dönem, 5 gün, 9 ders   
 
         public ProblemDefinition(string title)
         {
