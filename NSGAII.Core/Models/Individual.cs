@@ -584,7 +584,7 @@ namespace NSGAII.Models
 
                     tResultImprovement += obj0Imp + obj1Imp + obj2Imp;
 
-                } while (continueClimb || climbRetryCount < 100);
+                } while (continueClimb && climbRetryCount < 100);
 
                 if (tResultImprovement < 0) //todo check sanki geri almıyor.
                 {
