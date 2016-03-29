@@ -9,18 +9,28 @@ namespace NSGAII.Models
         public int labCount;
         public bool meetingHour;
 
+        public List<int> facultyCourse;
+        public int facultyLab;
+
         public Slot(int teacherCount)
         {
             meetingHour = false;
             Courses = new List<Course>();
             Teacher = new List<int>(teacherCount);
+            facultyCourse = new List<int>(8);
             for (int i = 0; i < teacherCount; i++)
             {
                 Teacher.Add( 0);
             }
-            labCount = 0;
+            labCount = 0;            
+            facultyLab = 0;
         }
 
-        public Slot() { }
+        public Slot()
+        {
+            Courses = new List<Course>();
+            Teacher = new List<int>();
+            facultyCourse = new List<int>(8);
+        }
     }
 }

@@ -56,13 +56,13 @@ namespace NSGAII
 
             for (int i = 0; i < 8; i++)
             {
-                ProblemObj.Scheduling.Add(new List<List<int>>());
+                ProblemObj.FacultyCourses.Add(new List<List<int>>());
                 for (int j = 0; j < 5; j++)
                 {
-                    ProblemObj.Scheduling[i].Add(new List<int>());
+                    ProblemObj.FacultyCourses[i].Add(new List<int>());
                     for (int k = 0; k < 9; k++)
                     {
-                        ProblemObj.Scheduling[i][j].Add(0);
+                        ProblemObj.FacultyCourses[i][j].Add(0);
                     }
                 }
             }
@@ -266,7 +266,7 @@ namespace NSGAII
                         var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         for (int k = 0; k < 5; k++)
                         {
-                            ProblemObj.Scheduling[i][k][j] = int.Parse(parts[k]);
+                            ProblemObj.FacultyCourses[i][k][j] = int.Parse(parts[k]);
                         }
                     }
                     reader.ReadLine(); //trailing \n
