@@ -12,23 +12,24 @@ namespace UCT
     public partial class MainWindow : Window
     {
         UCTProblem _uctproblem;
-        readonly DispatcherTimer generationTimer;
+        readonly DispatcherTimer _generationTimer;
 
         public MainWindow()
         {
             InitializeComponent();
+            RadioHillNone.IsChecked = true;
             EnableGenerationControls(false);
-            generationTimer = new DispatcherTimer();
-            generationTimer.Tick += generationTimer_Tick;
-            generationTimer.Interval = new TimeSpan(0, 0, 0, 0, 1);
+            _generationTimer = new DispatcherTimer();
+            _generationTimer.Tick += generationTimer_Tick;
+            _generationTimer.Interval = new TimeSpan(0, 0, 0, 0, 1);
         }
 
-        public void EnableGenerationControls(bool state = true)
+        private void EnableGenerationControls(bool state = true)
         {
             StartPauseGeneration.IsEnabled = state;
             StepGeneration.IsEnabled = state;
             PlotNow.IsEnabled = state;
-            chkUsePlot.IsEnabled = state;
+            ChkUsePlot.IsEnabled = state;
             ReportBest.IsEnabled = state;
             CloseProblem.IsEnabled = state;
             SaveProblem.IsEnabled = state;
@@ -38,7 +39,9 @@ namespace UCT
 
         private void CreateProblem_Click(object sender, RoutedEventArgs e)
         {
-            _uctproblem = new UCTProblem(0.75, 200, 10000, 3, 0, 43, 0, false);
+            _generationTimer.Stop();
+            StartPauseGeneration.Content = "Start";
+            _uctproblem = new UCTProblem(0.75, 200, 500, 3, 0, 43, 0, false);
             ProblemTitle.Content = _uctproblem.ProblemObj.Title;
             EnableGenerationControls();
             //CreateProblem.IsEnabled = false;
@@ -52,29 +55,29 @@ namespace UCT
 
         private void StartPauseGeneration_Click(object sender, RoutedEventArgs e)
         {
-            if (generationTimer.IsEnabled)
+            if (_generationTimer.IsEnabled)
             {
                 StepGeneration.IsEnabled = true;
                 StartPauseGeneration.Content = "Continue";
-                generationTimer.Stop();
+                _generationTimer.Stop();
             }
             else
             {
                 StepGeneration.IsEnabled = false;
                 StartPauseGeneration.Content = "Pause";
-                generationTimer.Start();
+                _generationTimer.Start();
             }
         }
 
         private void StepGeneration_Click(object sender, RoutedEventArgs e)
         {
-            if (!generationTimer.IsEnabled)
+            if (!_generationTimer.IsEnabled)
             {
                 NextGeneration();
             }
         }
 
-        public void NextGeneration()
+        private void NextGeneration()
         {
             if (_uctproblem.CurrentGeneration == 0)
             {
@@ -82,44 +85,33 @@ namespace UCT
                 LogBox.Items.Insert(0, _uctproblem.BestReport());
                 LogBox.Items.Insert(0, _uctproblem.GenerationReport());
             }
-            else if (_uctproblem.CurrentGeneration <= _uctproblem.ProblemObj.MaxGeneration)
+            else if (_uctproblem.CurrentGeneration < _uctproblem.ProblemObj.MaxGeneration)
             {
-                _uctproblem.NextGeneration();
+                UCTProblem.HillClimbMode temp = UCTProblem.HillClimbMode.None;
+                if (RadioHillChild.IsChecked ?? false)
+                    temp = UCTProblem.HillClimbMode.ChildOnly;
+                else if(RadioHillParent.IsChecked ?? false)
+                    temp = UCTProblem.HillClimbMode.ParentOnly;
+                else if (RadioHillAll.IsChecked ?? false)
+                    temp = UCTProblem.HillClimbMode.All;
+                else if (RadioHillBest.IsChecked ?? false)
+                    temp = UCTProblem.HillClimbMode.BestOfParent;
+                else if (RadioHillAllBest.IsChecked ?? false)
+                    temp = UCTProblem.HillClimbMode.AllBestOfParent;
+
+                _uctproblem.NextGeneration(temp);
                 LogBox.Items.Insert(0, _uctproblem.BestReport());
                 LogBox.Items.Insert(0, _uctproblem.GenerationReport());
             }
             else
             {
-                generationTimer.Stop();
+                _generationTimer.Stop();
+                StartPauseGeneration.Content = "Start";
                 LogBox.Items.Insert(0, "Problem reached upper generation limit.");
                 _uctproblem.WriteBestGeneration();
                 _uctproblem.WriteFinalGeneration();
             }
         }
-
-        public void HillClimb()
-        {
-            if (_uctproblem.CurrentGeneration == 0)
-            {
-                _uctproblem.FirstGeneration();
-                LogBox.Items.Insert(0, _uctproblem.BestReport());
-                LogBox.Items.Insert(0, _uctproblem.GenerationReport());
-            }
-            else if (_uctproblem.CurrentGeneration <= _uctproblem.ProblemObj.MaxGeneration)
-            {
-                _uctproblem.NextGeneration();
-                LogBox.Items.Insert(0, _uctproblem.BestReport());
-                LogBox.Items.Insert(0, _uctproblem.GenerationReport());
-            }
-            else
-            {
-                generationTimer.Stop();
-                LogBox.Items.Insert(0, "Problem reached upper generation limit.");
-                _uctproblem.WriteBestGeneration();
-                _uctproblem.WriteFinalGeneration();
-            }
-        }
-
 
         private void PlotNow_Click(object sender, RoutedEventArgs e)
         {
@@ -128,7 +120,7 @@ namespace UCT
 
         private void chkUsePlot_Click(object sender, RoutedEventArgs e)
         {
-            if (chkUsePlot.IsChecked ?? false)
+            if (ChkUsePlot.IsChecked ?? false)
             {
                 PlotNow.IsEnabled = false;
                 _uctproblem.UsePlot = true;
@@ -153,7 +145,7 @@ namespace UCT
             bc.Decode(_uctproblem.ProblemObj);
             bc.Evaluate(_uctproblem.ProblemObj);
 
-            MainTT.Clear();
+            MainTt.Clear();
 
             for (int i = 0; i < 5; i++)
             {
@@ -161,7 +153,7 @@ namespace UCT
                 {
                     foreach (var course in bc.TimeTable[i][j].Courses)
                     {
-                        MainTT.ControlArray[i, j].Text += course.PrintableName + "\n";
+                        MainTt.ControlArray[i, j].Text += course.PrintableName + "\n";
                     }
                 }
             }
@@ -184,6 +176,8 @@ namespace UCT
             if (result == true)
             {
                 // Open document 
+                _generationTimer.Stop();
+                StartPauseGeneration.Content = "Start";
                 string filename = dlg.FileName;
                 _uctproblem = UCTProblem.LoadFromFile(filename);
                 ProblemTitle.Content = _uctproblem.ProblemObj.Title;
@@ -201,13 +195,13 @@ namespace UCT
 
         private void CloseProblem_Click(object sender, RoutedEventArgs e)
         {
+            _generationTimer.Stop();
+            StartPauseGeneration.Content = "Start";
             _uctproblem = null;
             ProblemTitle.Content = "";
             EnableGenerationControls(false);
             LogBox.Items.Clear();
         }
-
-
 
         private void HillClimbButton_Click(object sender, RoutedEventArgs e)
         {
@@ -215,7 +209,7 @@ namespace UCT
                 return;
 
             LogBox.Items.Insert(0, "HillClimbing Parent");
-            _uctproblem.HillClimb();
+            _uctproblem.HillClimbParent();
             LogBox.Items.Insert(0, _uctproblem.BestReport());
             LogBox.Items.Insert(0, _uctproblem.GenerationReport());
         }

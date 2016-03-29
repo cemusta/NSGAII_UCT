@@ -599,8 +599,10 @@ namespace NSGAII.Models
 
         private void HillClimber(ProblemDefinition problemObj)
         {
+            int maxClimb = 5;
             bool UseSemiFit = false;
-            Random rnd = new Random(DateTime.Now.Millisecond);
+            int seeder = (int) DateTime.Now.Ticks;
+            Random rnd = new Random(seeder);
 
             var tempColl = CollisionList.ToList();
 
@@ -619,7 +621,7 @@ namespace NSGAII.Models
                     List<int> fittingSlots = new List<int>();
                     List<int> semiFittingSlots = new List<int>();
 
-                    bool doneClimbing = false;
+                    int climbCount = 0;
 
                     #region Course type collisions
                     foreach (var crashingCourse in collision.CrashingCourses.OrderBy(x => x.Duration)) //önce küçügü koy bir yerlere
@@ -859,7 +861,7 @@ namespace NSGAII.Models
 
                             ChangeGene(crashingCourse.Id, selectedSlot, problemObj);
                             SlotId[crashingCourse.Id] = selectedSlot;
-                            doneClimbing = true;
+                            climbCount++;
                             break;
                         }
                         else if (semiFittingSlots.Count > 0)
@@ -877,7 +879,7 @@ namespace NSGAII.Models
                     }
                     #endregion
 
-                    if (doneClimbing)
+                    if (climbCount >= maxClimb)
                         break;
 
                 }

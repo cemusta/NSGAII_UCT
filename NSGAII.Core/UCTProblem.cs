@@ -486,10 +486,10 @@ namespace NSGAII
 
             ParentPopulation.Decode(ProblemObj);
             ParentPopulation.Evaluate(ProblemObj);
+
             assign_rank_and_crowding_distance(ParentPopulation, ProblemObj, RandomizationObj);
 
             ParentPopulation.ReportPopulation(ProblemObj, "initial", "This file contains the data of final population");
-
             ParentPopulation.ReportPopulation(ProblemObj, "current", "This file contains the data of current generation", CurrentGeneration);
 
             if (UsePlot)
@@ -499,8 +499,11 @@ namespace NSGAII
 
         }
 
-        public void NextGeneration()
+        public void NextGeneration(HillClimbMode mode = HillClimbMode.None)
         {
+            if (CurrentGeneration >= ProblemObj.MaxGeneration)
+                return;
+
             CurrentGeneration++;
 
             Selection(ParentPopulation, ChildPopulation, ProblemObj, RandomizationObj);
@@ -508,7 +511,11 @@ namespace NSGAII
 
             ChildPopulation.Decode(ProblemObj);
             ChildPopulation.Evaluate(ProblemObj);
-            //childPopulation.HillClimb(ProblemObj);
+            if (mode == HillClimbMode.All || mode == HillClimbMode.ChildOnly)
+            {
+                ChildPopulation.HillClimb(ProblemObj);
+            }
+            
 
             MixedPopulation.Merge(ParentPopulation, ChildPopulation, ProblemObj);
             //mixedPopulation.Decode(ProblemObj);
@@ -518,27 +525,30 @@ namespace NSGAII
 
             ParentPopulation.Decode(ProblemObj);
             ParentPopulation.Evaluate(ProblemObj);
+            if (mode == HillClimbMode.All || mode == HillClimbMode.ParentOnly)
+            {
+                ParentPopulation.HillClimb(ProblemObj);
+            }
 
             int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
-
 
             var result = minimumResult;
             var bestChild = ParentPopulation.IndList.Where(x => x.TotalResult == result).ToList();
 
-            //foreach (var child in bestChild)
-            //{
-            //int imp = bestChild.First().HillClimb(ProblemObj);
-            //Console.WriteLine($"hill: {imp} total: {totalHill+imp}");
-            //if (imp > 0)
-            //    totalHill += imp;
-            //}
+            if (mode == HillClimbMode.BestOfParent)
+            {
+                bestChild.First().HillClimb(ProblemObj);
+            }
+            else if (mode == HillClimbMode.BestOfParent)
+            {
+                foreach (var child in bestChild)
+                {
+                    child.HillClimb(ProblemObj);
+                }
+            }
 
-
-            /* Comment following four lines if information for all
-            generations is not desired, it will speed up the execution */
-            //*fprintf(fpt4,"# gen = %d\n",i);
+            // Comment following  lines if information for all
             //parent_pop.ReportPopulation(fpt4,ProblemObj);
-            //fflush(fpt4);*/
 
             if (UsePlot)
             {
@@ -562,7 +572,7 @@ namespace NSGAII
             int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
             var result = minimumResult;
             var bc = ParentPopulation.IndList.First(x => x.TotalResult == result);
-            return ($" best: coll  = {bc.CollisionList.Count} result = {bc.TotalResult} obj0:{bc.Obj[0]} obj1:{bc.Obj[1]} obj2:{bc.Obj[2]}");
+            return $" best: coll  = {bc.CollisionList.Count} result = {bc.TotalResult} obj0:{bc.Obj[0]} obj1:{bc.Obj[1]} obj2:{bc.Obj[2]}";
 
         }
 
@@ -636,29 +646,11 @@ namespace NSGAII
         }
 
 
-        public void HillClimb()
+        public int HillClimbParent()
         {
-
             ParentPopulation.Decode(ProblemObj);
             ParentPopulation.Evaluate(ProblemObj);
-            ParentPopulation.HillClimb(ProblemObj);
-
-            int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
-
-
-            var result = minimumResult;
-            var bestChild = ParentPopulation.IndList.Where(x => x.TotalResult == result).ToList();
-
-
-            if (UsePlot)
-            {
-                DisplayObj.PlotPopulation(ParentPopulation, ProblemObj, CurrentGeneration, bestChild.ToList());
-            }
-
-            Console.WriteLine(GenerationReport());
-            Console.WriteLine(BestReport());
-
-
+            return ParentPopulation.HillClimb(ProblemObj);
         }
 
 
@@ -1528,5 +1520,15 @@ namespace NSGAII
 
         #endregion
 
+        public enum HillClimbMode
+        {
+            None = 0,
+            ChildOnly = 1,
+            MixedOnly = 2,
+            ParentOnly = 3,
+            All = 4,
+            BestOfParent = 5,
+            AllBestOfParent = 6
+        }
     }
 }
