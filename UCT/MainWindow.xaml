@@ -27,7 +27,7 @@
                     <Button x:Name="SaveProblem" Content="Save" HorizontalAlignment="Left" Margin="10,233,0,0" VerticalAlignment="Top" Width="75" Click="SaveProblem_Click"/>
                     <Button x:Name="HillClimbButton" Content="Climb Parent" Margin="0,15,10,0" VerticalAlignment="Top" RenderTransformOrigin="-0.333,-2.467" Click="HillClimbButton_Click" HorizontalAlignment="Right" Width="75"/>
 
-                    <GroupBox x:Name="HillGroup" Header="HillClimb" VerticalAlignment="Top" Margin="0,52,10,0" Height="141" HorizontalAlignment="Right" Width="96">
+                    <GroupBox x:Name="HillGroup" Header="HillClimb" VerticalAlignment="Top" Margin="0,52,10,0" Height="150" HorizontalAlignment="Right" Width="96">
                         <Grid>
                             <RadioButton x:Name="RadioHillNone" Content="None" HorizontalAlignment="Left" Margin="5,6,0,0" VerticalAlignment="Top"/>
                             <RadioButton x:Name="RadioHillChild" Content="Children" HorizontalAlignment="Left" Margin="5,26,0,0" VerticalAlignment="Top"/>
@@ -38,6 +38,8 @@
                         </Grid>
                         
                     </GroupBox>
+                    <Button x:Name="ResetGenerationNumber" Content="Reset Gen #" Margin="0,15,223,0" VerticalAlignment="Top" RenderTransformOrigin="-0.333,-2.467" HorizontalAlignment="Right" Width="75" Click="ResetGenerationNumber_Click"/>
+                    <Button x:Name="HillClimbBest" Content="Climb Best" Margin="0,15,90,0" VerticalAlignment="Top" RenderTransformOrigin="-0.333,-2.467" HorizontalAlignment="Right" Width="75" Click="HillClimbBest_Click"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Reporting    ">

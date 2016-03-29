@@ -63,7 +63,7 @@ namespace NSGAII.Models
         public int HillClimb(ProblemDefinition problemObj)
         {
             int retVal = 0;
-            for (int i = 0; i < this.IndList.Count; i++)
+            for (int i = 0; i < IndList.Count; i++)
             {
                 retVal += IndList[i].HillClimb(problemObj);
             }

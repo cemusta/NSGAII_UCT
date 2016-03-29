@@ -46,6 +46,7 @@ namespace UCT
             EnableGenerationControls();
             //CreateProblem.IsEnabled = false;
             LogBox.Items.Clear();
+            LogBox.Items.Add("Create completed.");
         }
 
         private void generationTimer_Tick(object sender, EventArgs e)
@@ -184,6 +185,7 @@ namespace UCT
                 EnableGenerationControls();
                 //CreateProblem.IsEnabled = false;
                 LogBox.Items.Clear();
+                LogBox.Items.Add("Load completed.");
             }
 
         }
@@ -210,6 +212,26 @@ namespace UCT
 
             LogBox.Items.Insert(0, "HillClimbing Parent");
             _uctproblem.HillClimbParent();
+            LogBox.Items.Insert(0, _uctproblem.BestReport());
+            LogBox.Items.Insert(0, _uctproblem.GenerationReport());
+        }
+
+        private void ResetGenerationNumber_Click(object sender, RoutedEventArgs e)
+        {
+            if (_uctproblem == null)
+                return;
+
+            LogBox.Items.Insert(0, "Generation Number has been reset.");
+            _uctproblem.CurrentGeneration = 1; //0 yaparsam ilk jenerasyonu yapıyor.
+        }
+
+        private void HillClimbBest_Click(object sender, RoutedEventArgs e)
+        {
+            if (_uctproblem == null)
+                return;
+
+            LogBox.Items.Insert(0, "HillClimbing Best");
+            _uctproblem.HillClimbBest();
             LogBox.Items.Insert(0, _uctproblem.BestReport());
             LogBox.Items.Insert(0, _uctproblem.GenerationReport());
         }

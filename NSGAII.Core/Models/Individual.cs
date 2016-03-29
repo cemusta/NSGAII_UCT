@@ -221,7 +221,7 @@ namespace NSGAII.Models
                 var sum = 0;
                 for (int k = 0; k < problem.nbits[j]; k++)
                 {
-                    if (Gene[j][ k] == 1)
+                    if (Gene[j][k] == 1)
                     {
                         sum += (int)Math.Pow(2, problem.nbits[j] - 1 - k);
                     }
@@ -243,7 +243,7 @@ namespace NSGAII.Models
                 if (valueToAdd % modulus == divident)
                 {
                     valueToAdd = valueToAdd - divident;
-                    Gene[geneId][ k] = 1;
+                    Gene[geneId][k] = 1;
                 }
                 else
                 {
@@ -272,7 +272,7 @@ namespace NSGAII.Models
                     {
                         if (randomObj.RandomPercent() <= 0.5)
                         {
-                            Gene[j][ k] = 0;
+                            Gene[j][k] = 0;
                         }
                         else
                         {
@@ -538,7 +538,6 @@ namespace NSGAII.Models
 
         public int HillClimb(ProblemDefinition problemObj)
         {
-            int tCollisionImprovement = 0;
             int tResultImprovement = 0;
 
             if (CollisionList.Count > 0)
@@ -548,28 +547,25 @@ namespace NSGAII.Models
                 original.Decode(problemObj);
                 original.Evaluate(problemObj);
 
+                int seeder = (int)DateTime.Now.Ticks;
+                Random rnd = new Random(seeder);
 
                 do
                 {
-                    var oldCollisionCount = CollisionList.Count;
-                    var oldResult = CollisionList.Sum(x => x.Result);
-
-                    HillClimber(problemObj);
+                    HillClimber(problemObj, rnd);
                     Decode(problemObj);
                     Evaluate(problemObj);
 
-                    int newResult = CollisionList.Sum(x => x.Result);
-                    var resultImprovement = oldResult - newResult;
-                    var collisionImprovement = oldCollisionCount - CollisionList.Count;
 
-                    if (collisionImprovement > 0)
+                    var obj0Imp = original.Obj[0] - Obj[0];
+                    var obj1Imp = original.Obj[1] - Obj[1];
+                    var obj2Imp = original.Obj[2] - Obj[2];
+
+                    if (obj0Imp + obj1Imp + obj2Imp == 0)
                     {
                         continueClimb = true;
-                        original = new Individual(this, problemObj);
-                        original.Decode(problemObj);
-                        original.Evaluate(problemObj);
                     }
-                    else if (collisionImprovement == 0 && resultImprovement > 0)
+                    else if (obj0Imp + obj1Imp + obj2Imp > 0)
                     {
                         continueClimb = true;
                         original = new Individual(this, problemObj);
@@ -581,12 +577,11 @@ namespace NSGAII.Models
                         continueClimb = false;
                     }
 
-                    tCollisionImprovement += collisionImprovement;
-                    tResultImprovement += resultImprovement;
+                    tResultImprovement += obj0Imp + obj1Imp + obj2Imp;
 
                 } while (continueClimb);
 
-                if (tCollisionImprovement < 0 || tResultImprovement < 0) //todo check sanki geri almıyor.
+                if (tResultImprovement < 0) //todo check sanki geri almıyor.
                 {
                     Copy(original, problemObj);
                     Decode(problemObj);
@@ -597,16 +592,13 @@ namespace NSGAII.Models
             return tResultImprovement;
         }
 
-        private void HillClimber(ProblemDefinition problemObj)
+        private void HillClimber(ProblemDefinition problemObj, Random rnd)
         {
-            int maxClimb = 5;
-            bool UseSemiFit = false;
-            int seeder = (int) DateTime.Now.Ticks;
-            Random rnd = new Random(seeder);
+            int maxClimb = 1;
 
             var tempColl = CollisionList.ToList();
 
-            if (tempColl.Count > 0)
+            if (tempColl.Count > 0) //collision varsa
             {
 
                 while (tempColl.Count > 0)
@@ -615,7 +607,7 @@ namespace NSGAII.Models
                     var collision = tempColl[randomColl];
                     tempColl.RemoveAt(randomColl);
 
-                    if (collision.CrashingCourses.Count == 0)
+                    if (collision.CrashingCourses.Count == 0) //ögrentmen ise geçiver şimdilik.
                         continue;
 
                     List<int> fittingSlots = new List<int>();
@@ -656,7 +648,7 @@ namespace NSGAII.Models
                                 temp[j].Courses.RemoveAll(x => x.Id == crashingCourse.Id);
 
                                 #region base vs faculty same semester
-                                if (!crashingCourse.Elective)
+                                if (!crashingCourse.Elective) //elektif degilse, o saatte fakülte dersi olmamalı.
                                 {
                                     if (problemObj.Scheduling[semester - 1][day][hour + j] > 0) //base vs faculty collision, same semester.
                                     {
@@ -667,7 +659,7 @@ namespace NSGAII.Models
                                 #endregion
 
                                 #region base vs base same semester
-                                if (!crashingCourse.Elective)
+                                if (!crashingCourse.Elective) //elektif degilse, o saatte başka bölüm dersi olmamalı
                                 {
                                     if (temp[j].Courses.Count(x => x.Semester == semester && !x.Elective) > 0) //base vs base collision, same semester.
                                     {
@@ -678,65 +670,48 @@ namespace NSGAII.Models
                                 #endregion
 
                                 #region base vs faculty +1 -1
-                                if (!crashingCourse.Elective) //todo: bu obj1 ??? birşeyler yapak.
+                                if (!crashingCourse.Elective) //elektif degilse,
                                 {
-                                    if (semester - 2 >= 0)
+                                    if (semester - 2 >= 0) // o saate bir geri dönem fakülte dersi olmasın
                                     {
-                                        if (problemObj.Scheduling[semester - 2][day][ hour + j] > 0) //base vs faculty collision, -1 semester.
+                                        if (problemObj.Scheduling[semester - 2][day][hour + j] > 0) //base vs faculty collision, -1 semester.
                                         {
-                                            if (UseSemiFit)
-                                                semiFittingSlot = true;
-                                            else
-                                            {
-                                                fittingSlot = false;
-                                                break;
-                                            }
+                                            fittingSlot = false;
+                                            break;
                                         }
                                     }
-                                    if (semester < 8)
+                                    if (semester < 8) // o saate bir ileri dönem fakülte dersi olmasın
                                     {
                                         if (problemObj.Scheduling[semester][day][hour + j] > 0) //base vs faculty collision, +1 semester.
                                         {
-                                            if (UseSemiFit)
-                                                semiFittingSlot = true;
-                                            else
-                                            {
-                                                fittingSlot = false;
-                                                break;
-                                            }
-
+                                            fittingSlot = false;
+                                            break;
                                         }
                                     }
                                 }
                                 #endregion
 
                                 #region base vs base +1 -1
-                                if (!crashingCourse.Elective) //todo: bu obj1 ??? birşeyler yapak.
+                                if (!crashingCourse.Elective)
                                 {
                                     if (semester - 1 > 0)
                                     {
                                         if (temp[j].Courses.Count(x => x.Semester == semester - 1 && !x.Elective) > 0) //base vs base collision, -1 semester.
                                         {
-                                            if (UseSemiFit)
-                                                semiFittingSlot = true;
-                                            else
-                                            {
-                                                fittingSlot = false;
-                                                break;
-                                            }
+
+                                            fittingSlot = false;
+                                            break;
+
                                         }
                                     }
                                     if (semester + 1 < 9)
                                     {
                                         if (temp[j].Courses.Count(x => x.Semester == semester + 1 && !x.Elective) > 0) //base vs base faculty collision, +1 semester.
                                         {
-                                            if (UseSemiFit)
-                                                semiFittingSlot = true;
-                                            else
-                                            {
-                                                fittingSlot = false;
-                                                break;
-                                            }
+
+                                            fittingSlot = false;
+                                            break;
+
                                         }
                                     }
                                 }
@@ -754,10 +729,13 @@ namespace NSGAII.Models
                                 #endregion
 
                                 #region Teacher coll
-                                if (temp[j].Courses.Count(x => x.TeacherId == crashingCourse.TeacherId) > 0) //check teacher collision
-                                {
-                                    fittingSlot = false;
-                                    break;
+                                if (crashingCourse.Teacher != "ASSISTANT")
+                                { 
+                                    if (temp[j].Courses.Count(x => x.TeacherId == crashingCourse.TeacherId) > 0) //check teacher collision
+                                    {
+                                        fittingSlot = false;
+                                        break;
+                                    }
                                 }
                                 #endregion
 
@@ -792,7 +770,7 @@ namespace NSGAII.Models
                                 //todo: obj2 
                                 if (crashingCourse.Elective)
                                 {
-                                    if (problemObj.Scheduling[5][day][ hour + j] > 0) //base vs faculty collision, same semester.
+                                    if (problemObj.Scheduling[5][day][hour + j] > 0) //base vs faculty collision, same semester.
                                     {
                                         fittingSlot = false;
                                         break;
@@ -828,30 +806,20 @@ namespace NSGAII.Models
 
                                     if (temp[j].Courses.Count(x => x.Semester == 6 & !x.Elective) > 0) //todo: obj1 elective vs base collision, #6 semester.
                                     {
-                                        if (UseSemiFit)
-                                            semiFittingSlot = true;
-                                        else
-                                        {
-                                            fittingSlot = false;
-                                            break;
-                                        }
+
+                                        fittingSlot = false;
+                                        break;
+
                                     }
                                 }
                                 #endregion
-                            }
+                            } // DURATION LOOP, ders saati kadar ileriye bakıyor.
                             #endregion
 
                             if (fittingSlot)
                             {
-                                if (semiFittingSlot)
-                                {
-                                    semiFittingSlots.Add(i);
-                                }
-                                else
-                                {
-                                    fittingSlots.Add(i);
-                                    break;
-                                }
+                                fittingSlots.Add(i);
+                                break;
                             }
                         }
 

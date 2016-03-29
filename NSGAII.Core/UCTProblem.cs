@@ -539,7 +539,7 @@ namespace NSGAII
             {
                 bestChild.First().HillClimb(ProblemObj);
             }
-            else if (mode == HillClimbMode.BestOfParent)
+            else if (mode == HillClimbMode.AllBestOfParent)
             {
                 foreach (var child in bestChild)
                 {
@@ -600,7 +600,7 @@ namespace NSGAII
 
         public void WriteBestGeneration()
         {
-            ParentPopulation.ReportPopulation(ProblemObj, "best", "This file contains the data of best individuals");
+            ParentPopulation.ReportFeasiblePopulation(ProblemObj, "best", "This file contains the data of best individuals");
         }
 
 
@@ -653,6 +653,16 @@ namespace NSGAII
             return ParentPopulation.HillClimb(ProblemObj);
         }
 
+        public int HillClimbBest()
+        {
+            ParentPopulation.Decode(ProblemObj);
+            ParentPopulation.Evaluate(ProblemObj);
+
+            int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+            var bestChild = ParentPopulation.IndList.Where(x => x.TotalResult == minimumResult).ToList();
+   
+            return bestChild.First().HillClimb(ProblemObj);
+        }
 
 
         #region NSGAII stuff
