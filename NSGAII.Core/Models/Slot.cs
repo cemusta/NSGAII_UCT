@@ -4,6 +4,7 @@ namespace NSGAII.Models
 {
     public class Slot
     {
+        public int Id;
         public List<Course> Courses;
         public List<int> Teacher;
         public int labCount;
@@ -12,8 +13,9 @@ namespace NSGAII.Models
         public List<int> facultyCourse;
         public int facultyLab;
 
-        public Slot(int teacherCount)
+        public Slot(int teacherCount, int id)
         {
+            Id = id;
             meetingHour = false;
             Courses = new List<Course>();
             Teacher = new List<int>(teacherCount);

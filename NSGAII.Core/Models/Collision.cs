@@ -6,11 +6,12 @@ namespace NSGAII.Models
     {
         public readonly List<Course> CrashingCourses;
         public int TeacherId;
+        public int SlotId;
         public CollisionType Type;
         public string Reason;
         public int Result;
         public int Obj = -1;
-        public string Printable
+        public string Printable 
         {
             get
             {
@@ -30,6 +31,7 @@ namespace NSGAII.Models
         {
             Result = 0;
             TeacherId = -1;
+            SlotId = -1;
             Type = type;
             CrashingCourses = new List<Course>();
         }
@@ -38,6 +40,7 @@ namespace NSGAII.Models
         {
             Result = 0;
             TeacherId = -1;
+            SlotId = -1;
             CrashingCourses = new List<Course>();
         }
     }

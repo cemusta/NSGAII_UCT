@@ -95,7 +95,7 @@ namespace UCT
                 UCTProblem.HillClimbMode temp = UCTProblem.HillClimbMode.None;
                 if (RadioHillChild.IsChecked ?? false)
                     temp = UCTProblem.HillClimbMode.ChildOnly;
-                else if(RadioHillParent.IsChecked ?? false)
+                else if (RadioHillParent.IsChecked ?? false)
                     temp = UCTProblem.HillClimbMode.ParentOnly;
                 else if (RadioHillAll.IsChecked ?? false)
                     temp = UCTProblem.HillClimbMode.All;
@@ -166,7 +166,7 @@ namespace UCT
                     {
                         if (temp.facultyCourse[k] > 0)
                         {
-                            MainTt.ControlArray[i, j].Text += $"Faculty Course (sem:{k+1})\n";
+                            MainTt.ControlArray[i, j].Text += $"Faculty Course (sem:{k + 1})\n";
                         }
                     }
 
@@ -182,24 +182,22 @@ namespace UCT
 
                     foreach (var coll in bc.CollisionList)
                     {
-                        if (coll.CrashingCourses.Count > 0)
+                        if (temp.Id == coll.SlotId)
                         {
-                            if (temp.Courses.Any(x => coll.CrashingCourses.Select(y=>y.Id).ToList().Contains(x.Id)))
+                            MainTt.ControlArray[i, j].Background = Brushes.PaleVioletRed;
+                            string collisionRep = $"obj:{coll.Obj} {coll.Reason} :";
+                            int count = 0;
+                            foreach (var cc in coll.CrashingCourses)
                             {
-                                MainTt.ControlArray[i, j].Background = Brushes.PaleVioletRed;
-                                string collisionRep = $"obj:{coll.Obj} {coll.Reason} :";
-                                int count = 0;
-                                foreach (var cc in coll.CrashingCourses)
-                                {
-                                    count++;
-                                    collisionRep += cc.Code;
-                                    if(count != coll.CrashingCourses.Count )
-                                        collisionRep += "|";
-                                }
-
-                                MainTt.ControlArray[i, j].ToolTip += collisionRep + "\n";
+                                count++;
+                                collisionRep += cc.Code;
+                                if (count != coll.CrashingCourses.Count)
+                                    collisionRep += "|";
                             }
+
+                            MainTt.ControlArray[i, j].ToolTip += collisionRep + "\n";
                         }
+
                     }
 
                 }
@@ -212,8 +210,8 @@ namespace UCT
                 string teacherColl = "";
                 foreach (var coll in bc.CollisionList)
                 {
-                    if(coll.TeacherId == tid)
-                    { 
+                    if (coll.TeacherId == tid)
+                    {
                         teacherColl += $"obj:{coll.Obj} {coll.Reason} :";
                         hasTeacherCollision = true;
                     }

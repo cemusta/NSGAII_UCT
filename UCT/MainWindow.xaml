@@ -36,7 +36,7 @@
                             <RadioButton x:Name="RadioHillBest" Content="Best" HorizontalAlignment="Left" Margin="5,86,0,0" VerticalAlignment="Top"/>
                             <RadioButton x:Name="RadioHillAllBest" Content="All Best" HorizontalAlignment="Left" Margin="5,106,0,0" VerticalAlignment="Top"/>
                         </Grid>
-                        
+
                     </GroupBox>
                     <Button x:Name="ResetGenerationNumber" Content="Reset Gen #" Margin="0,15,223,0" VerticalAlignment="Top" RenderTransformOrigin="-0.333,-2.467" HorizontalAlignment="Right" Width="75" Click="ResetGenerationNumber_Click"/>
                     <Button x:Name="HillClimbBest" Content="Climb Best" Margin="0,15,90,0" VerticalAlignment="Top" RenderTransformOrigin="-0.333,-2.467" HorizontalAlignment="Right" Width="75" Click="HillClimbBest_Click"/>
@@ -44,15 +44,28 @@
             </TabItem>
             <TabItem Header="Reporting    ">
                 <Grid>
-                    <Border BorderBrush="Silver" BorderThickness="1" Margin="0,45,10,10" HorizontalAlignment="Right" Width="181">
-                        <ScrollViewer x:Name="CourseScroller" VerticalAlignment="Top" BorderThickness="1" BorderBrush="Black">
-                            <StackPanel x:Name="Sp" CanVerticallyScroll="True" ScrollViewer.CanContentScroll="True" CanHorizontallyScroll="True"/>
-                        </ScrollViewer>
-                    </Border>
-                    <local:TimeTable x:Name="MainTt" Margin="10,35,196,10"/>
+                    <TabControl x:Name="ReportTab">
+                        <TabItem Header="Main  ">
+                            <Grid>
+                                <local:TimeTable x:Name="MainTt" Margin="0,0,196,0"/>
+                                <Border BorderBrush="Silver" BorderThickness="1" HorizontalAlignment="Right" Width="191">
+                                    <ScrollViewer x:Name="CourseScroller" VerticalAlignment="Top" BorderThickness="1" BorderBrush="Black">
+                                        <StackPanel x:Name="Sp" CanVerticallyScroll="True" ScrollViewer.CanContentScroll="True" CanHorizontallyScroll="True"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Grid>
+                        </TabItem>
+                        <TabItem Header="Collisions " />
+                    </TabControl>
+
+
                 </Grid>
             </TabItem>
-            <TabItem Header="Options and stuff " />
+            <TabItem Header="Options and stuff " >
+                <Grid>
+                    
+                </Grid>
+            </TabItem>
         </TabControl>
 
 
