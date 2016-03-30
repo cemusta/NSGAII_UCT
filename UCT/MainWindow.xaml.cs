@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 using NSGAII;
+using NSGAII.Models;
 
 namespace UCT
 {
@@ -147,17 +151,84 @@ namespace UCT
             bc.Evaluate(_uctproblem.ProblemObj);
 
             MainTt.Clear();
+            Sp.Children.Clear();
 
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    foreach (var course in bc.TimeTable[i][j].Courses)
+                    Slot temp = bc.TimeTable[i][j];
+                    foreach (var course in temp.Courses)
                     {
                         MainTt.ControlArray[i, j].Text += course.PrintableName + "\n";
                     }
+                    for (int k = 0; k < 8; k++)
+                    {
+                        if (temp.facultyCourse[k] > 0)
+                        {
+                            MainTt.ControlArray[i, j].Text += $"Faculty Course (sem:{k+1})\n";
+                        }
+                    }
+
+                    if (temp.facultyLab > 0)
+                    {
+                        MainTt.ControlArray[i, j].Text += $"Faculty Lab (count:{temp.facultyLab})\n";
+                    }
+
+                    if (temp.meetingHour)
+                    {
+                        MainTt.ControlArray[i, j].Text += $"Meeting\n";
+                    }
+
+                    foreach (var coll in bc.CollisionList)
+                    {
+                        if (coll.CrashingCourses.Count > 0)
+                        {
+                            if (temp.Courses.Any(x => coll.CrashingCourses.Select(y=>y.Id).ToList().Contains(x.Id)))
+                            {
+                                MainTt.ControlArray[i, j].Background = Brushes.PaleVioletRed;
+                                string collisionRep = $"obj:{coll.Obj} {coll.Reason} :";
+                                int count = 0;
+                                foreach (var cc in coll.CrashingCourses)
+                                {
+                                    count++;
+                                    collisionRep += cc.Code;
+                                    if(count != coll.CrashingCourses.Count )
+                                        collisionRep += "|";
+                                }
+
+                                MainTt.ControlArray[i, j].ToolTip += collisionRep + "\n";
+                            }
+                        }
+                    }
+
                 }
             }
+
+            int tid = 0;
+            foreach (var teacher in _uctproblem.ProblemObj.TeacherList)
+            {
+                bool hasTeacherCollision = false;
+                string teacherColl = "";
+                foreach (var coll in bc.CollisionList)
+                {
+                    if(coll.TeacherId == tid)
+                    { 
+                        teacherColl += $"obj:{coll.Obj} {coll.Reason} :";
+                        hasTeacherCollision = true;
+                    }
+                }
+
+                Sp.Children.Add(new TextBlock
+                {
+                    Background = hasTeacherCollision ? Brushes.PaleVioletRed : null,
+                    ToolTip = hasTeacherCollision ? teacherColl : null,
+                    Text = $"{tid}: {teacher}",
+                    Margin = new Thickness(5)
+                });
+                tid++;
+            }
+
 
 
         }

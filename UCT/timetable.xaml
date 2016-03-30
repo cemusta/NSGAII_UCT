@@ -121,7 +121,7 @@
             <!--monday-->
 
             <Border Grid.Row="1" Grid.Column="1" BorderBrush="Silver" BorderThickness="0,0,1,1">
-                <Viewbox StretchDirection="Both" Stretch="Uniform">
+                <Viewbox>
                     <TextBlock x:Name="slot1"   Text="cse" Background="White"  FontSize="8" Margin="2" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Viewbox>
             </Border>

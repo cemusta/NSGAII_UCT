@@ -382,8 +382,8 @@ namespace NSGAII.Models
             {
                 // 1-2  2-3  3-4  4-5  5-6  6-7  7-8
                 // 2-1  3-2  4-3  5-4  6-5  7-6  8-7     consecutive CSE&faculty courses
-                List<Collision> col = CollisionBasevFacultyDiffSemester(TimeTable, 0, j, j+1, 1);
-                col.AddRange(CollisionBasevFacultyDiffSemester(TimeTable, 0, j+1, j, 1));
+                List<Collision> col = CollisionBasevFacultyDiffSemester(TimeTable, 0, j, j + 1, 1);
+                col.AddRange(CollisionBasevFacultyDiffSemester(TimeTable, 0, j + 1, j, 1));
                 var result = col.Sum(item => item.Result);
                 Obj[1] += result;
                 CollisionList.AddRange(col);
@@ -423,7 +423,7 @@ namespace NSGAII.Models
 
                 {
                     //og. gor. aynı saatte baska dersinin olmaması
-                    List<Collision> col = calculate_TeacherCollision(TimeTable, j, 1);
+                    List<Collision> col = CollisionTeacher(TimeTable, j, 1);
                     var yy1 = col.Sum(item => item.Result);
                     Obj[0] += yy1;
                     CollisionList.AddRange(col);
@@ -432,39 +432,18 @@ namespace NSGAII.Models
 
                 {
                     //og. gor. gunluk 4 saatten fazla pespese dersinin olmamasi
-                    var y = calculate_collisionTeacherConsicutive(TimeTable, j, 4);
-                    if (y > 0)
-                    {
-                        Obj[2] += 1;
-                        Collision tempCollision = new Collision
-                        {
-                            Obj = 2,
-                            Type = CollisionType.TeacherCollision,
-                            TeacherId = j,
-                            Result = 1, // how many crash
-                            Reason = "Teacher has consicutive course crash."
-                        };
-                        CollisionList.Add(tempCollision);
-                    }
+                    List<Collision> col = CollisionTeacherConsicutive(TimeTable, j, 4);
+                    var y = col.Sum(item => item.Result);
+                    Obj[2] += y;
+                    CollisionList.AddRange(col);
                     //teacher have at most 4 consective lesson per day
                 }
                 {
                     //og. gor. boş gununun olması
-                    var y = calculate_collisionTeacherFreeDay(TimeTable, j);
-                    if (y > 0)
-                    {
-                        Obj[2] += 1;
-                        Collision tempCollision = new Collision
-                        {
-                            Obj = 2,
-                            Type = CollisionType.TeacherCollision,
-                            TeacherId = j,
-                            Result = 1, // 1
-                            Reason = "Teacher doesnt have free day"
-                        };
-                        CollisionList.Add(tempCollision);
-                    }
-
+                    List<Collision> col = CollisionTeacherFreeDay(TimeTable, j);
+                    var y = col.Sum(item => item.Result);
+                    Obj[2] += y;
+                    CollisionList.AddRange(col);
                 }
                 /* teacher have free day*/
             }
@@ -472,7 +451,7 @@ namespace NSGAII.Models
 
             //lab ve lecture farklı günlerde olsun
             {
-                List<Collision> col = calculate_LectureLabCollision(TimeTable);
+                List<Collision> col = CollisionLabLectureSameDay(TimeTable);
                 var y = col.Sum(item => item.Result);
                 Obj[2] += y;
                 CollisionList.AddRange(col);
@@ -481,7 +460,7 @@ namespace NSGAII.Models
             #region Elecive vs Elective
             //elective vs elective collision
             {
-                List<Collision> col = calculate_ElectiveCollision(TimeTable, 1);
+                List<Collision> col = CollisionElectivevElective(TimeTable, 1);
                 var y = col.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(col);
@@ -655,7 +634,7 @@ namespace NSGAII.Models
                                 #region base vs faculty same semester
                                 if (!crashingCourse.Elective) //elektif degilse, o saatte fakülte dersi olmamalı.
                                 {
-                                    if (temp[j].facultyCourse[semester-1] > 0) //base vs faculty collision, same semester.
+                                    if (temp[j].facultyCourse[semester - 1] > 0) //base vs faculty collision, same semester.
                                     {
                                         fittingSlot = false;
                                         break;
@@ -1238,7 +1217,7 @@ namespace NSGAII.Models
                 {
                     Slot tempSlot = timeTable[i][j];
 
-                    if (tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision && tempSlot.facultyCourse[semester-1] > minimumCollision)
+                    if (tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision && tempSlot.facultyCourse[semester - 1] > minimumCollision)
                     {
                         Collision tempCollision = new Collision
                         {
@@ -1381,7 +1360,7 @@ namespace NSGAII.Models
             return collisionList;
         }
 
-        static List<Collision> calculate_TeacherCollision(List<List<Slot>> timeTable, int teacherId, int minimumCollision, int obj = 0)
+        static List<Collision> CollisionTeacher(List<List<Slot>> timeTable, int teacherId, int minimumCollision, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1390,19 +1369,19 @@ namespace NSGAII.Models
                 {
                     Slot tempSlot = timeTable[i][j];
 
-                    int hours = tempSlot.Courses.FindAll(x => x.TeacherId == teacherId).Count;
+                    int lectures = tempSlot.Courses.FindAll(x => x.TeacherId == teacherId).Count;
                     if (tempSlot.meetingHour)
-                        hours++;
+                        lectures++;
 
-                    if (hours > minimumCollision)
+                    if (lectures > minimumCollision)
                     {
                         Collision tempCollision = new Collision
                         {
                             Obj = obj,
                             Type = CollisionType.TeacherCollision,
                             TeacherId = teacherId,
-                            Result = hours - 1,
-                            Reason = "teacher has multiple course at same hour"
+                            Result = lectures - minimumCollision,
+                            Reason = "Teacher has multiple lectures in same hour"
                         };
                         tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.TeacherId == teacherId));
 
@@ -1414,12 +1393,13 @@ namespace NSGAII.Models
             }
             return collisionList;
         }
-        static int calculate_collisionTeacherFreeDay(List<List<Slot>> timeTable, int teacherId)
+        static List<Collision> CollisionTeacherFreeDay(List<List<Slot>> timeTable, int teacherId)
         {
+            List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++) //gun
             {
                 var counter = 0;
-                for (int j = 0; j < 9; j++) //dersler
+                for (int j = 0; j < 9; j++) //saatler
                 {
                     Slot tempSlot = timeTable[i][j];
 
@@ -1433,20 +1413,32 @@ namespace NSGAII.Models
                 }
                 if (counter == 9) //9saat boşsa 1 günü boş.
                 {
-                    return 0;
+                    return collisionList;
                 }
 
             }
 
-            return 1;
+            Collision tempCollision = new Collision
+            {
+                Obj = 2,
+                Type = CollisionType.TeacherCollision,
+                TeacherId = teacherId,
+                Result = 1, // 1
+                Reason = "Teacher doesnt have free day"
+            };
+            collisionList.Add(tempCollision);
+
+            return collisionList;
         }
-        static int calculate_collisionTeacherConsicutive(List<List<Slot>> timeTable, int teacherId, int maxConsecutiveHour)
+        static List<Collision> CollisionTeacherConsicutive(List<List<Slot>> timeTable, int teacherId, int maxConsecutiveHour)
         {
+            List<Collision> collisionList = new List<Collision>();
+
             int result = 0;
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 5; i++) //gün
             {
                 var counter = 0;
-                for (int j = 0; j < 9; j++)
+                for (int j = 0; j < 9; j++) //saat
                 {
                     Slot tempSlot = timeTable[i][j];
 
@@ -1454,7 +1446,8 @@ namespace NSGAII.Models
                     {
                         counter++;
                     }
-                    else {
+                    else
+                    {
                         counter = 0; // ara varsa 0'la
                     }
                     if (counter > maxConsecutiveHour)
@@ -1463,11 +1456,22 @@ namespace NSGAII.Models
                     }
                 }
             }
-
-            return result;
+            if (result > 0)
+            {
+                Collision tempCollision = new Collision
+                {
+                    Obj = 2,
+                    Type = CollisionType.TeacherCollision,
+                    TeacherId = teacherId,
+                    Result = 1, // how many crash
+                    Reason = "Teacher has too much consicutive courses."
+                };
+                collisionList.Add(tempCollision);
+            }
+            return collisionList;
         }
 
-        static List<Collision> calculate_LectureLabCollision(List<List<Slot>> timeTable, int obj = 2)
+        static List<Collision> CollisionLabLectureSameDay(List<List<Slot>> timeTable, int obj = 2)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1483,30 +1487,28 @@ namespace NSGAII.Models
                     labs.AddRange(tempSlot.Courses.Where(x => x.Type == 1));
                 }
 
-                if (labs.Count > 0 && lectures.Count > 0)
+                if (labs.Count > 0 && lectures.Count > 0) //hem lab hem lecture varsa
                 {
-
-                    foreach (var lab in labs)
+                    foreach (Course lab in labs)
                     {
-
-                        for (int j = 0; j < lectures.Count; j++)
+                        foreach (Course lecture in lectures)
                         {
-                            if (lectures[j].Code == lab.Code)
+                            if (lecture.Code == lab.Code)
                             {
                                 Collision tempCollision = new Collision
                                 {
                                     Obj = obj,
                                     Type = CollisionType.CourseCollision,
                                     Result = 1,
-                                    Reason = "lab and lecture in same day"
+                                    Reason = "Lab and Lecture in same day"
                                 };
                                 tempCollision.CrashingCourses.Add(lab);
-                                tempCollision.CrashingCourses.Add(lectures[j]);
+                                tempCollision.CrashingCourses.Add(lecture);
 
                                 collisionList.Add(tempCollision);
+                                break; //bir çakışma yetiyor.
                             }
                         }
-
                     }
 
 
@@ -1516,7 +1518,7 @@ namespace NSGAII.Models
             return collisionList;
         }
 
-        static List<Collision> calculate_ElectiveCollision(List<List<Slot>> timeTable, int minimumCollision, int obj = 0)
+        static List<Collision> CollisionElectivevElective(List<List<Slot>> timeTable, int minimumCollision, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1531,8 +1533,8 @@ namespace NSGAII.Models
                         {
                             Obj = obj,
                             Type = CollisionType.CourseCollision,
-                            Result = tempSlot.Courses.FindAll(x => x.Elective).Count - 1,
-                            Reason = "base course collision in same semester"
+                            Result = tempSlot.Courses.FindAll(x => x.Elective).Count - minimumCollision,
+                            Reason = "Elective v Elective"
                         };
                         tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Elective));
 
@@ -1552,7 +1554,7 @@ namespace NSGAII.Models
                 {
                     Slot tempSlot = timeTable[i][j];
 
-                    if (tempSlot.Courses.Count(x => x.Elective) > minimumCollision && tempSlot.facultyCourse[facultySemester-1] > minimumCollision)
+                    if (tempSlot.Courses.Count(x => x.Elective) > minimumCollision && tempSlot.facultyCourse[facultySemester - 1] > minimumCollision)
                     {
 
                         Collision tempCollision = new Collision

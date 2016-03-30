@@ -46,7 +46,7 @@
                 <Grid>
                     <Border BorderBrush="Silver" BorderThickness="1" Margin="0,45,10,10" HorizontalAlignment="Right" Width="181">
                         <ScrollViewer x:Name="CourseScroller" VerticalAlignment="Top" BorderThickness="1" BorderBrush="Black">
-                            <StackPanel x:Name="Sp" ScrollViewer.HorizontalScrollBarVisibility="Visible" CanVerticallyScroll="True" ScrollViewer.CanContentScroll="True" CanHorizontallyScroll="True"/>
+                            <StackPanel x:Name="Sp" CanVerticallyScroll="True" ScrollViewer.CanContentScroll="True" CanHorizontallyScroll="True"/>
                         </ScrollViewer>
                     </Border>
                     <local:TimeTable x:Name="MainTt" Margin="10,35,196,10"/>

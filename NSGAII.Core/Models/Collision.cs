@@ -29,7 +29,7 @@ namespace NSGAII.Models
         public Collision(CollisionType type = CollisionType.CourseCollision)
         {
             Result = 0;
-            TeacherId = 0;
+            TeacherId = -1;
             Type = type;
             CrashingCourses = new List<Course>();
         }
@@ -37,7 +37,7 @@ namespace NSGAII.Models
         public Collision()
         {
             Result = 0;
-            TeacherId = 0;
+            TeacherId = -1;
             CrashingCourses = new List<Course>();
         }
     }
