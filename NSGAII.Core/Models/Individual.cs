@@ -229,7 +229,7 @@ namespace NSGAII.Models
             {
                 if (Gene[j][k] == 1)
                 {
-                    sum += (int) Math.Pow(2, problem.nbits[j] - 1 - k);
+                    sum += (int)Math.Pow(2, problem.nbits[j] - 1 - k);
                 }
             }
 
@@ -237,7 +237,7 @@ namespace NSGAII.Models
             double maxbin = problem.max_binvar[j];
             double nbit = problem.nbits[j];
 
-            return (int) (minbin + sum*(maxbin - minbin)/(Math.Pow(2, nbit) - 1));
+            return (int)(minbin + sum * (maxbin - minbin) / (Math.Pow(2, nbit) - 1));
         }
 
         private void ChangeGene(int geneId, int value, ProblemDefinition problem)
@@ -250,7 +250,7 @@ namespace NSGAII.Models
             double sum = (double)((value - minbin) / ((maxbin - minbin) / (Math.Pow(2, nbit) - 1)));
             int valueToAdd = (int)sum;
 
-            if (sum > (int) sum)
+            if (sum > (int)sum)
                 valueToAdd++;
 
             int bits = problem.nbits[geneId];
@@ -556,7 +556,9 @@ namespace NSGAII.Models
                 do
                 {
                     climbRetryCount++;
-                    HillClimber(problemObj, rnd);
+                    bool climb = HillClimber(problemObj, rnd);
+                    if (climb)
+                        return 0;
                     //HillClimberF22(problemObj, rnd,22);
                     Decode(problemObj);
                     Evaluate(problemObj);
@@ -569,7 +571,7 @@ namespace NSGAII.Models
                     if (obj0Imp + obj1Imp + obj2Imp == 0)
                     {
                         if (obj0Imp > 0)
-                        {                            
+                        {
                             original = new Individual(this, problemObj);
                             original.Decode(problemObj);
                             original.Evaluate(problemObj);
@@ -603,9 +605,10 @@ namespace NSGAII.Models
             return tResultImprovement;
         }
 
-        private void HillClimber(ProblemDefinition problemObj, Random rnd)
+        private bool HillClimber(ProblemDefinition problemObj, Random rnd)
         {
             int maxClimb = 1;
+            int climbCount = 0;
 
             var tempColl = CollisionList.ToList();
 
@@ -614,17 +617,17 @@ namespace NSGAII.Models
 
                 while (tempColl.Count > 0)
                 {
-                    var randomColl = rnd.Next(tempColl.Count);
-                    var collision = tempColl[randomColl];
-                    tempColl.RemoveAt(randomColl);
+                    //var randomColl = rnd.Next(tempColl.Count);
+                    //var collision = tempColl[randomColl];
+                    //tempColl.RemoveAt(randomColl);
+                    var collision = tempColl.First();
+                    tempColl.RemoveAt(0);
 
                     if (collision.CrashingCourses.Count == 0) //ögrentmen ise geçiver şimdilik.
                         continue;
 
                     List<int> fittingSlots = new List<int>();
                     List<int> semiFittingSlots = new List<int>();
-
-                    int climbCount = 0;
 
                     #region Course type collisions
                     foreach (var courseToReposition in collision.CrashingCourses.OrderBy(x => x.Duration)) //önce küçügü koy bir yerlere
@@ -633,8 +636,10 @@ namespace NSGAII.Models
                         List<int> testSlots = new List<int>(maxSlot);
                         for (int i = 0; i < maxSlot; i++)
                         {
-                            testSlots.Add(i);
+                            if (i != SlotId[courseToReposition.Id]) //eski yerini deneneceklerden çıkaralım.
+                                testSlots.Add(i);
                         }
+
                         bool fittingSlot = false;
 
                         int semester = courseToReposition.Semester;
@@ -643,12 +648,12 @@ namespace NSGAII.Models
                         while (testSlots.Count > 0)
                         {
                             var randomSlotToTest = rnd.Next(testSlots.Count);
-                            int i = testSlots[randomSlotToTest];
+                            int slotToTest = testSlots[randomSlotToTest];
                             testSlots.RemoveAt(randomSlotToTest);
 
-                            var temp = GetSlot(i, duration);
-                            int day = GetX(i, duration);
-                            int hour = GetY(i, duration);
+                            var temp = GetSlot(slotToTest, duration);
+                            int day = GetX(slotToTest, duration);
+                            int hour = GetY(slotToTest, duration);
                             var daySlots = GetDay(day);
 
                             #region Check Fitting
@@ -656,7 +661,7 @@ namespace NSGAII.Models
                             {
                                 fittingSlot = true;
 
-                                temp[j].Courses.RemoveAll(x => x.Id == courseToReposition.Id);
+                                temp[j].Courses.RemoveAll(x => x.Id == courseToReposition.Id); //kendini çıkarıyorum ki kendinle çakışmasın.
 
                                 #region base vs faculty same semester
                                 if (!courseToReposition.Elective) //elektif degilse, o saatte fakülte dersi olmamalı.
@@ -672,7 +677,7 @@ namespace NSGAII.Models
                                 #region base vs base same semester
                                 if (!courseToReposition.Elective) //elektif degilse, o saatte başka bölüm dersi olmamalı
                                 {
-                                    if (temp[j].Courses.Count(x => x.Id != courseToReposition.Id && x.Semester == semester && !x.Elective) > 0) //base vs base collision, same semester.
+                                    if (temp[j].Courses.Count(x => x.Semester == semester && !x.Elective) > 0) //base vs base collision, same semester.
                                     {
                                         fittingSlot = false;
                                         break;
@@ -707,7 +712,7 @@ namespace NSGAII.Models
                                 {
                                     if (semester - 1 > 0)
                                     {
-                                        if (temp[j].Courses.Count(x => x.Id != courseToReposition.Id && x.Semester == semester - 1 && !x.Elective) > 0) //base vs base collision, -1 semester.
+                                        if (temp[j].Courses.Count(x => x.Semester == semester - 1 && !x.Elective) > 0) //base vs base collision, -1 semester.
                                         {
 
                                             fittingSlot = false;
@@ -717,7 +722,7 @@ namespace NSGAII.Models
                                     }
                                     if (semester + 1 < 9)
                                     {
-                                        if (temp[j].Courses.Count(x => x.Id != courseToReposition.Id && x.Semester == semester + 1 && !x.Elective) > 0) //base vs base faculty collision, +1 semester.
+                                        if (temp[j].Courses.Count(x => x.Semester == semester + 1 && !x.Elective) > 0) //base vs base faculty collision, +1 semester.
                                         {
 
                                             fittingSlot = false;
@@ -742,7 +747,7 @@ namespace NSGAII.Models
                                 #region Teacher coll
                                 if (courseToReposition.Teacher != "ASSISTANT")
                                 {
-                                    if (temp[j].Courses.Count(x => x.Id != courseToReposition.Id && x.TeacherId == courseToReposition.TeacherId || temp[j].meetingHour) > 0) //check teacher collision
+                                    if (temp[j].Courses.Count(x => x.TeacherId == courseToReposition.TeacherId || temp[j].meetingHour) > 0) //check teacher collision
                                     {
                                         fittingSlot = false;
                                         break;
@@ -763,7 +768,7 @@ namespace NSGAII.Models
                                         if (k == hour)
                                             counter++;
 
-                                        if (tempSlot.Courses.Any(x => x.Id != courseToReposition.Id && x.TeacherId == courseToReposition.TeacherId) || tempSlot.meetingHour) //dersi veya meetingi varsa ++
+                                        if (tempSlot.Courses.Any(x => x.TeacherId == courseToReposition.TeacherId) || tempSlot.meetingHour) //dersi veya meetingi varsa ++
                                         {
                                             counter++;
                                         }
@@ -787,7 +792,7 @@ namespace NSGAII.Models
                                 {
                                     if (courseToReposition.Type == 1)//labı yerleştiriyoruz.
                                     {
-                                        if (daySlots.Any(slot => slot.Courses.Count(x => x.Id != courseToReposition.Id && x.Code == courseToReposition.Code && x.Type == 0) > 0))
+                                        if (daySlots.Any(slot => slot.Courses.Count(x => x.Code == courseToReposition.Code && x.Type == 0) > 0))
                                         {
                                             fittingSlot = false;
                                             break;
@@ -795,7 +800,7 @@ namespace NSGAII.Models
                                     }
                                     else //dersi yerleştiriyoruz
                                     {
-                                        if (daySlots.Any(slot => slot.Courses.Count(x => x.Id != courseToReposition.Id && x.Code == courseToReposition.Code && x.Type == 1) > 0))
+                                        if (daySlots.Any(slot => slot.Courses.Count(x => x.Code == courseToReposition.Code && x.Type == 1) > 0))
                                         {
                                             fittingSlot = false;
                                             break;
@@ -807,7 +812,7 @@ namespace NSGAII.Models
                                 #region Elective vs Elective
                                 if (courseToReposition.Elective)
                                 {
-                                    if (temp[j].Courses.Count(x => x.Id != courseToReposition.Id && x.Elective) > 0) //elective vs elective collision, all semesters.
+                                    if (temp[j].Courses.Count(x => x.Elective) > 0) //elective vs elective collision, all semesters.
                                     {
                                         fittingSlot = false;
                                         break;
@@ -841,13 +846,13 @@ namespace NSGAII.Models
                                 //elective vs base courses in semester
                                 if (courseToReposition.Elective)
                                 {
-                                    if (temp[j].Courses.Count(x =>  x.Semester == 8 & !x.Elective) > 0) //elective vs base collision, #8 semester.                                        
+                                    if (temp[j].Courses.Count(x => x.Semester == 8 & !x.Elective) > 0) //elective vs base collision, #8 semester.                                        
                                     {
                                         fittingSlot = false;
                                         break;
                                     }
 
-                                    if (temp[j].Courses.Count(x =>  x.Semester == 7 & !x.Elective) > 0) //elective vs base collision, #7 semester.
+                                    if (temp[j].Courses.Count(x => x.Semester == 7 & !x.Elective) > 0) //elective vs base collision, #7 semester.
                                     {
                                         fittingSlot = false;
                                         break;
@@ -859,7 +864,7 @@ namespace NSGAII.Models
                                         break;
                                     }
                                 }
-                                else if(courseToReposition.Semester == 8 || courseToReposition.Semester == 7 || courseToReposition.Semester == 6)
+                                else if (courseToReposition.Semester == 8 || courseToReposition.Semester == 7 || courseToReposition.Semester == 6)
                                 {
                                     if (temp[j].Courses.Count(x => x.Elective) > 0) //elective vs base collision, #8 semester.                                        
                                     {
@@ -885,7 +890,7 @@ namespace NSGAII.Models
 
                             if (fittingSlot)
                             {
-                                fittingSlots.Add(i);
+                                fittingSlots.Add(slotToTest);
                                 break;
                             }
                         }
@@ -893,8 +898,8 @@ namespace NSGAII.Models
                         if (fittingSlots.Count > 0)
                         {
                             int selectedSlot = fittingSlots[rnd.Next(fittingSlots.Count)];
-                            int checkDay = GetX(selectedSlot, duration) +1;
-                            int checkHour = GetY(selectedSlot, duration) +1;
+                            int checkDay = GetX(selectedSlot, duration) + 1;
+                            int checkHour = GetY(selectedSlot, duration) + 1;
 
                             int fixedObj = collision.Obj;
                             ChangeGene(courseToReposition.Id, selectedSlot, problemObj);
@@ -911,10 +916,22 @@ namespace NSGAII.Models
                     #endregion
 
                     if (climbCount >= maxClimb)
-                        break;
+                    {
+                        return true;
+                    }
+
 
                 }
+
+                if (climbCount > 0)
+                    return true;
+
+                //hiçbirini çözemedi.
+                return false;
+
             }
+
+            return false;
         }
 
         private List<Slot> GetDay(int dayId)
