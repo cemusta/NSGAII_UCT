@@ -103,6 +103,8 @@ namespace UCT
                     temp = UCTProblem.HillClimbMode.BestOfParent;
                 else if (RadioHillAllBest.IsChecked ?? false)
                     temp = UCTProblem.HillClimbMode.AllBestOfParent;
+                else if(RadioSuperParent.IsChecked ?? false)
+                    temp = UCTProblem.HillClimbMode.SmartParent;
 
                 _uctproblem.NextGeneration(temp);
                 LogBox.Items.Insert(0, _uctproblem.BestReport());
@@ -157,7 +159,7 @@ namespace UCT
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    Slot temp = bc.TimeTable[i][j];
+                    Slot temp = bc.Timetable[i][j];
                     foreach (var course in temp.Courses)
                     {
                         MainTt.ControlArray[i, j].Text += course.PrintableName + "\n";
@@ -250,11 +252,15 @@ namespace UCT
                 StartPauseGeneration.Content = "Start";
                 string filename = dlg.FileName;
                 _uctproblem = UCTProblem.LoadFromFile(filename);
-                ProblemTitle.Content = _uctproblem.ProblemObj.Title;
-                EnableGenerationControls();
-                //CreateProblem.IsEnabled = false;
-                LogBox.Items.Clear();
-                LogBox.Items.Add("Load completed.");
+                if (_uctproblem != null)
+                {
+                    ProblemTitle.Content = _uctproblem.ProblemObj.Title;
+                    EnableGenerationControls();
+                    //CreateProblem.IsEnabled = false;
+                    LogBox.Items.Clear();
+                    LogBox.Items.Add("Load completed.");
+                }
+
             }
 
         }

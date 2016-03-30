@@ -21,6 +21,8 @@ namespace NSGAII
         public Population ParentPopulation;
         public Population ChildPopulation;
         public Population MixedPopulation;
+        public int Best = 0;
+        public int SmartClimb = 0;
 
         #endregion
 
@@ -118,9 +120,9 @@ namespace NSGAII
                         throw new Exception("Wrong number of bits for binary variable entered, hence exiting");
                     }
 
-                    ProblemObj.min_binvar[i] = double.Parse(parts[1]);
+                    ProblemObj.min_binvar[i] = int.Parse(parts[1]);
 
-                    ProblemObj.max_binvar[i] = double.Parse(parts[2]);
+                    ProblemObj.max_binvar[i] = int.Parse(parts[2]);
 
                     if (ProblemObj.max_binvar[i] <= ProblemObj.min_binvar[i])
                     {
@@ -497,6 +499,9 @@ namespace NSGAII
                 DisplayObj.PlotPopulation(ParentPopulation, ProblemObj, CurrentGeneration);
             }
 
+            int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+            Best = minimumResult;
+
         }
 
         public void NextGeneration(HillClimbMode mode = HillClimbMode.None)
@@ -531,6 +536,23 @@ namespace NSGAII
             }
 
             int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+            if (minimumResult < Best)
+            {
+                Best = minimumResult;
+                SmartClimb = 0;
+            }
+            else
+            {
+                SmartClimb++;
+            }
+
+            if (mode == HillClimbMode.SmartParent && SmartClimb >= 25)
+            {
+                ParentPopulation.HillClimb(ProblemObj);
+                minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+                Best = minimumResult;
+                SmartClimb = 0;
+            }
 
             var result = minimumResult;
             var bestChild = ParentPopulation.IndList.Where(x => x.TotalResult == result).ToList();
@@ -659,9 +681,10 @@ namespace NSGAII
             ParentPopulation.Evaluate(ProblemObj);
 
             int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
-            var bestChild = ParentPopulation.IndList.Where(x => x.TotalResult == minimumResult).ToList();
-   
-            return bestChild.First().HillClimb(ProblemObj);
+            var result = minimumResult;
+            var bc = ParentPopulation.IndList.First(x => x.TotalResult == result);
+
+            return bc.HillClimb(ProblemObj);
         }
 
 
@@ -1538,7 +1561,8 @@ namespace NSGAII
             ParentOnly = 3,
             All = 4,
             BestOfParent = 5,
-            AllBestOfParent = 6
+            AllBestOfParent = 6,
+            SmartParent = 7
         }
     }
 }
