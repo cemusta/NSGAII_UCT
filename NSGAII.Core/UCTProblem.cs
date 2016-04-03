@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Configuration;
 using System.Text;
 using NSGAII.Models;
 
@@ -329,7 +330,7 @@ namespace NSGAII
                     for (int k = 0; k < 5; k++)
                     {
                         ProblemObj.Meeting[k].Add(int.Parse(parts[k]));
-            }
+                    }
                 }
             }
             catch (Exception ex)
@@ -520,7 +521,7 @@ namespace NSGAII
             {
                 ChildPopulation.HillClimb(ProblemObj);
             }
-            
+
 
             MixedPopulation.Merge(ParentPopulation, ChildPopulation, ProblemObj);
             //mixedPopulation.Decode(ProblemObj);
@@ -564,6 +565,19 @@ namespace NSGAII
             else if (mode == HillClimbMode.AllBestOfParent)
             {
                 foreach (var child in bestChild)
+                {
+                    child.HillClimb(ProblemObj);
+                }
+            }
+            else if (mode == HillClimbMode.Rank1Best)
+            {
+                var rank1Best = ParentPopulation.IndList.First(x => x.Rank == 1 && x.TotalResult == result);
+                rank1Best.HillClimb(ProblemObj);
+            }
+            else if (mode == HillClimbMode.Rank1All)
+            {
+                var rank1All = ParentPopulation.IndList.Where(x => x.Rank == 1);
+                foreach (var child in rank1All)
                 {
                     child.HillClimb(ProblemObj);
                 }
@@ -1562,7 +1576,9 @@ namespace NSGAII
             All = 4,
             BestOfParent = 5,
             AllBestOfParent = 6,
-            SmartParent = 7
+            SmartParent = 7,
+            Rank1Best = 8,
+            Rank1All = 9
         }
     }
 }

@@ -549,7 +549,7 @@ namespace NSGAII.Models
                 original.Decode(problemObj);
                 original.Evaluate(problemObj);
 
-                int seeder = (int)DateTime.Now.Ticks;
+                int seeder = 7;
                 Random rnd = new Random(seeder);
 
                 int climbRetryCount = 0;
@@ -617,11 +617,11 @@ namespace NSGAII.Models
 
                 while (tempColl.Count > 0)
                 {
-                    //var randomColl = rnd.Next(tempColl.Count);
-                    //var collision = tempColl[randomColl];
-                    //tempColl.RemoveAt(randomColl);
-                    var collision = tempColl.First();
-                    tempColl.RemoveAt(0);
+                    var randomColl = rnd.Next(tempColl.Count);
+                    var collision = tempColl[randomColl];
+                    tempColl.RemoveAt(randomColl);
+                    //var collision = tempColl.First();
+                    //tempColl.RemoveAt(0);
 
                     if (collision.CrashingCourses.Count == 0) //ögrentmen ise geçiver şimdilik.
                         continue;

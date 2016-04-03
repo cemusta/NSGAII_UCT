@@ -45,7 +45,13 @@ namespace UCT
         {
             _generationTimer.Stop();
             StartPauseGeneration.Content = "Start";
-            _uctproblem = new UCTProblem(0.75, 200, 500, 3, 0, 43, 0, false);
+            Random rnd = new Random((int) DateTime.Now.Ticks);
+
+            double seed = 0.75;
+            int population = 200;
+            int generation = 20000;
+            this.Title = $"UCT - seed: {seed}";
+            _uctproblem = new UCTProblem(seed, population, generation, 3, 0, 43, 0, false);
             ProblemTitle.Content = _uctproblem.ProblemObj.Title;
             EnableGenerationControls();
             //CreateProblem.IsEnabled = false;
@@ -105,6 +111,10 @@ namespace UCT
                     temp = UCTProblem.HillClimbMode.AllBestOfParent;
                 else if(RadioSuperParent.IsChecked ?? false)
                     temp = UCTProblem.HillClimbMode.SmartParent;
+                else if (RadioRankBest.IsChecked ?? false)
+                    temp = UCTProblem.HillClimbMode.Rank1Best;
+                else if (RadioRankAll.IsChecked ?? false)
+                    temp = UCTProblem.HillClimbMode.Rank1All;
 
                 _uctproblem.NextGeneration(temp);
                 LogBox.Items.Insert(0, _uctproblem.BestReport());
@@ -267,6 +277,7 @@ namespace UCT
 
         private void SaveProblem_Click(object sender, RoutedEventArgs e)
         {
+            LogBox.Items.Insert(0,"Save completed.");
             UCTProblem.SaveToFile(_uctproblem, _uctproblem.ProblemObj.Title);
         }
 
