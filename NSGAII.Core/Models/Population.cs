@@ -133,7 +133,7 @@ namespace NSGAII.Models
         public void ReportFeasiblePopulation(ProblemDefinition problemObj, string name, string info)
         {
             Directory.CreateDirectory("report");
-            var file = File.OpenWrite($"{problemObj.Title}_{name}_pop.out");
+            var file = File.OpenWrite($"report\\{problemObj.Title}_{name}_pop.out");
             StreamWriter writer = new StreamWriter(file);
             writer.WriteLine($"# {info}");
             writer.WriteLine($"# of objectives = {problemObj.ObjectiveCount}, # of constraints = {problemObj.ConstraintCount}, # of real_var = {problemObj.RealVariableCount}, # of bits of bin_var = {problemObj.TotalBinaryBitLength}, constr_violation, rank, crowding_distance");

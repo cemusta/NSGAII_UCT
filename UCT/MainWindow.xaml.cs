@@ -109,12 +109,14 @@ namespace UCT
                     temp = UCTProblem.HillClimbMode.BestOfParent;
                 else if (RadioHillAllBest.IsChecked ?? false)
                     temp = UCTProblem.HillClimbMode.AllBestOfParent;
-                else if(RadioSuperParent.IsChecked ?? false)
-                    temp = UCTProblem.HillClimbMode.SmartParent;
+                else if(RadioAdaptiveParent.IsChecked ?? false)
+                    temp = UCTProblem.HillClimbMode.AdaptiveParent;
                 else if (RadioRankBest.IsChecked ?? false)
                     temp = UCTProblem.HillClimbMode.Rank1Best;
                 else if (RadioRankAll.IsChecked ?? false)
                     temp = UCTProblem.HillClimbMode.Rank1All;
+                else if (RadioAdaptiveRankAll.IsChecked ?? false)
+                    temp = UCTProblem.HillClimbMode.AdaptiveRank1All;
 
                 _uctproblem.NextGeneration(temp);
                 LogBox.Items.Insert(0, _uctproblem.BestReport());

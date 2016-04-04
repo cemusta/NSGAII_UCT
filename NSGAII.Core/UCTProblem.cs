@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Configuration;
 using System.Text;
+using Microsoft.Win32;
 using NSGAII.Models;
 
 namespace NSGAII
@@ -23,7 +23,7 @@ namespace NSGAII
         public Population ChildPopulation;
         public Population MixedPopulation;
         public int Best = 0;
-        public int SmartClimb = 0;
+        public int AdaptiveClimb = 0;
 
         #endregion
 
@@ -540,19 +540,30 @@ namespace NSGAII
             if (minimumResult < Best)
             {
                 Best = minimumResult;
-                SmartClimb = 0;
+                AdaptiveClimb = 0;
             }
             else
             {
-                SmartClimb++;
+                AdaptiveClimb++;
             }
 
-            if (mode == HillClimbMode.SmartParent && SmartClimb >= 25)
+            if (mode == HillClimbMode.AdaptiveParent && AdaptiveClimb >= 25)
             {
                 ParentPopulation.HillClimb(ProblemObj);
                 minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
                 Best = minimumResult;
-                SmartClimb = 0;
+                AdaptiveClimb = 0;
+            }
+            else if (mode == HillClimbMode.AdaptiveRank1All && AdaptiveClimb >= 25)
+            {
+                var rank1All = ParentPopulation.IndList.Where(x => x.Rank == 1);
+                foreach (var child in rank1All)
+                {
+                    child.HillClimb(ProblemObj);
+                }
+                minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+                Best = minimumResult;
+                AdaptiveClimb = 0;
             }
 
             var result = minimumResult;
@@ -639,6 +650,56 @@ namespace NSGAII
             ParentPopulation.ReportFeasiblePopulation(ProblemObj, "best", "This file contains the data of best individuals");
         }
 
+        public void WriteMethod(HillClimbMode temp = HillClimbMode.None)
+        {
+            Directory.CreateDirectory("report");
+            var file = File.OpenWrite($"report\\{ProblemObj.Title}_method.out");
+            StreamWriter writer = new StreamWriter(file);
+
+            writer.WriteLine($"seed: {RandomizationObj.seed}");
+            writer.WriteLine($"pop.: {ProblemObj.PopulationSize}");
+            writer.WriteLine($"gen.: {ProblemObj.MaxGeneration}");
+            switch (temp)
+            {
+                case HillClimbMode.None:
+                    writer.WriteLine("Method: Basic NSGAII");
+                    break;
+                case HillClimbMode.ChildOnly:
+                    writer.WriteLine("Method: NSGAII with hillclimb on child pop");
+                    break;
+                case HillClimbMode.MixedOnly:
+                    writer.WriteLine("Method: NSGAII with hillclimb on mixed pop");
+                    break;
+                case HillClimbMode.ParentOnly:
+                    writer.WriteLine("Method: NSGAII with hillclimb on parent pop");
+                    break;
+                case HillClimbMode.All:
+                    writer.WriteLine("Method: NSGAII with hillclimb on all pops");
+                    break;
+                case HillClimbMode.BestOfParent:
+                    writer.WriteLine("Method: NSGAII with hillclimb on best of parent pop");
+                    break;
+                case HillClimbMode.AllBestOfParent:
+                    writer.WriteLine("Method: NSGAII with hillclimb on all best of parent pop");
+                    break;
+                case HillClimbMode.AdaptiveParent:
+                    writer.WriteLine("Method: NSGAII with adaptive hillclimb on parent pop");
+                    break;
+                case HillClimbMode.Rank1Best:
+                    writer.WriteLine("Method: NSGAII with hillclimb on best rank 1 parent");
+                    break;
+                case HillClimbMode.Rank1All:
+                    writer.WriteLine("Method: NSGAII with hillclimb on rank 1 parents");
+                    break;
+                case HillClimbMode.AdaptiveRank1All:
+                    writer.WriteLine("Method: NSGAII with adaptive hillclimb on rank 1 parents");
+                    break;
+            }
+
+
+            writer.Flush();
+            writer.Close();
+        }
 
         public static UCTProblem LoadFromFile(string filename)
         {
@@ -670,9 +731,10 @@ namespace NSGAII
         {
             try
             {
+                Directory.CreateDirectory("report");
                 var textToSave = SerializationHelper.SerializeObject(uctToSave);
 
-                File.WriteAllText(filename + ".problem", textToSave, Encoding.UTF8);
+                File.WriteAllText("report\\" + filename + ".problem", textToSave, Encoding.UTF8);
             }
             catch (Exception ex)
             {
@@ -1576,9 +1638,10 @@ namespace NSGAII
             All = 4,
             BestOfParent = 5,
             AllBestOfParent = 6,
-            SmartParent = 7,
+            AdaptiveParent = 7,
             Rank1Best = 8,
-            Rank1All = 9
+            Rank1All = 9,
+            AdaptiveRank1All = 10
         }
     }
 }
