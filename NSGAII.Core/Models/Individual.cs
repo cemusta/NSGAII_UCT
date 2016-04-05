@@ -910,7 +910,7 @@ namespace NSGAII.Models
                         else
                         {
                             //no fit
-                            Console.WriteLine("0 fitting slot found :(");
+                            //Console.WriteLine("0 fitting slot found :(");
                         }
                     } //CRASHING COURSE
                     #endregion

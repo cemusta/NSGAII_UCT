@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTest", "ConsoleTest\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NSGAII.Core", "NSGAII.Core\NSGAII.Core.csproj", "{128456B1-67CA-4AC6-9C6A-023BD6A6342B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportAnalyse", "ReportAnalyse\ReportAnalyse.csproj", "{66659CEC-02A5-411C-BEC7-DCADD9FCF468}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{128456B1-67CA-4AC6-9C6A-023BD6A6342B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{128456B1-67CA-4AC6-9C6A-023BD6A6342B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{128456B1-67CA-4AC6-9C6A-023BD6A6342B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66659CEC-02A5-411C-BEC7-DCADD9FCF468}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66659CEC-02A5-411C-BEC7-DCADD9FCF468}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66659CEC-02A5-411C-BEC7-DCADD9FCF468}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66659CEC-02A5-411C-BEC7-DCADD9FCF468}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
