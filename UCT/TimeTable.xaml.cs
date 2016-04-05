@@ -8,66 +8,66 @@ namespace UCT
     /// </summary>
     public partial class TimeTable : UserControl
     {
-        public TextBlock[,] ControlArray = new TextBlock[5, 10];
+        public WrapPanel[,] ControlArray = new WrapPanel[5, 10];
 
         public TimeTable()
         {
             InitializeComponent();
 
-            ControlArray[0, 0] = slot1 ;
-            ControlArray[0, 1] = slot2 ;
-            ControlArray[0, 2] = slot3 ;
-            ControlArray[0, 3] = slot4 ;
-            ControlArray[0, 4] = slot5 ;
-            ControlArray[0, 5] = slot6 ;
-            ControlArray[0, 6] = slot7 ;
-            ControlArray[0, 7] = slot8 ;
-            ControlArray[0, 8] = slot9 ;
-            ControlArray[0, 9] = slot10 ;
+            ControlArray[0, 0] = Slot1 ;
+            ControlArray[0, 1] = Slot2 ;
+            ControlArray[0, 2] = Slot3 ;
+            ControlArray[0, 3] = Slot4 ;
+            ControlArray[0, 4] = Slot5 ;
+            ControlArray[0, 5] = Slot6 ;
+            ControlArray[0, 6] = Slot7 ;
+            ControlArray[0, 7] = Slot8 ;
+            ControlArray[0, 8] = Slot9 ;
+            ControlArray[0, 9] = Slot10 ;
 
-            ControlArray[1, 0] = slot11;
-            ControlArray[1, 1] = slot12;
-            ControlArray[1, 2] = slot13;
-            ControlArray[1, 3] = slot14;
-            ControlArray[1, 4] = slot15;
-            ControlArray[1, 5] = slot16;
-            ControlArray[1, 6] = slot17;
-            ControlArray[1, 7] = slot18;
-            ControlArray[1, 8] = slot19;
-            ControlArray[1, 9] = slot20;
+            ControlArray[1, 0] = Slot11;
+            ControlArray[1, 1] = Slot12;
+            ControlArray[1, 2] = Slot13;
+            ControlArray[1, 3] = Slot14;
+            ControlArray[1, 4] = Slot15;
+            ControlArray[1, 5] = Slot16;
+            ControlArray[1, 6] = Slot17;
+            ControlArray[1, 7] = Slot18;
+            ControlArray[1, 8] = Slot19;
+            ControlArray[1, 9] = Slot20;
 
-            ControlArray[2, 0] = slot21;
-            ControlArray[2, 1] = slot22;
-            ControlArray[2, 2] = slot23;
-            ControlArray[2, 3] = slot24;
-            ControlArray[2, 4] = slot25;
-            ControlArray[2, 5] = slot26;
-            ControlArray[2, 6] = slot27;
-            ControlArray[2, 7] = slot28;
-            ControlArray[2, 8] = slot29;
-            ControlArray[2, 9] = slot30;
+            ControlArray[2, 0] = Slot21;
+            ControlArray[2, 1] = Slot22;
+            ControlArray[2, 2] = Slot23;
+            ControlArray[2, 3] = Slot24;
+            ControlArray[2, 4] = Slot25;
+            ControlArray[2, 5] = Slot26;
+            ControlArray[2, 6] = Slot27;
+            ControlArray[2, 7] = Slot28;
+            ControlArray[2, 8] = Slot29;
+            ControlArray[2, 9] = Slot30;
 
-            ControlArray[3, 0] = slot31;
-            ControlArray[3, 1] = slot32;
-            ControlArray[3, 2] = slot33;
-            ControlArray[3, 3] = slot34;
-            ControlArray[3, 4] = slot35;
-            ControlArray[3, 5] = slot36;
-            ControlArray[3, 6] = slot37;
-            ControlArray[3, 7] = slot38;
-            ControlArray[3, 8] = slot39;
-            ControlArray[3, 9] = slot40;
+            ControlArray[3, 0] = Slot31;
+            ControlArray[3, 1] = Slot32;
+            ControlArray[3, 2] = Slot33;
+            ControlArray[3, 3] = Slot34;
+            ControlArray[3, 4] = Slot35;
+            ControlArray[3, 5] = Slot36;
+            ControlArray[3, 6] = Slot37;
+            ControlArray[3, 7] = Slot38;
+            ControlArray[3, 8] = Slot39;
+            ControlArray[3, 9] = Slot40;
 
-            ControlArray[4, 0] = slot41;
-            ControlArray[4, 1] = slot42;
-            ControlArray[4, 2] = slot43;
-            ControlArray[4, 3] = slot44;
-            ControlArray[4, 4] = slot45;
-            ControlArray[4, 5] = slot46;
-            ControlArray[4, 6] = slot47;
-            ControlArray[4, 7] = slot48;
-            ControlArray[4, 8] = slot49;
-            ControlArray[4, 9] = slot50;
+            ControlArray[4, 0] = Slot41;
+            ControlArray[4, 1] = Slot42;
+            ControlArray[4, 2] = Slot43;
+            ControlArray[4, 3] = Slot44;
+            ControlArray[4, 4] = Slot45;
+            ControlArray[4, 5] = Slot46;
+            ControlArray[4, 6] = Slot47;
+            ControlArray[4, 7] = Slot48;
+            ControlArray[4, 8] = Slot49;
+            ControlArray[4, 9] = Slot50;
         }
 
         public void Clear()
@@ -75,7 +75,7 @@ namespace UCT
             foreach (var control in ControlArray)
             {
                 control.Background = null;
-                control.Text = "";
+                control.Children.Clear();
                 control.ToolTip = null;
             }
         }

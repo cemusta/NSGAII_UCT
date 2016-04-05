@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ReportAnalyse
 {
@@ -37,7 +35,7 @@ namespace ReportAnalyse
 
             var methodFiles = Directory.GetFiles(path).Where(x => x.Contains("method")).ToList();
 
-            List<Report> RepList = new List<Report>();
+            List<Report> repList = new List<Report>();
 
             foreach (var methodfile in methodFiles)
             {
@@ -48,19 +46,21 @@ namespace ReportAnalyse
                 var genline = lines[2].Replace("gen.: ", "");
                 var methodline = lines[3].Replace("Method: ", "");
 
+                var filename = methodfile.Replace(path, "");
+
                 Report temp = new Report
                 {
-                    Title = Path.GetFileName(methodfile).Substring(0, 6),
+                    Title = filename.Substring(0, 6),
                     Seed = double.Parse(seedline),
                     Pop = int.Parse(popline),
                     Gen = int.Parse(genline),
                     Method = methodline
                 };
 
-                RepList.Add(temp);
+                repList.Add(temp);
             }
 
-            foreach (var report in RepList)
+            foreach (var report in repList)
             {
                 string filename = path + report.Title + "_best_pop.out";
                 if (File.Exists(filename))
@@ -99,7 +99,7 @@ namespace ReportAnalyse
 
             writer.WriteLine("Title, Seed, Pop., Gen., Method, Best, # of Best, Finak Rank 1");
 
-            foreach (var report in RepList)
+            foreach (var report in repList)
             {
 
                 writer.Write($"{report.Title},");

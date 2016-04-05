@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -45,7 +46,7 @@ namespace UCT
         {
             _generationTimer.Stop();
             StartPauseGeneration.Content = "Start";
-            Random rnd = new Random((int) DateTime.Now.Ticks);
+            Random rnd = new Random((int)DateTime.Now.Ticks);
 
             double seed = 0.75;
             int population = 200;
@@ -109,7 +110,7 @@ namespace UCT
                     temp = UCTProblem.HillClimbMode.BestOfParent;
                 else if (RadioHillAllBest.IsChecked ?? false)
                     temp = UCTProblem.HillClimbMode.AllBestOfParent;
-                else if(RadioAdaptiveParent.IsChecked ?? false)
+                else if (RadioAdaptiveParent.IsChecked ?? false)
                     temp = UCTProblem.HillClimbMode.AdaptiveParent;
                 else if (RadioRankBest.IsChecked ?? false)
                     temp = UCTProblem.HillClimbMode.Rank1Best;
@@ -164,7 +165,15 @@ namespace UCT
             bc.Decode(_uctproblem.ProblemObj);
             bc.Evaluate(_uctproblem.ProblemObj);
 
-            MainTt.Clear();
+            List<TimeTable> TTList = new List<TimeTable> {S1TT, S2TT, S3TT, S4TT, S5TT, S6TT, S7TT, S8TT};
+
+
+            MainTT.Clear();
+            for (int i = 0; i < 8; i++)
+            {
+                TTList[i].Clear();
+            }
+
             Sp.Children.Clear();
 
             for (int i = 0; i < 5; i++)
@@ -172,33 +181,94 @@ namespace UCT
                 for (int j = 0; j < 9; j++)
                 {
                     Slot temp = bc.Timetable[i][j];
+                    TextBlock tempTextBlock, tempTextBlockForSemester;
+
+                    var collix = bc.CollisionList.Where(x => x.SlotId == temp.Id);
+                    List<int> tempClist = new List<int>();
+                    foreach (var collision in collix)
+                    {
+                        tempClist.AddRange(collision.CrashingCourses.Select(x=>x.Id));
+                    }
+
                     foreach (var course in temp.Courses)
                     {
-                        MainTt.ControlArray[i, j].Text += course.PrintableName + "\n";
+                        tempTextBlock = new TextBlock { Text = course.PrintableName };
+                        tempTextBlockForSemester = new TextBlock { Text = course.PrintableName };
+                        if (tempClist.Contains(course.Id))
+                        {
+                            tempTextBlock.Background = Brushes.PaleVioletRed;
+                            tempTextBlockForSemester.Background = Brushes.PaleVioletRed;
+                        }
+                  
+                        MainTT.ControlArray[i, j].Children.Add(tempTextBlock);
+
+                        if (course.Semester > 0 && course.Semester < 9)
+                            TTList[course.Semester - 1].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+
                     }
                     for (int k = 0; k < 8; k++)
                     {
                         if (temp.facultyCourse[k] > 0)
                         {
-                            MainTt.ControlArray[i, j].Text += $"Faculty Course (sem:{k + 1})\n";
+                            tempTextBlock = new TextBlock { Text = $"Faculty Course (sem:{k + 1})" };
+                            tempTextBlockForSemester = new TextBlock { Text = $"Faculty Course (sem:{k + 1})" };
+                            MainTT.ControlArray[i, j].Children.Add(tempTextBlock);
+
+                            if (k + 1 == 1)
+                                S1TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                            else if (k + 1 == 2)
+                                S2TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                            else if (k + 1 == 3)
+                                S3TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                            else if (k + 1 == 4)
+                                S4TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                            else if (k + 1 == 5)
+                                S5TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                            else if (k + 1 == 6)
+                                S6TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                            else if (k + 1 == 7)
+                                S7TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                            else if (k + 1 == 8)
+                                S8TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+
+
                         }
                     }
 
                     if (temp.facultyLab > 0)
                     {
-                        MainTt.ControlArray[i, j].Text += $"Faculty Lab (count:{temp.facultyLab})\n";
+                        tempTextBlock = new TextBlock { Text = $"Faculty Lab (count:{temp.facultyLab})" };
+                        MainTT.ControlArray[i, j].Children.Add(tempTextBlock);
                     }
 
                     if (temp.meetingHour)
                     {
-                        MainTt.ControlArray[i, j].Text += $"Meeting\n";
+                        tempTextBlock = new TextBlock
+                        {
+                            FontStyle = FontStyles.Italic,
+                            Text = $"Meeting"
+                        };
+
+                        MainTT.ControlArray[i, j].Children.Add(tempTextBlock);
+                        for (int n = 0; n < 8; n++)
+                        {
+                            tempTextBlockForSemester = new TextBlock
+                            {
+                                FontStyle = FontStyles.Italic,
+                                Text = $"Meeting"
+                            };
+                            TTList[n].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                        }
+
                     }
+
+
+
 
                     foreach (var coll in bc.CollisionList)
                     {
                         if (temp.Id == coll.SlotId)
                         {
-                            MainTt.ControlArray[i, j].Background = Brushes.PaleVioletRed;
                             string collisionRep = $"obj:{coll.Obj} {coll.Reason} :";
                             int count = 0;
                             foreach (var cc in coll.CrashingCourses)
@@ -209,11 +279,10 @@ namespace UCT
                                     collisionRep += "|";
                             }
 
-                            MainTt.ControlArray[i, j].ToolTip += collisionRep + "\n";
+                           // MainTT.ControlArray[i, j].Background = Brushes.PaleVioletRed;
+                            MainTT.ControlArray[i, j].ToolTip += collisionRep + "\n";
                         }
-
                     }
-
                 }
             }
 
@@ -279,7 +348,7 @@ namespace UCT
 
         private void SaveProblem_Click(object sender, RoutedEventArgs e)
         {
-            LogBox.Items.Insert(0,"Save completed.");
+            LogBox.Items.Insert(0, "Save completed.");
             UCTProblem.SaveToFile(_uctproblem, _uctproblem.ProblemObj.Title);
         }
 

@@ -51,7 +51,7 @@
                     <TabControl x:Name="ReportTab">
                         <TabItem Header="Main  ">
                             <Grid>
-                                <local:TimeTable x:Name="MainTt" Margin="0,0,196,0"/>
+                                <local:TimeTable x:Name="MainTT" Margin="0,0,196,0"/>
                                 <Border BorderBrush="Silver" BorderThickness="1" HorizontalAlignment="Right" Width="191">
                                     <ScrollViewer x:Name="CourseScroller" VerticalAlignment="Top" BorderThickness="1" BorderBrush="Black">
                                         <StackPanel x:Name="Sp" CanVerticallyScroll="True" ScrollViewer.CanContentScroll="True" CanHorizontallyScroll="True"/>
@@ -59,7 +59,31 @@
                                 </Border>
                             </Grid>
                         </TabItem>
-                        <TabItem Header="Collisions " />
+                        <TabItem Header="S1" >
+                            <local:TimeTable x:Name="S1TT" Margin="0,0,0,0"/>
+                        </TabItem>
+                        <TabItem Header="S2" >
+                            <local:TimeTable x:Name="S2TT" Margin="0,0,0,0"/>
+                        </TabItem>
+                        <TabItem Header="S3" >
+                            <local:TimeTable x:Name="S3TT" Margin="0,0,0,0"/>
+                        </TabItem>
+                        <TabItem Header="S4" >
+                            <local:TimeTable x:Name="S4TT" Margin="0,0,0,0"/>
+                        </TabItem>
+
+                        <TabItem Header="S5" >
+                            <local:TimeTable x:Name="S5TT" Margin="0,0,0,0"/>
+                        </TabItem>
+                        <TabItem Header="S6" >
+                            <local:TimeTable x:Name="S6TT" Margin="0,0,0,0"/>
+                        </TabItem>
+                        <TabItem Header="S7" >
+                            <local:TimeTable x:Name="S7TT" Margin="0,0,0,0"/>
+                        </TabItem>
+                        <TabItem Header="S8" >
+                            <local:TimeTable x:Name="S8TT" Margin="0,0,0,0"/>
+                        </TabItem>
                     </TabControl>
 
 
