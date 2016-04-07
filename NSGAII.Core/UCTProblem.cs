@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.Win32;
 using NSGAII.Models;
 
 namespace NSGAII
 {
+    // ReSharper disable once InconsistentNaming
     public class UCTProblem
     {
         #region Variable 
@@ -17,17 +17,17 @@ namespace NSGAII
         public int CurrentGeneration { get; set; }
         public ProblemDefinition ProblemObj;
         public Randomization RandomizationObj;
-        private Display DisplayObj;
+        private Display _displayObj;
 
         public Population ParentPopulation;
         public Population ChildPopulation;
         public Population MixedPopulation;
-        public int Best = 0;
-        public int AdaptiveClimb = 0;
+        public int Best;
+        public int AdaptiveClimb;
 
         #endregion
 
-        public UCTProblem(double dSeed, int nPopulation, int nMaxGeneration, int nObjective, int nConstraint, int nBinaryVar, int nRealVar, bool usePlot = false)
+        public UCTProblem(double dSeed, int nPopulation, int nMaxGeneration, int nObjective, int nConstraint, bool useBinary, double crossProbability, double mutateProbability, bool usePlot = false)
         {
             CurrentGeneration = 0;
             Seed = dSeed;
@@ -47,15 +47,9 @@ namespace NSGAII
                 MaxGeneration = nMaxGeneration,
                 ObjectiveCount = nObjective,
                 ConstraintCount = nConstraint,
-                BinaryVariableCount = nBinaryVar,
-                RealVariableCount = nRealVar
+                BinaryVariableCount = 0,
+                RealVariableCount = 0
             };
-
-            if (ProblemObj.RealVariableCount == 0 && ProblemObj.BinaryVariableCount == 0)
-            {
-                Console.WriteLine("\n Number of real as well as binary variables, both are zero, hence exiting \n");
-                throw new Exception("Number of real as well as binary variables, both are zero");
-            }
 
             for (int i = 0; i < 8; i++)
             {
@@ -70,147 +64,144 @@ namespace NSGAII
                 }
             }
 
-            if (ProblemObj.BinaryVariableCount > 0)
-                ReadBinaryValues();
+            ReadCourseList();
 
-            if (ProblemObj.RealVariableCount > 0)
+            if (useBinary)
+            {
+                ProblemObj.BinaryVariableCount = ProblemObj.CourseList.Count;
+
+                PrepareBinaryLimits();
+
+                ProblemObj.BinaryCrossoverProbability = crossProbability;
+                if (ProblemObj.BinaryCrossoverProbability < 0.0 || ProblemObj.BinaryCrossoverProbability > 1.0)
+                {
+                    ProblemObj.BinaryCrossoverProbability = 0.75;
+                }
+
+                ProblemObj.BinaryMutationProbability = mutateProbability;
+                if (ProblemObj.BinaryMutationProbability < 0.0 || ProblemObj.BinaryMutationProbability > 1.0)
+                {
+                    ProblemObj.BinaryMutationProbability = 0.0232558;
+                }
+            }
+            else
+            {
+                ProblemObj.BinaryVariableCount = ProblemObj.CourseList.Count;
+
                 ReadRealValues();
+
+                ProblemObj.BinaryCrossoverProbability = crossProbability;
+                if (ProblemObj.BinaryCrossoverProbability < 0.0 || ProblemObj.BinaryCrossoverProbability > 1.0)
+                {
+                    ProblemObj.BinaryCrossoverProbability = 0.75;
+                }
+
+                ProblemObj.BinaryMutationProbability = mutateProbability;
+                if (ProblemObj.BinaryMutationProbability < 0.0 || ProblemObj.BinaryMutationProbability > 1.0)
+                {
+                    ProblemObj.BinaryMutationProbability = 0.0232558;
+                }
+            }
+
 
             WriteStartParams();
 
             RandomizationObj = new Randomization(dSeed);
             RandomizationObj.Randomize();
 
-            DisplayObj = new Display();
+            _displayObj = new Display();
             InitDisplay(true, true, new[] { 0, 1, 2 });
 
             ReadScheduling();
             ReadLab();
             ReadMeeting();
-            ReadCourseList();
+
             ReadPreq();
 
             CreatePopulationObject();
         }
 
+        // ReSharper disable once UnusedMember.Local
         private UCTProblem()
         {
-
-        }
-
-        private void ReadBinaryValues()
-        {
-            try
-            {
-                FileStream fileStr = File.OpenRead("binary.in");
-                StreamReader reader = new StreamReader(fileStr);
-                string line;
-
-                ProblemObj.nbits = new int[ProblemObj.BinaryVariableCount];
-                ProblemObj.min_binvar = new double[ProblemObj.BinaryVariableCount];
-                ProblemObj.max_binvar = new double[ProblemObj.BinaryVariableCount];
-                for (int i = 0; i < ProblemObj.BinaryVariableCount; i++)
-                {
-                    line = reader.ReadLine();
-                    var parts = line.Split(new char[] { ' ' });
-                    ProblemObj.nbits[i] = int.Parse(parts[0]);
-                    if (ProblemObj.nbits[i] > ProblemObj.MaxBitCount)
-                        ProblemObj.MaxBitCount = ProblemObj.nbits[i];
-                    if (ProblemObj.nbits[i] < 1)
-                    {
-                        throw new Exception("Wrong number of bits for binary variable entered, hence exiting");
-                    }
-
-                    ProblemObj.min_binvar[i] = int.Parse(parts[1]);
-
-                    ProblemObj.max_binvar[i] = int.Parse(parts[2]);
-
-                    if (ProblemObj.max_binvar[i] <= ProblemObj.min_binvar[i])
-                    {
-                        throw new Exception(
-                            " Wrong limits entered for the min and max bounds of binary variable entered, hence exiting");
-                    }
-                }
-
-                line = reader.ReadLine();
-                ProblemObj.BinaryCrossoverProbability = double.Parse(line);
-                if (ProblemObj.BinaryCrossoverProbability < 0.0 || ProblemObj.BinaryCrossoverProbability > 1.0)
-                {
-                    ProblemObj.BinaryCrossoverProbability = 0.75;
-                }
-
-                line = reader.ReadLine();
-                ProblemObj.BinaryMutationProbability = double.Parse(line);
-                if (ProblemObj.BinaryMutationProbability < 0.0 || ProblemObj.BinaryMutationProbability > 1.0)
-                {
-                    ProblemObj.BinaryMutationProbability = 0.0232558;
-                }
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-
-
+            // Load save için gerekiyor.
         }
 
         private void ReadRealValues()
         {
-            try
+            FileStream fileStr = File.OpenRead("real.in");
+            StreamReader reader = new StreamReader(fileStr);
+            string line;
+
+            ProblemObj.min_realvar = new double[ProblemObj.RealVariableCount];
+            ProblemObj.max_realvar = new double[ProblemObj.RealVariableCount];
+            for (int i = 0; i < ProblemObj.RealVariableCount; i++)
             {
-                FileStream fileStr = File.OpenRead("real.in");
-                StreamReader reader = new StreamReader(fileStr);
-                string line;
-
-                ProblemObj.min_realvar = new double[ProblemObj.RealVariableCount];
-                ProblemObj.max_realvar = new double[ProblemObj.RealVariableCount];
-                for (int i = 0; i < ProblemObj.RealVariableCount; i++)
+                line = reader.ReadLine();
+                if (line == null)
                 {
-                    line = reader.ReadLine();
-                    ProblemObj.min_realvar[i] = double.Parse(line);
-
-                    line = reader.ReadLine();
-                    ProblemObj.max_realvar[i] = double.Parse(line);
-                    if (ProblemObj.max_realvar[i] <= ProblemObj.min_realvar[i])
-                    {
-                        throw new Exception("Wrong limits entered for the min and max bounds of real variable");
-                    }
+                    throw new ArgumentException("RealValues");
                 }
+                ProblemObj.min_realvar[i] = double.Parse(line);
 
-                line = Console.ReadLine();
-                ProblemObj.RealCrossoverProbability = double.Parse(line);
-                if (ProblemObj.RealCrossoverProbability < 0.0 || ProblemObj.RealCrossoverProbability > 1.0)
+                line = reader.ReadLine();
+                if (line == null)
                 {
-                    throw new Exception("Entered value of probability of Crossover of real variables is out of bounds");
+                    throw new ArgumentException("RealValues");
                 }
+                ProblemObj.max_realvar[i] = double.Parse(line);
 
-                line = Console.ReadLine();
-                ProblemObj.RealMutationProbability = double.Parse(line);
-                if (ProblemObj.RealMutationProbability < 0.0 || ProblemObj.RealMutationProbability > 1.0)
+                if (ProblemObj.max_realvar[i] <= ProblemObj.min_realvar[i])
                 {
-                    throw new Exception("Entered value of probability of mutation of real variables is out of bounds");
-                }
-
-                line = Console.ReadLine();
-                ProblemObj.CrossoverDistributionIndex = double.Parse(line);
-                if (ProblemObj.CrossoverDistributionIndex <= 0)
-                {
-                    throw new Exception(" Wrong value of distribution index for Crossover entered, hence exiting \n");
-                }
-
-                line = Console.ReadLine();
-                ProblemObj.MutationDistributionIndex = double.Parse(line);
-                if (ProblemObj.MutationDistributionIndex <= 0)
-                {
-                    throw new Exception("Wrong value of distribution index for mutation entered");
+                    throw new Exception("Wrong limits entered for the min and max bounds of real variable");
                 }
             }
-            catch (Exception)
-            {
 
-                throw;
+            line = Console.ReadLine();
+            if (line == null)
+            {
+                throw new ArgumentException("RealValues");
+            }
+            ProblemObj.RealCrossoverProbability = double.Parse(line);
+
+            if (ProblemObj.RealCrossoverProbability < 0.0 || ProblemObj.RealCrossoverProbability > 1.0)
+            {
+                throw new Exception("Entered value of probability of Crossover of real variables is out of bounds");
             }
 
+            line = Console.ReadLine();
+            if (line == null)
+            {
+                throw new ArgumentException("RealValues");
+            }
+            ProblemObj.RealMutationProbability = double.Parse(line);
+
+            if (ProblemObj.RealMutationProbability < 0.0 || ProblemObj.RealMutationProbability > 1.0)
+            {
+                throw new Exception("Entered value of probability of mutation of real variables is out of bounds");
+            }
+
+            line = Console.ReadLine();
+            if (line == null)
+            {
+                throw new ArgumentException("RealValues");
+            }
+            ProblemObj.CrossoverDistributionIndex = double.Parse(line);
+            if (ProblemObj.CrossoverDistributionIndex <= 0)
+            {
+                throw new Exception(" Wrong value of distribution index for Crossover entered, hence exiting \n");
+            }
+
+            line = Console.ReadLine();
+            if (line == null)
+            {
+                throw new ArgumentException("RealValues");
+            }
+            ProblemObj.MutationDistributionIndex = double.Parse(line);
+            if (ProblemObj.MutationDistributionIndex <= 0)
+            {
+                throw new Exception("Wrong value of distribution index for mutation entered");
+            }
         }
 
         private void InitDisplay(bool useGnuplot, bool use3D, int[] arrGnuplotObjective)
@@ -222,11 +213,11 @@ namespace NSGAII
 
             if (ProblemObj.ObjectiveCount == 2)
             {
-                DisplayObj.GnuplotObjective1 = arrGnuplotObjective[0];
+                _displayObj.GnuplotObjective1 = arrGnuplotObjective[0];
 
-                DisplayObj.GnuplotObjective2 = arrGnuplotObjective[1];
+                _displayObj.GnuplotObjective2 = arrGnuplotObjective[1];
 
-                DisplayObj.GnuplotObjective3 = -1;
+                _displayObj.GnuplotObjective3 = -1;
             }
             else
             {
@@ -235,21 +226,21 @@ namespace NSGAII
                 {
                     Console.WriteLine(" Enter the objective for X axis display : ");
 
-                    DisplayObj.GnuplotObjective1 = arrGnuplotObjective[0];
+                    _displayObj.GnuplotObjective1 = arrGnuplotObjective[0];
 
-                    DisplayObj.GnuplotObjective2 = arrGnuplotObjective[1];
+                    _displayObj.GnuplotObjective2 = arrGnuplotObjective[1];
 
-                    DisplayObj.GnuplotObjective3 = -1;
+                    _displayObj.GnuplotObjective3 = -1;
                 }
                 else
                 {
-                    DisplayObj.Use3D = true;
+                    _displayObj.Use3D = true;
 
-                    DisplayObj.GnuplotObjective1 = arrGnuplotObjective[0];
+                    _displayObj.GnuplotObjective1 = arrGnuplotObjective[0];
 
-                    DisplayObj.GnuplotObjective2 = arrGnuplotObjective[1];
+                    _displayObj.GnuplotObjective2 = arrGnuplotObjective[1];
 
-                    DisplayObj.GnuplotObjective3 = arrGnuplotObjective[2];
+                    _displayObj.GnuplotObjective3 = arrGnuplotObjective[2];
                 }
             }
         }
@@ -266,6 +257,10 @@ namespace NSGAII
                     for (int j = 0; j < 9; j++)
                     {
                         var line = reader.ReadLine();
+                        if (line == null)
+                        {
+                            throw new ArgumentException("Schreduling");
+                        }
                         var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         for (int k = 0; k < 5; k++)
                         {
@@ -297,6 +292,10 @@ namespace NSGAII
                 for (int j = 0; j < 9; j++)
                 {
                     var line = reader.ReadLine();
+                    if (line == null)
+                    {
+                        throw new ArgumentException("ReadLab");
+                    }
                     var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     for (int k = 0; k < 5; k++)
                     {
@@ -326,6 +325,10 @@ namespace NSGAII
                 for (int j = 0; j < 9; j++)
                 {
                     var line = reader.ReadLine();
+                    if (line == null)
+                    {
+                        throw new ArgumentException("ReadMeeting");
+                    }
                     var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     for (int k = 0; k < 5; k++)
                     {
@@ -349,6 +352,10 @@ namespace NSGAII
                 var reader = new StreamReader(courseListFile);
 
                 var line = reader.ReadLine();
+                if (line == null)
+                {
+                    throw new ArgumentException("ReadCourseList");
+                }
                 int courseCount = int.Parse(line); //ilk satırda ders adedi olmalı...
 
                 Console.WriteLine($"SIZE: {courseCount} \n");
@@ -356,7 +363,10 @@ namespace NSGAII
                 for (int courseId = 0; courseId < courseCount; courseId++)
                 {
                     line = reader.ReadLine();
-
+                    if (line == null)
+                    {
+                        throw new ArgumentException("ReadCourseList");
+                    }
                     var parts = line.Split(';');
 
                     for (int i = 0; i < parts.Length; i++)
@@ -419,6 +429,46 @@ namespace NSGAII
                 throw;
             }
         }
+
+        private void PrepareBinaryLimits()
+        {
+            try
+            {
+                ProblemObj.nbits = new int[ProblemObj.BinaryVariableCount];
+                ProblemObj.min_binvar = new double[ProblemObj.BinaryVariableCount];
+                ProblemObj.max_binvar = new double[ProblemObj.BinaryVariableCount];
+
+                for (int i = 0; i < ProblemObj.BinaryVariableCount; i++)
+                {
+                    ProblemObj.nbits[i] = 5;
+                    if (ProblemObj.nbits[i] > ProblemObj.MaxBitCount)
+                        ProblemObj.MaxBitCount = ProblemObj.nbits[i];
+
+                    ProblemObj.min_binvar[i] = 0;
+
+                    if (ProblemObj.CourseList[i].Duration == 3)
+                    {
+                        ProblemObj.max_binvar[i] = 19;
+                    }
+                    else
+                    {
+                        ProblemObj.max_binvar[i] = 24;
+                    }
+
+
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+
+
+        }
+
+
 
         private void WriteStartParams()
         {
@@ -497,7 +547,7 @@ namespace NSGAII
 
             if (UsePlot)
             {
-                DisplayObj.PlotPopulation(ParentPopulation, ProblemObj, CurrentGeneration);
+                _displayObj.PlotPopulation(ParentPopulation, ProblemObj, CurrentGeneration);
             }
 
             int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
@@ -599,7 +649,7 @@ namespace NSGAII
 
             if (UsePlot)
             {
-                DisplayObj.PlotPopulation(ParentPopulation, ProblemObj, CurrentGeneration, bestChild.ToList());
+                _displayObj.PlotPopulation(ParentPopulation, ProblemObj, CurrentGeneration, bestChild.ToList());
             }
 
             Console.WriteLine(GenerationReport());
@@ -629,7 +679,7 @@ namespace NSGAII
             {
                 int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
                 var bestChild = ParentPopulation.IndList.Where(x => x.TotalResult == minimumResult).ToList();
-                DisplayObj.PlotPopulation(ParentPopulation, ProblemObj, CurrentGeneration, bestChild.ToList());
+                _displayObj.PlotPopulation(ParentPopulation, ProblemObj, CurrentGeneration, bestChild.ToList());
             }
         }
 
@@ -703,28 +753,21 @@ namespace NSGAII
 
         public static UCTProblem LoadFromFile(string filename)
         {
-            try
-            {
-                var readFile = File.ReadAllText(filename, Encoding.UTF8);
-                var temp = SerializationHelper.DeserializeObject<UCTProblem>(readFile);
+            var readFile = File.ReadAllText(filename, Encoding.UTF8);
+            var temp = SerializationHelper.DeserializeObject<UCTProblem>(readFile);
 
-                temp.DisplayObj = new Display();
-                temp.InitDisplay(true, true, new[] { 0, 1, 2 });
+            temp._displayObj = new Display();
+            temp.InitDisplay(true, true, new[] { 0, 1, 2 });
 
-                temp.ChildPopulation.Decode(temp.ProblemObj);
-                temp.MixedPopulation.Decode(temp.ProblemObj);
-                temp.ParentPopulation.Decode(temp.ProblemObj);
+            temp.ChildPopulation.Decode(temp.ProblemObj);
+            temp.MixedPopulation.Decode(temp.ProblemObj);
+            temp.ParentPopulation.Decode(temp.ProblemObj);
 
-                temp.ChildPopulation.Evaluate(temp.ProblemObj);
-                temp.MixedPopulation.Evaluate(temp.ProblemObj);
-                temp.ParentPopulation.Evaluate(temp.ProblemObj);
+            temp.ChildPopulation.Evaluate(temp.ProblemObj);
+            temp.MixedPopulation.Evaluate(temp.ProblemObj);
+            temp.ParentPopulation.Evaluate(temp.ProblemObj);
 
-                return temp;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
+            return temp;
         }
 
         public static bool SaveToFile(UCTProblem uctToSave, string filename)
@@ -736,7 +779,7 @@ namespace NSGAII
 
                 File.WriteAllText("report\\" + filename + ".problem", textToSave, Encoding.UTF8);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }

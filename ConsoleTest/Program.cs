@@ -12,7 +12,7 @@ namespace ConsoleTest
             if (args == null || args.Length == 0)
             {
                 Console.WriteLine("Starting with default parameters."); // Check for null array
-                test = new UCTProblem(0.75, 200, 10000, 3, 0, 43, 0, false);
+                test = new UCTProblem(0.75, 200, 10000, 3, 0, true, 0.75, 0.0232558, false);
             }
             else
             {
@@ -25,12 +25,12 @@ namespace ConsoleTest
                         int pop = int.Parse(args[1]);
                         int gen = int.Parse(args[2]);
 
-                        test = new UCTProblem(seed, pop, gen, 3, 0, 43, 0, false);
+                        test = new UCTProblem(seed, pop, gen, 3, 0, true, 0.75, 0.0232558, false);
 
 
                         if (args[3] == "0")
                             temp = UCTProblem.HillClimbMode.None;
-                        else if(args[3] == "1")
+                        else if (args[3] == "1")
                             temp = UCTProblem.HillClimbMode.ChildOnly;
                         else if (args[3] == "3")
                             temp = UCTProblem.HillClimbMode.ParentOnly;

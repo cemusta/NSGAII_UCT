@@ -4,7 +4,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using NSGAII;
 using NSGAII.Models;
@@ -52,7 +51,7 @@ namespace UCT
             int population = 200;
             int generation = 20000;
             this.Title = $"UCT - seed: {seed}";
-            _uctproblem = new UCTProblem(seed, population, generation, 3, 0, 43, 0, false);
+            _uctproblem = new UCTProblem(seed, population, generation, 3, 0, true, 0.75, 0.0232558, false);
             ProblemTitle.Content = _uctproblem.ProblemObj.Title;
             EnableGenerationControls();
             //CreateProblem.IsEnabled = false;
@@ -165,7 +164,7 @@ namespace UCT
             bc.Decode(_uctproblem.ProblemObj);
             bc.Evaluate(_uctproblem.ProblemObj);
 
-            List<TimeTable> TTList = new List<TimeTable> {S1TT, S2TT, S3TT, S4TT, S5TT, S6TT, S7TT, S8TT};
+            List<TimeTable> TTList = new List<TimeTable> { S1TT, S2TT, S3TT, S4TT, S5TT, S6TT, S7TT, S8TT };
 
 
             MainTT.Clear();
@@ -187,7 +186,7 @@ namespace UCT
                     List<int> tempClist = new List<int>();
                     foreach (var collision in collix)
                     {
-                        tempClist.AddRange(collision.CrashingCourses.Select(x=>x.Id));
+                        tempClist.AddRange(collision.CrashingCourses.Select(x => x.Id));
                     }
 
                     foreach (var course in temp.Courses)
@@ -199,7 +198,7 @@ namespace UCT
                             tempTextBlock.Background = Brushes.PaleVioletRed;
                             tempTextBlockForSemester.Background = Brushes.PaleVioletRed;
                         }
-                  
+
                         MainTT.ControlArray[i, j].Children.Add(tempTextBlock);
 
                         if (course.Semester > 0 && course.Semester < 9)
@@ -259,11 +258,7 @@ namespace UCT
                             };
                             TTList[n].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
                         }
-
                     }
-
-
-
 
                     foreach (var coll in bc.CollisionList)
                     {
@@ -279,7 +274,7 @@ namespace UCT
                                     collisionRep += "|";
                             }
 
-                           // MainTT.ControlArray[i, j].Background = Brushes.PaleVioletRed;
+                            // MainTT.ControlArray[i, j].Background = Brushes.PaleVioletRed;
                             MainTT.ControlArray[i, j].ToolTip += collisionRep + "\n";
                         }
                     }
