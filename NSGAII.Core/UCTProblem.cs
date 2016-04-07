@@ -127,6 +127,57 @@ namespace NSGAII
             // Load save için gerekiyor.
         }
 
+        private void ReadCourseList()
+        {
+            try
+            {
+                FileStream courseListFile = File.OpenRead("course_list.csv");
+                var reader = new StreamReader(courseListFile);
+
+                var line = reader.ReadLine();
+                if (line == null)
+                {
+                    throw new ArgumentException("ReadCourseList");
+                }
+                int courseCount = int.Parse(line); //ilk satırda ders adedi olmalı...
+
+                Console.WriteLine($"SIZE: {courseCount} \n");
+
+                for (int courseId = 0; courseId < courseCount; courseId++)
+                {
+                    line = reader.ReadLine();
+                    if (line == null)
+                    {
+                        throw new ArgumentException("ReadCourseList");
+                    }
+                    var parts = line.Split(';');
+
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        Console.WriteLine($"{i}.{parts[i]}");
+                    }
+                    Console.WriteLine();
+
+                    var teacherName = parts[1];
+                    if (!ProblemObj.TeacherList.Contains(teacherName))
+                    {
+                        ProblemObj.TeacherList.Add(teacherName);
+                    }
+
+                    ProblemObj.CourseList.Add(new Course(courseId, parts[0], parts[1], ProblemObj.TeacherList.IndexOf(teacherName), int.Parse(parts[2]), int.Parse(parts[3]), int.Parse(parts[4]), int.Parse(parts[5]), (int.Parse(parts[6]) == 1)));
+
+                }
+                Console.WriteLine($"teacher size: {ProblemObj.TeacherList.Count}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+
+
+        }
+
         private void ReadRealValues()
         {
             FileStream fileStr = File.OpenRead("real.in");
@@ -249,6 +300,32 @@ namespace NSGAII
         {
             try
             {
+                for (int i = 0; i < 8; i++)
+                {
+                    FileStream semesterFile = File.OpenRead($"data//sem{i+1}.csv");
+                    var read = new StreamReader(semesterFile);
+
+                    string line = read.ReadLine(); //ilk line title
+
+                    line = read.ReadLine();
+                    while(line != null)
+                    {
+                        var parts = line.Split(',');
+
+                        int facultyCourseId = ProblemObj.FacultyCourseList.Count;
+                        ProblemObj.FacultyCourseList.Add(new Course(facultyCourseId, parts[0], "Faculty", -1, int.Parse(parts[4]), i + 1, int.Parse(parts[2]), 0, false, int.Parse(parts[1]), true, int.Parse(parts[3])));
+
+                        line = read.ReadLine();
+                    }
+                }
+
+
+
+
+
+
+
+
                 var inputSchedulingFile = File.OpenRead("scheduling.in");
                 StreamReader reader = new StreamReader(inputSchedulingFile);
 
@@ -341,57 +418,6 @@ namespace NSGAII
                 Console.WriteLine(ex.Message);
                 throw;
             }
-
-        }
-
-        private void ReadCourseList()
-        {
-            try
-            {
-                FileStream courseListFile = File.OpenRead("course_list.csv");
-                var reader = new StreamReader(courseListFile);
-
-                var line = reader.ReadLine();
-                if (line == null)
-                {
-                    throw new ArgumentException("ReadCourseList");
-                }
-                int courseCount = int.Parse(line); //ilk satırda ders adedi olmalı...
-
-                Console.WriteLine($"SIZE: {courseCount} \n");
-
-                for (int courseId = 0; courseId < courseCount; courseId++)
-                {
-                    line = reader.ReadLine();
-                    if (line == null)
-                    {
-                        throw new ArgumentException("ReadCourseList");
-                    }
-                    var parts = line.Split(';');
-
-                    for (int i = 0; i < parts.Length; i++)
-                    {
-                        Console.WriteLine($"{i}.{parts[i]}");
-                    }
-                    Console.WriteLine();
-
-                    var teacherName = parts[1];
-                    if (!ProblemObj.TeacherList.Contains(teacherName))
-                    {
-                        ProblemObj.TeacherList.Add(teacherName);
-                    }
-
-                    ProblemObj.CourseList.Add(new Course(courseId, parts[0], parts[1], ProblemObj.TeacherList.IndexOf(teacherName), int.Parse(parts[2]), int.Parse(parts[3]), int.Parse(parts[4]), int.Parse(parts[5]), (int.Parse(parts[6]) == 1)));
-
-                }
-                Console.WriteLine($"teacher size: {ProblemObj.TeacherList.Count}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                throw;
-            }
-
 
         }
 

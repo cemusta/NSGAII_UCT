@@ -18,7 +18,7 @@ namespace NSGAII.Models {
 
         public List<int> prerequisites { get; set; }
 
-        public Course(int id, string code, string teacher, int teacherId, int type, int semester, int duration, int labHour, bool elective) {
+        public Course(int id, string code, string teacher, int teacherId, int type, int semester, int duration, int labHour, bool elective, int section = 0, bool faculty = false, int slotid = 0) {
             Id = id;
             Code = code;
             Teacher = teacher;
@@ -29,8 +29,9 @@ namespace NSGAII.Models {
             LabHour = labHour;
             Elective = elective;
             prerequisites = new List<int>();
-            FacultyCourse = false;
-            SlotId = 0;
+            FacultyCourse = faculty;
+            SlotId = slotid;
+            Section = section;
         }
 
         public Course() { }
