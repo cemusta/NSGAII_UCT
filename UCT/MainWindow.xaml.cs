@@ -177,7 +177,7 @@ namespace UCT
 
             for (int i = 0; i < 5; i++)
             {
-                for (int j = 0; j < 9; j++)
+                for (int j = 0; j < 10; j++)
                 {
                     Slot temp = bc.Timetable[i][j];
                     TextBlock tempTextBlock, tempTextBlockForSemester;
@@ -214,8 +214,9 @@ namespace UCT
                         //    tempTextBlock.Background = Brushes.PaleVioletRed;
                         //    tempTextBlockForSemester.Background = Brushes.PaleVioletRed;
                         //}
-                        tempTextBlock.Background = Brushes.CadetBlue;
-                        tempTextBlockForSemester.Background = Brushes.CadetBlue;
+
+                        tempTextBlock.Foreground = Brushes.CadetBlue;
+                        tempTextBlockForSemester.Foreground = Brushes.CadetBlue;
 
                         MainTT.ControlArray[i, j].Children.Add(tempTextBlock);
 
@@ -223,32 +224,7 @@ namespace UCT
                             TTList[course.Semester - 1].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
 
                     }
-                    //for (int k = 0; k < 8; k++)
-                    //{
-                    //    if (temp.facultyCourses.Count > 0)
-                    //    {
-                    //        tempTextBlock = new TextBlock { Text = $"Faculty Course (sem:{k + 1})" };
-                    //        tempTextBlockForSemester = new TextBlock { Text = $"Faculty Course (sem:{k + 1})" };
-                    //        MainTT.ControlArray[i, j].Children.Add(tempTextBlock);
 
-                    //        if (k + 1 == 1)
-                    //            S1TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                    //        else if (k + 1 == 2)
-                    //            S2TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                    //        else if (k + 1 == 3)
-                    //            S3TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                    //        else if (k + 1 == 4)
-                    //            S4TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                    //        else if (k + 1 == 5)
-                    //            S5TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                    //        else if (k + 1 == 6)
-                    //            S6TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                    //        else if (k + 1 == 7)
-                    //            S7TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                    //        else if (k + 1 == 8)
-                    //            S8TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                    //    }
-                    //}
 
                     if (temp.facultyLab > 0)
                     {
