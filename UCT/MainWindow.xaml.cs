@@ -205,34 +205,50 @@ namespace UCT
                             TTList[course.Semester - 1].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
 
                     }
-                    for (int k = 0; k < 8; k++)
+                    foreach (var course in temp.facultyCourses)
                     {
-                        if (temp.facultyCourse[k] > 0)
-                        {
-                            tempTextBlock = new TextBlock { Text = $"Faculty Course (sem:{k + 1})" };
-                            tempTextBlockForSemester = new TextBlock { Text = $"Faculty Course (sem:{k + 1})" };
-                            MainTT.ControlArray[i, j].Children.Add(tempTextBlock);
+                        tempTextBlock = new TextBlock { Text = course.PrintableName };
+                        tempTextBlockForSemester = new TextBlock { Text = course.PrintableName };
+                        //if (tempClist.Contains(course.Id))
+                        //{
+                        //    tempTextBlock.Background = Brushes.PaleVioletRed;
+                        //    tempTextBlockForSemester.Background = Brushes.PaleVioletRed;
+                        //}
+                        tempTextBlock.Background = Brushes.CadetBlue;
+                        tempTextBlockForSemester.Background = Brushes.CadetBlue;
 
-                            if (k + 1 == 1)
-                                S1TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                            else if (k + 1 == 2)
-                                S2TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                            else if (k + 1 == 3)
-                                S3TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                            else if (k + 1 == 4)
-                                S4TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                            else if (k + 1 == 5)
-                                S5TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                            else if (k + 1 == 6)
-                                S6TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                            else if (k + 1 == 7)
-                                S7TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-                            else if (k + 1 == 8)
-                                S8TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                        MainTT.ControlArray[i, j].Children.Add(tempTextBlock);
 
+                        if (course.Semester > 0 && course.Semester < 9)
+                            TTList[course.Semester - 1].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
 
-                        }
                     }
+                    //for (int k = 0; k < 8; k++)
+                    //{
+                    //    if (temp.facultyCourses.Count > 0)
+                    //    {
+                    //        tempTextBlock = new TextBlock { Text = $"Faculty Course (sem:{k + 1})" };
+                    //        tempTextBlockForSemester = new TextBlock { Text = $"Faculty Course (sem:{k + 1})" };
+                    //        MainTT.ControlArray[i, j].Children.Add(tempTextBlock);
+
+                    //        if (k + 1 == 1)
+                    //            S1TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                    //        else if (k + 1 == 2)
+                    //            S2TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                    //        else if (k + 1 == 3)
+                    //            S3TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                    //        else if (k + 1 == 4)
+                    //            S4TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                    //        else if (k + 1 == 5)
+                    //            S5TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                    //        else if (k + 1 == 6)
+                    //            S6TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                    //        else if (k + 1 == 7)
+                    //            S7TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                    //        else if (k + 1 == 8)
+                    //            S8TT.ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                    //    }
+                    //}
 
                     if (temp.facultyLab > 0)
                     {

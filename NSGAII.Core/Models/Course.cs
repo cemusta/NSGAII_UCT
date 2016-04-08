@@ -12,7 +12,7 @@ namespace NSGAII.Models {
         public int Duration { get; set; }
         public int LabHour { get; set; }
         public bool Elective { get; set; }
-        public string PrintableName => $"{Code}{(Type == 1 ? " Lab " : " ")}{(Duration > 0 ? Duration + "hr" : "")}{(Elective == true ? " elective" : " (sem:" + Semester + ")")}";
+        public string PrintableName => $"{(FacultyCourse ? "Fac. " : "")}{Code}{(Type == 1 ? " Lab " : " ")}{(Duration > 0 ? Duration + "hr" : "")}{(Elective == true ? " elective" : " (sem:" + Semester + ")")}";
         public bool FacultyCourse { get; set; }
         public int SlotId { get; set; }
 

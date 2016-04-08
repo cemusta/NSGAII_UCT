@@ -40,13 +40,17 @@ namespace NSGAII.Models
         public readonly List<Course> FacultyCourseList = new List<Course>(8);
         public readonly List<List<int>> Meeting = new List<List<int>>(); // bölüm hocalarının ortak meeting saatleri.
         public readonly List<List<int>> LabScheduling = new List<List<int>>(); // labda dönem tutulmuyor 
-        public readonly List<List<List<int>>> FacultyCourses = new List<List<List<int>>>(8); //8 dönem, 5 gün, 9 ders   
+        //public readonly List<List<List<int>>> FacultyCourses = new List<List<List<int>>>(8); //8 dönem, 5 gün, 9 ders   
 
         public ProblemDefinition(string title)
         {
             Title = title;
         }
 
-        private ProblemDefinition() { }
+        // ReSharper disable once UnusedMember.Local
+        private ProblemDefinition()
+        {
+            //xml load save için gerekiyor.
+        }
     }
 }

@@ -51,19 +51,19 @@ namespace NSGAII
                 RealVariableCount = 0
             };
 
-            for (int i = 0; i < 8; i++)
-            {
-                ProblemObj.FacultyCourses.Add(new List<List<int>>());
-                for (int j = 0; j < 5; j++)
-                {
-                    ProblemObj.FacultyCourses[i].Add(new List<int>());
-                    for (int k = 0; k < 9; k++)
-                    {
-                        ProblemObj.FacultyCourses[i][j].Add(0);
-                    }
-                }
-            }
-
+            //for (int i = 0; i < 8; i++)
+            //{
+            //    ProblemObj.FacultyCourses.Add(new List<List<int>>());
+            //    for (int j = 0; j < 5; j++)
+            //    {
+            //        ProblemObj.FacultyCourses[i].Add(new List<int>());
+            //        for (int k = 0; k < 9; k++)
+            //        {
+            //            ProblemObj.FacultyCourses[i][j].Add(0);
+            //        }
+            //    }
+            //}
+            ProblemObj.TeacherList.Add("ASSISTANT");
             ReadCourseList();
 
             if (useBinary)
@@ -319,33 +319,6 @@ namespace NSGAII
                     }
                 }
 
-
-
-
-
-
-
-
-                var inputSchedulingFile = File.OpenRead("scheduling.in");
-                StreamReader reader = new StreamReader(inputSchedulingFile);
-
-                for (int i = 0; i < 8; i++)
-                {
-                    for (int j = 0; j < 9; j++)
-                    {
-                        var line = reader.ReadLine();
-                        if (line == null)
-                        {
-                            throw new ArgumentException("Schreduling");
-                        }
-                        var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        for (int k = 0; k < 5; k++)
-                        {
-                            ProblemObj.FacultyCourses[i][k][j] = int.Parse(parts[k]);
-                        }
-                    }
-                    reader.ReadLine(); //trailing \n
-                }
             }
             catch (Exception ex)
             {
