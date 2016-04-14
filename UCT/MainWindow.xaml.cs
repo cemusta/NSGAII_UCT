@@ -35,6 +35,7 @@ namespace UCT
             PlotNow.IsEnabled = state;
             ChkUsePlot.IsEnabled = state;
             ReportBest.IsEnabled = state;
+            ReportSelected.IsEnabled = state;
             CloseProblem.IsEnabled = state;
             SaveProblem.IsEnabled = state;
             CreateProblem.IsEnabled = !state;
@@ -45,13 +46,13 @@ namespace UCT
         {
             _generationTimer.Stop();
             StartPauseGeneration.Content = "Start";
-            Random rnd = new Random((int)DateTime.Now.Ticks);
+            //Random rnd = new Random((int)DateTime.Now.Ticks);
 
             double seed = 0.75;
             int population = 200;
             int generation = 20000;
-            this.Title = $"UCT - seed: {seed}";
-            _uctproblem = new UCTProblem(seed, population, generation, 3, 0, true, 0.75, 0.0232558, false);
+            Title = $"UCT - seed: {seed}";
+            _uctproblem = new UCTProblem(seed, population, generation, 3, 0, true, 0.75, 0.0232558);
             ProblemTitle.Content = _uctproblem.ProblemObj.Title;
             EnableGenerationControls();
             //CreateProblem.IsEnabled = false;
@@ -82,9 +83,10 @@ namespace UCT
 
         private void StepGeneration_Click(object sender, RoutedEventArgs e)
         {
-            if (!_generationTimer.IsEnabled)
+            if (!_generationTimer.IsEnabled) //if auto mode off
             {
                 NextGeneration();
+                ListIndividuals();
             }
         }
 
@@ -153,10 +155,8 @@ namespace UCT
 
         private void ReportBest_Click(object sender, RoutedEventArgs e)
         {
-            if (_uctproblem.CurrentGeneration == 0)
+            if (_uctproblem == null || _uctproblem.CurrentGeneration == 0)
                 return;
-
-            MainTab.SelectedIndex = 1;
 
             int minimumResult = _uctproblem.ParentPopulation.IndList.Min(x => x.TotalResult);
             var result = minimumResult;
@@ -164,64 +164,91 @@ namespace UCT
             bc.Decode(_uctproblem.ProblemObj);
             bc.Evaluate(_uctproblem.ProblemObj);
 
-            List<TimeTable> TTList = new List<TimeTable> { S1TT, S2TT, S3TT, S4TT, S5TT, S6TT, S7TT, S8TT };
+            ReportIndividual(bc);
 
+            MainTab.SelectedIndex = 1;
+        }
 
-            MainTT.Clear();
-            for (int i = 0; i < 8; i++)
-            {
-                TTList[i].Clear();
-            }
+        private void ReportSelected_Click(object sender, RoutedEventArgs e)
+        {
+            if (_uctproblem == null || _uctproblem.CurrentGeneration == 0 || IndBox.Items.Count < 0)
+                return;
 
-            Sp.Children.Clear();
+            if (IndBox.SelectedItems.Count <= 0)
+                return;
+
+            int selectedIndex = IndBox.SelectedIndex;
+
+            var individual = _uctproblem.ParentPopulation.IndList[selectedIndex];
+            individual.Decode(_uctproblem.ProblemObj);
+            individual.Evaluate(_uctproblem.ProblemObj);
+
+            ReportIndividual(individual);
+
+            MainTab.SelectedIndex = 1;
+        }
+
+        private void ReportIndividual(Individual ind)
+        {
+            #region Initialize
+            var timeTables = ClearTables();
+
+            #endregion
 
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 10; j++)
                 {
-                    Slot temp = bc.Timetable[i][j];
+                    Slot temp = ind.Timetable[i][j];
                     TextBlock tempTextBlock, tempTextBlockForSemester;
 
-                    var collix = bc.CollisionList.Where(x => x.SlotId == temp.Id);
-                    List<int> tempClist = new List<int>();
+                    var collix = ind.CollisionList.Where(x => x.SlotId == temp.Id);
+                    List<int> crashingCourses = new List<int>();
                     foreach (var collision in collix)
                     {
-                        tempClist.AddRange(collision.CrashingCourses.Select(x => x.Id));
+                        crashingCourses.AddRange(collision.CrashingCourses.Select(x => x.Id));
                     }
 
                     foreach (var course in temp.Courses)
                     {
                         tempTextBlock = new TextBlock { Text = course.PrintableName };
                         tempTextBlockForSemester = new TextBlock { Text = course.PrintableName };
-                        if (tempClist.Contains(course.Id))
+                        if (crashingCourses.Contains(course.Id))
                         {
                             tempTextBlock.Background = Brushes.PaleVioletRed;
                             tempTextBlockForSemester.Background = Brushes.PaleVioletRed;
                         }
 
-                        MainTT.ControlArray[i, j].Children.Add(tempTextBlock);
+                        MainTimetable.ControlArray[i, j].Children.Add(tempTextBlock);
 
                         if (course.Semester > 0 && course.Semester < 9)
-                            TTList[course.Semester - 1].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                            timeTables[course.Semester - 1].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+
+                        if (course.Type == 1)
+                        {
+                            var labTextBlock = new TextBlock { Text = course.PrintableName };
+                            LabTimetable.ControlArray[i, j].Children.Add(labTextBlock);
+                        }
 
                     }
                     foreach (var course in temp.facultyCourses)
                     {
-                        tempTextBlock = new TextBlock { Text = course.PrintableName };
-                        tempTextBlockForSemester = new TextBlock { Text = course.PrintableName };
-                        //if (tempClist.Contains(course.Id))
-                        //{
-                        //    tempTextBlock.Background = Brushes.PaleVioletRed;
-                        //    tempTextBlockForSemester.Background = Brushes.PaleVioletRed;
-                        //}
+                        tempTextBlock = new TextBlock
+                        {
+                            Text = course.PrintableName,
+                            Foreground = Brushes.CadetBlue
+                        };
+                        tempTextBlockForSemester = new TextBlock
+                        {
+                            Text = course.PrintableName,
+                            Foreground = Brushes.CadetBlue
+                        };
 
-                        tempTextBlock.Foreground = Brushes.CadetBlue;
-                        tempTextBlockForSemester.Foreground = Brushes.CadetBlue;
 
-                        MainTT.ControlArray[i, j].Children.Add(tempTextBlock);
+                        MainTimetable.ControlArray[i, j].Children.Add(tempTextBlock);
 
                         if (course.Semester > 0 && course.Semester < 9)
-                            TTList[course.Semester - 1].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                            timeTables[course.Semester - 1].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
 
                     }
 
@@ -229,7 +256,22 @@ namespace UCT
                     if (temp.facultyLab > 0)
                     {
                         tempTextBlock = new TextBlock { Text = $"Faculty Lab (count:{temp.facultyLab})" };
-                        MainTT.ControlArray[i, j].Children.Add(tempTextBlock);
+                        MainTimetable.ControlArray[i, j].Children.Add(tempTextBlock);
+
+                        for (int k = 0; k < temp.facultyLab; k++)
+                        {
+                            var labTextBlock = new TextBlock
+                            {
+                                Text = $"Faculty Lab",
+                                Foreground = Brushes.CadetBlue
+                            };
+                            LabTimetable.ControlArray[i, j].Children.Add(labTextBlock);
+                        }
+                    }
+
+                    if (LabTimetable.ControlArray[i, j].Children.Count > 4)
+                    {
+                        LabTimetable.ControlArray[i, j].Background = Brushes.PaleVioletRed;
                     }
 
                     if (temp.meetingHour)
@@ -240,7 +282,7 @@ namespace UCT
                             Text = $"Meeting"
                         };
 
-                        MainTT.ControlArray[i, j].Children.Add(tempTextBlock);
+                        MainTimetable.ControlArray[i, j].Children.Add(tempTextBlock);
                         for (int n = 0; n < 8; n++)
                         {
                             tempTextBlockForSemester = new TextBlock
@@ -248,16 +290,18 @@ namespace UCT
                                 FontStyle = FontStyles.Italic,
                                 Text = $"Meeting"
                             };
-                            TTList[n].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+                            timeTables[n].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
                         }
                     }
 
-                    foreach (var coll in bc.CollisionList)
+                    foreach (var coll in ind.CollisionList)
                     {
                         if (temp.Id == coll.SlotId)
                         {
-                            string collisionRep = $"obj:{coll.Obj} {coll.Reason} :";
+                            string collisionRep = $"obj:{coll.Obj} {coll.Reason}";
                             int count = 0;
+                            if (coll.CrashingCourses.Count == 0)
+                                collisionRep += " : ";
                             foreach (var cc in coll.CrashingCourses)
                             {
                                 count++;
@@ -266,19 +310,18 @@ namespace UCT
                                     collisionRep += "|";
                             }
 
-                            // MainTT.ControlArray[i, j].Background = Brushes.PaleVioletRed;
-                            MainTT.ControlArray[i, j].ToolTip += collisionRep + "\n";
+                            MainTimetable.ControlArray[i, j].ToolTip += collisionRep + "\n";
                         }
                     }
-                }
-            }
+                } //hour
+            } //day
 
             int tid = 0;
             foreach (var teacher in _uctproblem.ProblemObj.TeacherList)
             {
                 bool hasTeacherCollision = false;
                 string teacherColl = "";
-                foreach (var coll in bc.CollisionList)
+                foreach (var coll in ind.CollisionList)
                 {
                     if (coll.TeacherId == tid)
                     {
@@ -287,7 +330,7 @@ namespace UCT
                     }
                 }
 
-                Sp.Children.Add(new TextBlock
+                TeacherPanel.Children.Add(new TextBlock
                 {
                     Background = hasTeacherCollision ? Brushes.PaleVioletRed : null,
                     ToolTip = hasTeacherCollision ? teacherColl : null,
@@ -297,11 +340,57 @@ namespace UCT
                 tid++;
             }
 
-
+            CollisionTab.Header = $"Coll:{ind.CollisionList.Count} T:{ind.TotalResult}";
+            var collindex = 1;
+            foreach (var collision in ind.CollisionList)
+            {
+                CollisionList.Items.Add(collindex + " " + collision.Printable);
+                collindex++;
+            }
 
         }
 
-        private void OpenProblem_Click(object sender, RoutedEventArgs e)
+        private List<TimeTable> ClearTables()
+        {
+            List<TimeTable> timeTables = new List<TimeTable>
+            {
+                S1Timetable,
+                S2Timetable,
+                S3Timetable,
+                S4Timetable,
+                S5Timetable,
+                S6Timetable,
+                S7Timetable,
+                S8Timetable
+            };
+
+            //clear tables.
+            MainTimetable.Clear();
+            foreach (TimeTable t in timeTables)
+            {
+                t.Clear();
+            }
+            LabTimetable.Clear();
+            TeacherPanel.Children.Clear();
+            CollisionTab.Header = "Coll";
+            CollisionList.Items.Clear();
+            return timeTables;
+        }
+
+        private void ListIndividuals()
+        {
+            IndBox.Items.Clear();
+            foreach (var individual in _uctproblem.ParentPopulation.IndList)
+            {
+                IndBox.Items.Add(individual.ToString());
+                if (individual.Obj[0] == 0)
+                {
+                    //Renk ver.
+                }
+            }
+        }
+
+        private void LoadProblem_Click(object sender, RoutedEventArgs e)
         {
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
 
@@ -326,7 +415,9 @@ namespace UCT
                     EnableGenerationControls();
                     //CreateProblem.IsEnabled = false;
                     LogBox.Items.Clear();
+                    ListIndividuals();
                     LogBox.Items.Add("Load completed.");
+
                 }
 
             }
@@ -347,6 +438,8 @@ namespace UCT
             ProblemTitle.Content = "";
             EnableGenerationControls(false);
             LogBox.Items.Clear();
+            IndBox.Items.Clear();
+            ClearTables();
         }
 
         private void HillClimbButton_Click(object sender, RoutedEventArgs e)

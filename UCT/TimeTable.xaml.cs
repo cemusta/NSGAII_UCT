@@ -68,6 +68,8 @@ namespace UCT
             ControlArray[4, 7] = Slot48;
             ControlArray[4, 8] = Slot49;
             ControlArray[4, 9] = Slot50;
+
+            Clear();
         }
 
         public void Clear()

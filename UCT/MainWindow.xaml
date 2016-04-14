@@ -14,15 +14,26 @@
                 <Grid>
                     <Button x:Name="CreateProblem" Content="Create" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.333,-2.467" Click="CreateProblem_Click"/>
 
-                    <Button x:Name="OpenProblem" Content="Load" Margin="10,258,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.333,-2.467" HorizontalAlignment="Left" Width="75" Click="OpenProblem_Click"/>
+                    <Button x:Name="OpenProblem" Content="Load" Margin="10,258,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.333,-2.467" HorizontalAlignment="Left" Width="75" Click="LoadProblem_Click"/>
                     <Label x:Name="ProblemTitle" Content="" HorizontalAlignment="Left" Margin="139,7,0,0" VerticalAlignment="Top" Width="98"/>
                     <Label x:Name="Label" Content="ID:" HorizontalAlignment="Left" Margin="110,7,0,0" VerticalAlignment="Top"/>
-                    <ListBox x:Name="LogBox" Margin="110,52,120,10"/>
+                    <Grid Margin="99,52,120,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="360*"/>
+                            <ColumnDefinition Width="167*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ListBox x:Name="LogBox" Margin="0,0,10,0" Grid.Column="0"  />
+
+                        <Button Grid.Column="1" x:Name="ReportSelected" Content="Report Ind" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="ReportSelected_Click"/>
+                        <Button Grid.Column="1" x:Name="ReportBest" Content="Report best" HorizontalAlignment="Left" Margin="80,0,0,0" VerticalAlignment="Top" Width="75" Click="ReportBest_Click"/>
+
+                        <ListBox x:Name="IndBox" Margin="0,25,0,0" Grid.Column="1"/>
+                    </Grid>
                     <Button x:Name="StartPauseGeneration" Content="Start" HorizontalAlignment="Left" Margin="10,52,0,0" VerticalAlignment="Top" Width="75" Click="StartPauseGeneration_Click"/>
                     <CheckBox x:Name="ChkUsePlot" Content="use Gnuplot" HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.333,1.4" Click="chkUsePlot_Click"/>
                     <Button x:Name="PlotNow" Content="plot Now" Margin="10,143,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.333,-2.467" HorizontalAlignment="Left" Width="75" Click="PlotNow_Click"/>
                     <Button x:Name="StepGeneration" Content="Step" HorizontalAlignment="Left" Margin="10,93,0,0" VerticalAlignment="Top" Width="75" Click="StepGeneration_Click"/>
-                    <Button x:Name="ReportBest" Content="Report best" HorizontalAlignment="Left" Margin="10,118,0,0" VerticalAlignment="Top" Width="75" Click="ReportBest_Click"/>
                     <Button x:Name="CloseProblem" Content="Close" HorizontalAlignment="Left" Margin="10,283,0,0" VerticalAlignment="Top" Width="75" Click="CloseProblem_Click"/>
                     <Button x:Name="SaveProblem" Content="Save" HorizontalAlignment="Left" Margin="10,233,0,0" VerticalAlignment="Top" Width="75" Click="SaveProblem_Click"/>
                     <Button x:Name="HillClimbButton" Content="Climb Parent" Margin="0,15,10,0" VerticalAlignment="Top" RenderTransformOrigin="-0.333,-2.467" Click="HillClimbButton_Click" HorizontalAlignment="Right" Width="75"/>
@@ -51,38 +62,46 @@
                     <TabControl x:Name="ReportTab">
                         <TabItem Header="Main  ">
                             <Grid>
-                                <local:TimeTable x:Name="MainTT" Margin="0,0,196,0"/>
+                                <local:TimeTable x:Name="MainTimetable" Margin="0,0,196,0"/>
                                 <Border BorderBrush="Silver" BorderThickness="1" HorizontalAlignment="Right" Width="191">
-                                    <ScrollViewer x:Name="CourseScroller" VerticalAlignment="Top" BorderThickness="1" BorderBrush="Black">
-                                        <StackPanel x:Name="Sp" CanVerticallyScroll="True" ScrollViewer.CanContentScroll="True" CanHorizontallyScroll="True"/>
+                                    <ScrollViewer x:Name="CourseScroller" VerticalAlignment="Top" BorderThickness="1" BorderBrush="Black" VerticalScrollBarVisibility="Auto">
+                                        <StackPanel x:Name="TeacherPanel" CanVerticallyScroll="True"  ScrollViewer.CanContentScroll="True" CanHorizontallyScroll="True"/>
                                     </ScrollViewer>
                                 </Border>
                             </Grid>
                         </TabItem>
                         <TabItem Header="S1" >
-                            <local:TimeTable x:Name="S1TT" Margin="0,0,0,0"/>
+                            <local:TimeTable x:Name="S1Timetable" Margin="0,0,0,0"/>
                         </TabItem>
                         <TabItem Header="S2" >
-                            <local:TimeTable x:Name="S2TT" Margin="0,0,0,0"/>
+                            <local:TimeTable x:Name="S2Timetable" Margin="0,0,0,0"/>
                         </TabItem>
                         <TabItem Header="S3" >
-                            <local:TimeTable x:Name="S3TT" Margin="0,0,0,0"/>
+                            <local:TimeTable x:Name="S3Timetable" Margin="0,0,0,0"/>
                         </TabItem>
                         <TabItem Header="S4" >
-                            <local:TimeTable x:Name="S4TT" Margin="0,0,0,0"/>
+                            <local:TimeTable x:Name="S4Timetable" Margin="0,0,0,0"/>
                         </TabItem>
 
                         <TabItem Header="S5" >
-                            <local:TimeTable x:Name="S5TT" Margin="0,0,0,0"/>
+                            <local:TimeTable x:Name="S5Timetable" Margin="0,0,0,0"/>
                         </TabItem>
                         <TabItem Header="S6" >
-                            <local:TimeTable x:Name="S6TT" Margin="0,0,0,0"/>
+                            <local:TimeTable x:Name="S6Timetable" Margin="0,0,0,0"/>
                         </TabItem>
                         <TabItem Header="S7" >
-                            <local:TimeTable x:Name="S7TT" Margin="0,0,0,0"/>
+                            <local:TimeTable x:Name="S7Timetable" Margin="0,0,0,0"/>
                         </TabItem>
                         <TabItem Header="S8" >
-                            <local:TimeTable x:Name="S8TT" Margin="0,0,0,0"/>
+                            <local:TimeTable x:Name="S8Timetable" Margin="0,0,0,0"/>
+                        </TabItem>
+                        <TabItem Header="Lab" >
+                            <local:TimeTable x:Name="LabTimetable" Margin="0,0,0,0"/>
+                        </TabItem>
+                        <TabItem x:Name="CollisionTab" Header="Coll" >
+                            <ListBox x:Name="CollisionList">
+
+                            </ListBox>
                         </TabItem>
                     </TabControl>
 

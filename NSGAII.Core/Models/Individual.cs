@@ -361,7 +361,7 @@ namespace NSGAII.Models
             {
                 for (int i = 0; i < facultyCourse.Duration; i++)
                 {
-                    easy[facultyCourse.SlotId + i -1].facultyCourses.Add(facultyCourse);
+                    easy[facultyCourse.SlotId + i - 1].facultyCourses.Add(facultyCourse);
                 }
             }
 
@@ -1220,7 +1220,11 @@ namespace NSGAII.Models
             }
         }
 
-
+        public override string ToString()
+        {
+            string ret = $"Rank:{Rank}\tTotal:{TotalResult}\t[0]:{Obj[0]}\t[1]:{Obj[1]}\t[2]:{Obj[2]}";
+            return ret;
+        }
 
         #region Collisions
 

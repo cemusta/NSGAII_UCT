@@ -15,14 +15,15 @@ namespace NSGAII.Models
         {
             get
             {
-                string ret = "col: ";
+                string ret = $"obj:{Obj} {Reason} :";
 
+                if (CrashingCourses.Count > 0)
+                    ret += " | ";
                 for (int i = 0; i < CrashingCourses.Count; i++)
                 {
                     ret += $"{CrashingCourses[i].Code} ";
                 }
-                ret += $"| {Reason}";
-
+                ret += $" Result:{Result}";
                 return ret;
             }
         }
