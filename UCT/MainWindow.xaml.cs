@@ -69,13 +69,16 @@ namespace UCT
         {
             if (_generationTimer.IsEnabled)
             {
-                StepGeneration.IsEnabled = true;
-                StartPauseGeneration.Content = "Continue";
                 _generationTimer.Stop();
+                ListIndividuals();
+                StepGeneration.IsEnabled = true;
+                CollisionList.IsEnabled = true;
+                StartPauseGeneration.Content = "Continue";
             }
             else
             {
                 StepGeneration.IsEnabled = false;
+                CollisionList.IsEnabled = false;
                 StartPauseGeneration.Content = "Pause";
                 _generationTimer.Start();
             }

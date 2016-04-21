@@ -385,7 +385,7 @@ namespace NSGAII.Models
             //dönem ici dekanlik/bolum dersi cakismasi todo: scheduling'in normal slot halinde gelmesi lazım
             for (int j = 0; j < 8; j++)
             {
-                List<Collision> col = CollisionBasevFaculty(Timetable, 0, j + 1);
+                List<Collision> col = CollisionBaseVsFaculty(Timetable, 0, j + 1);
                 var result = col.Sum(item => item.Result);
                 Obj[0] += result;
                 CollisionList.AddRange(col);
@@ -396,7 +396,7 @@ namespace NSGAII.Models
             //donem ici bolum dersi cakismasi
             for (int j = 1; j < 9; j++)
             {
-                List<Collision> col = CollisionBasevBase(Timetable, 1, j);
+                List<Collision> col = CollisionBaseVsBase(Timetable, 1, j);
                 var result = col.Sum(item => item.Result);
                 Obj[0] += result;
                 CollisionList.AddRange(col);
@@ -409,8 +409,8 @@ namespace NSGAII.Models
             {
                 // 1-2  2-3  3-4  4-5  5-6  6-7  7-8
                 // 2-1  3-2  4-3  5-4  6-5  7-6  8-7     consecutive CSE&faculty courses
-                List<Collision> col = CollisionBasevFacultyDiffSemester(Timetable, 0, j, j + 1, 1);
-                col.AddRange(CollisionBasevFacultyDiffSemester(Timetable, 0, j + 1, j, 1));
+                List<Collision> col = CollisionBaseVsFacultyDiffSemester(Timetable, 0, j, j + 1, 1);
+                col.AddRange(CollisionBaseVsFacultyDiffSemester(Timetable, 0, j + 1, j, 1));
                 var result = col.Sum(item => item.Result);
                 Obj[1] += result;
                 CollisionList.AddRange(col);
@@ -421,7 +421,7 @@ namespace NSGAII.Models
             //dönemler arası CSE çakışmaları
             for (int j = 1; j < 8; j++)
             {
-                List<Collision> col = CollisionBasevBaseDiffSemester(Timetable, 1, new List<int> { j, j + 1 }, 1);
+                List<Collision> col = CollisionBaseVsBaseDiffSemester(Timetable, 1, new List<int> { j, j + 1 }, 1);
                 var y = col.Sum(item => item.Result);
 
                 Obj[1] += y;
@@ -487,7 +487,7 @@ namespace NSGAII.Models
             #region Elecive vs Elective
             //elective vs elective collision
             {
-                List<Collision> col = CollisionElectivevElective(Timetable, 1);
+                List<Collision> col = CollisionElectiveVsElective(Timetable, 1);
                 var y = col.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(col);
@@ -497,19 +497,19 @@ namespace NSGAII.Models
             #region Elective vs Faculty in semester 6 7 8
             //elective vs faculty courses in semester
             {
-                List<Collision> col = CollisionElectivevFacultyDiffSemester(Timetable, 6, 0);
+                List<Collision> col = CollisionElectiveVsFacultyDiffSemester(Timetable, 6, 0);
                 var y = col.Sum(item => item.Result);
                 Obj[2] += y;
                 CollisionList.AddRange(col);
                 col.Clear();
 
-                col = CollisionElectivevFacultyDiffSemester(Timetable, 7, 0);
+                col = CollisionElectiveVsFacultyDiffSemester(Timetable, 7, 0);
                 y = col.Sum(item => item.Result);
                 Obj[2] += y;
                 CollisionList.AddRange(col);
                 col.Clear();
 
-                col = CollisionElectivevFacultyDiffSemester(Timetable, 8, 0);
+                col = CollisionElectiveVsFacultyDiffSemester(Timetable, 8, 0);
                 y = col.Sum(item => item.Result);
                 Obj[2] += y;
                 CollisionList.AddRange(col);
@@ -519,19 +519,19 @@ namespace NSGAII.Models
             #region Elective vs Base in semester 6 7 8
             //elective vs base courses in semester
             {
-                List<Collision> col = CollisionElectivevBaseDiffSemester(Timetable, 0, 6, 1);
+                List<Collision> col = CollisionElectiveVsBaseDiffSemester(Timetable, 0, 6, 1);
                 var y = col.Sum(item => item.Result);
                 Obj[1] += y;
                 CollisionList.AddRange(col);
                 col.Clear();
 
-                col = CollisionElectivevBaseDiffSemester(Timetable, 0, 7);
+                col = CollisionElectiveVsBaseDiffSemester(Timetable, 0, 7);
                 y = col.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(col);
                 col.Clear();
 
-                col = CollisionElectivevBaseDiffSemester(Timetable, 0, 8);
+                col = CollisionElectiveVsBaseDiffSemester(Timetable, 0, 8);
                 y = col.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(col);
@@ -1228,7 +1228,7 @@ namespace NSGAII.Models
 
         #region Collisions
 
-        static List<Collision> CollisionBasevFaculty(List<List<Slot>> timeTable, int minimumCollision, int semester, int obj = 0)
+        static List<Collision> CollisionBaseVsFaculty(List<List<Slot>> timeTable, int minimumCollision, int semester, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1239,6 +1239,8 @@ namespace NSGAII.Models
 
                     if (tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision && tempSlot.facultyCourses.Count(x => x.Semester == semester) > minimumCollision)
                     {
+                        var temp = tempSlot.facultyCourses.Where(x => x.Semester == semester);
+
                         Collision tempCollision = new Collision
                         {
                             SlotId = tempSlot.Id,
@@ -1255,7 +1257,7 @@ namespace NSGAII.Models
             }
             return collisionList;
         }
-        static List<Collision> CollisionBasevFacultyDiffSemester(List<List<Slot>> timeTable, int minimumCollision, int semester, int facultySemester, int obj = 0)
+        static List<Collision> CollisionBaseVsFacultyDiffSemester(List<List<Slot>> timeTable, int minimumCollision, int semester, int facultySemester, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1282,7 +1284,7 @@ namespace NSGAII.Models
             }
             return collisionList;
         }
-        static List<Collision> CollisionBasevBase(List<List<Slot>> timeTable, int minimumCollision, int semester, int obj = 0)
+        static List<Collision> CollisionBaseVsBase(List<List<Slot>> timeTable, int minimumCollision, int semester, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1309,7 +1311,7 @@ namespace NSGAII.Models
             }
             return collisionList;
         }
-        static List<Collision> CollisionBasevBaseDiffSemester(List<List<Slot>> timeTable, int minimumCollision, List<int> semesters, int obj = 0)
+        static List<Collision> CollisionBaseVsBaseDiffSemester(List<List<Slot>> timeTable, int minimumCollision, List<int> semesters, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1532,7 +1534,7 @@ namespace NSGAII.Models
             return collisionList;
         }
 
-        static List<Collision> CollisionElectivevElective(List<List<Slot>> timeTable, int minimumCollision, int obj = 0)
+        static List<Collision> CollisionElectiveVsElective(List<List<Slot>> timeTable, int minimumCollision, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1560,7 +1562,7 @@ namespace NSGAII.Models
             return collisionList;
         }
 
-        static List<Collision> CollisionElectivevFacultyDiffSemester(List<List<Slot>> timeTable, int facultySemester, int minimumCollision, int obj = 2)
+        static List<Collision> CollisionElectiveVsFacultyDiffSemester(List<List<Slot>> timeTable, int facultySemester, int minimumCollision, int obj = 2)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
@@ -1589,7 +1591,7 @@ namespace NSGAII.Models
             return collisionList;
         }
 
-        static List<Collision> CollisionElectivevBaseDiffSemester(List<List<Slot>> timeTable, int minimumCollision, int semester, int obj = 0)
+        static List<Collision> CollisionElectiveVsBaseDiffSemester(List<List<Slot>> timeTable, int minimumCollision, int semester, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
