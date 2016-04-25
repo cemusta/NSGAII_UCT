@@ -131,7 +131,7 @@ namespace NSGAII
         {
             try
             {
-                FileStream courseListFile = File.OpenRead("course_list.csv");
+                FileStream courseListFile = File.OpenRead("data/course_list.csv");
                 var reader = new StreamReader(courseListFile);
 
                 var line = reader.ReadLine();
@@ -337,7 +337,7 @@ namespace NSGAII
 
             try
             {
-                FileStream inputLabsFile = File.OpenRead("lab_list.in");
+                FileStream inputLabsFile = File.OpenRead("data/lab_list.in");
                 StreamReader reader = new StreamReader(inputLabsFile);
                 for (int j = 0; j < 9; j++)
                 {
@@ -370,7 +370,7 @@ namespace NSGAII
 
             try
             {
-                FileStream meetingFile = File.OpenRead("Meeting.txt");
+                FileStream meetingFile = File.OpenRead("data/Meeting.txt");
                 var reader = new StreamReader(meetingFile);
                 for (int j = 0; j < 9; j++)
                 {
@@ -398,7 +398,7 @@ namespace NSGAII
         {
             try
             {
-                FileStream prerequisiteFile = File.OpenRead("Onkosul-list.csv");
+                FileStream prerequisiteFile = File.OpenRead("data/prereq.csv");
                 var reader = new StreamReader(prerequisiteFile);
                 string line;
                 while ((line = reader.ReadLine()) != null)
