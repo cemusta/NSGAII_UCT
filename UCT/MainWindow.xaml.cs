@@ -51,18 +51,26 @@ namespace UCT
             double seed = 0.75;
             int population = 200;
             int generation = 20000;
-            Title = $"UCT - seed: {seed}";
+            
             _uctproblem = new UCTProblem(seed, population, generation, 3, 0, true, 0.75, 0.0232558);
             ProblemTitle.Content = _uctproblem.ProblemObj.Title;
             EnableGenerationControls();
             //CreateProblem.IsEnabled = false;
             LogBox.Items.Clear();
             LogBox.Items.Add("Create completed.");
+
+            SetTitleToProblem();
+        }
+
+        private void SetTitleToProblem()
+        {
+            this.Title =
+                $"UCT: {_uctproblem.ProblemObj.Title} seed: {_uctproblem.Seed}   {_uctproblem.CurrentGeneration}/{_uctproblem.ProblemObj.MaxGeneration}";
         }
 
         private void generationTimer_Tick(object sender, EventArgs e)
         {
-            NextGeneration();
+            NextGeneration();     
         }
 
         private void StartPauseGeneration_Click(object sender, RoutedEventArgs e)
@@ -135,6 +143,8 @@ namespace UCT
                 _uctproblem.WriteBestGeneration();
                 _uctproblem.WriteFinalGeneration();
             }
+
+            SetTitleToProblem();
         }
 
         private void PlotNow_Click(object sender, RoutedEventArgs e)
@@ -420,7 +430,7 @@ namespace UCT
                     LogBox.Items.Clear();
                     ListIndividuals();
                     LogBox.Items.Add("Load completed.");
-
+                    SetTitleToProblem();
                 }
 
             }
@@ -443,6 +453,17 @@ namespace UCT
             LogBox.Items.Clear();
             IndBox.Items.Clear();
             ClearTables();
+            this.Title = "UCT";
+        }
+
+        private void ResetGenerationNumber_Click(object sender, RoutedEventArgs e)
+        {
+            if (_uctproblem == null)
+                return;
+
+            LogBox.Items.Insert(0, "Generation Number has been reset.");
+            _uctproblem.CurrentGeneration = 1; //can't set to 0, it will reset population.
+            SetTitleToProblem();
         }
 
         private void HillClimbButton_Click(object sender, RoutedEventArgs e)
@@ -454,15 +475,6 @@ namespace UCT
             _uctproblem.HillClimbParent();
             LogBox.Items.Insert(0, _uctproblem.BestReport());
             LogBox.Items.Insert(0, _uctproblem.GenerationReport());
-        }
-
-        private void ResetGenerationNumber_Click(object sender, RoutedEventArgs e)
-        {
-            if (_uctproblem == null)
-                return;
-
-            LogBox.Items.Insert(0, "Generation Number has been reset.");
-            _uctproblem.CurrentGeneration = 1; //0 yaparsam ilk jenerasyonu yapıyor.
         }
 
         private void HillClimbBest_Click(object sender, RoutedEventArgs e)

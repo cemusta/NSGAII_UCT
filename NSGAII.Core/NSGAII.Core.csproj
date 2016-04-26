@@ -57,6 +57,7 @@
     <Compile Include="Models\Lists.cs" />
     <Compile Include="Models\Population.cs" />
     <Compile Include="Models\ProblemDefinition.cs" />
+    <Compile Include="Models\FacultySection.cs" />
     <Compile Include="Models\Slot.cs" />
     <Compile Include="SerializationHelper.cs" />
     <Compile Include="UCTProblem.cs" />

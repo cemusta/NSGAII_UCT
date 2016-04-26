@@ -111,7 +111,7 @@ namespace NSGAII.Models
                 {
                     for (int j = 0; j < problemObj.BinaryVariableCount; j++)
                     {
-                        for (int k = 0; k < problemObj.nbits[j]; k++)
+                        for (int k = 0; k < problemObj.Nbits[j]; k++)
                         {
                             writer.Write($"{IndList[i].Gene[j][ k]}\t");
                         }
@@ -164,7 +164,7 @@ namespace NSGAII.Models
                     {
                         for (int j = 0; j < problemObj.BinaryVariableCount; j++)
                         {
-                            for (int k = 0; k < problemObj.nbits[j]; k++)
+                            for (int k = 0; k < problemObj.Nbits[j]; k++)
                             {
                                 writer.Write($"{IndList[i].Gene[j][k]}\t");
                             }

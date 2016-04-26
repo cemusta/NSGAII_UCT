@@ -51,18 +51,7 @@ namespace NSGAII
                 RealVariableCount = 0
             };
 
-            //for (int i = 0; i < 8; i++)
-            //{
-            //    ProblemObj.FacultyCourses.Add(new List<List<int>>());
-            //    for (int j = 0; j < 5; j++)
-            //    {
-            //        ProblemObj.FacultyCourses[i].Add(new List<int>());
-            //        for (int k = 0; k < 9; k++)
-            //        {
-            //            ProblemObj.FacultyCourses[i][j].Add(0);
-            //        }
-            //    }
-            //}
+
             ProblemObj.TeacherList.Add("ASSISTANT");
             ReadCourseList();
 
@@ -112,7 +101,7 @@ namespace NSGAII
             _displayObj = new Display();
             InitDisplay(true, true, new[] { 0, 1, 2 });
 
-            ReadScheduling();
+            ReadFacultyCourses();
             ReadLab();
             ReadMeeting();
 
@@ -184,8 +173,8 @@ namespace NSGAII
             StreamReader reader = new StreamReader(fileStr);
             string line;
 
-            ProblemObj.min_realvar = new double[ProblemObj.RealVariableCount];
-            ProblemObj.max_realvar = new double[ProblemObj.RealVariableCount];
+            ProblemObj.MinRealvar = new double[ProblemObj.RealVariableCount];
+            ProblemObj.MaxRealvar = new double[ProblemObj.RealVariableCount];
             for (int i = 0; i < ProblemObj.RealVariableCount; i++)
             {
                 line = reader.ReadLine();
@@ -193,16 +182,16 @@ namespace NSGAII
                 {
                     throw new ArgumentException("RealValues");
                 }
-                ProblemObj.min_realvar[i] = double.Parse(line);
+                ProblemObj.MinRealvar[i] = double.Parse(line);
 
                 line = reader.ReadLine();
                 if (line == null)
                 {
                     throw new ArgumentException("RealValues");
                 }
-                ProblemObj.max_realvar[i] = double.Parse(line);
+                ProblemObj.MaxRealvar[i] = double.Parse(line);
 
-                if (ProblemObj.max_realvar[i] <= ProblemObj.min_realvar[i])
+                if (ProblemObj.MaxRealvar[i] <= ProblemObj.MinRealvar[i])
                 {
                     throw new Exception("Wrong limits entered for the min and max bounds of real variable");
                 }
@@ -296,7 +285,7 @@ namespace NSGAII
             }
         }
 
-        private void ReadScheduling()
+        private void ReadFacultyCourses()
         {
             try
             {
@@ -305,9 +294,9 @@ namespace NSGAII
                     FileStream semesterFile = File.OpenRead($"data//sem{i+1}.csv");
                     var read = new StreamReader(semesterFile);
 
-                    string line = read.ReadLine(); //ilk line title
+                    read.ReadLine(); //ilk line title
 
-                    line = read.ReadLine();
+                    string line = read.ReadLine();
                     while(line != null)
                     {
                         var parts = line.Split(',');
@@ -325,6 +314,12 @@ namespace NSGAII
                 Console.WriteLine(ex.Message);
                 throw;
             }
+
+            //ProblemObj.FacultySections.Clear();
+            //foreach (var course in ProblemObj.FacultyCourseList)
+            //{
+            //    if(ProblemObj.FacultySections.Any(x=> x.Code == course.Code && x.))
+            //}
         }
 
         private void ReadLab()
@@ -403,7 +398,7 @@ namespace NSGAII
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
-                    var parts = line.Split(new char[] { ';' });
+                    var parts = line.Split(';');
 
                     var preCourse = ProblemObj.CourseList.Find(x => x.Code == parts[0]);
                     if (preCourse == null)
@@ -433,25 +428,25 @@ namespace NSGAII
         {
             try
             {
-                ProblemObj.nbits = new int[ProblemObj.BinaryVariableCount];
-                ProblemObj.min_binvar = new double[ProblemObj.BinaryVariableCount];
-                ProblemObj.max_binvar = new double[ProblemObj.BinaryVariableCount];
+                ProblemObj.Nbits = new int[ProblemObj.BinaryVariableCount];
+                ProblemObj.MinBinvar = new double[ProblemObj.BinaryVariableCount];
+                ProblemObj.MaxBinvar = new double[ProblemObj.BinaryVariableCount];
 
                 for (int i = 0; i < ProblemObj.BinaryVariableCount; i++)
                 {
-                    ProblemObj.nbits[i] = 5;
-                    if (ProblemObj.nbits[i] > ProblemObj.MaxBitCount)
-                        ProblemObj.MaxBitCount = ProblemObj.nbits[i];
+                    ProblemObj.Nbits[i] = 5;
+                    if (ProblemObj.Nbits[i] > ProblemObj.MaxBitCount)
+                        ProblemObj.MaxBitCount = ProblemObj.Nbits[i];
 
-                    ProblemObj.min_binvar[i] = 0;
+                    ProblemObj.MinBinvar[i] = 0;
 
                     if (ProblemObj.CourseList[i].Duration == 3)
                     {
-                        ProblemObj.max_binvar[i] = 19;
+                        ProblemObj.MaxBinvar[i] = 19;
                     }
                     else
                     {
-                        ProblemObj.max_binvar[i] = 24;
+                        ProblemObj.MaxBinvar[i] = 24;
                     }
 
 
@@ -487,8 +482,8 @@ namespace NSGAII
             {
                 for (int i = 0; i < ProblemObj.RealVariableCount; i++)
                 {
-                    writer.WriteLine($" Lower limit of real variable {i + 1} = {ProblemObj.min_realvar[i]}");
-                    writer.WriteLine($" Upper limit of real variable {i + 1} = {ProblemObj.max_realvar[i]}");
+                    writer.WriteLine($" Lower limit of real variable {i + 1} = {ProblemObj.MinRealvar[i]}");
+                    writer.WriteLine($" Upper limit of real variable {i + 1} = {ProblemObj.MaxRealvar[i]}");
                 }
                 writer.WriteLine($" Probability of crossover of real variable = {ProblemObj.RealCrossoverProbability}");
                 writer.WriteLine($" Probability of mutation of real variable = {ProblemObj.RealMutationProbability}");
@@ -500,9 +495,9 @@ namespace NSGAII
             {
                 for (int i = 0; i < ProblemObj.BinaryVariableCount; i++)
                 {
-                    writer.WriteLine($" Number of bits for binary variable {i + 1} = {ProblemObj.nbits[i]}");
-                    writer.WriteLine($" Lower limit of binary variable {i + 1} = {ProblemObj.min_binvar[i]}");
-                    writer.WriteLine($" Upper limit of binary variable {i + 1} = {ProblemObj.max_binvar[i]}");
+                    writer.WriteLine($" Number of bits for binary variable {i + 1} = {ProblemObj.Nbits[i]}");
+                    writer.WriteLine($" Lower limit of binary variable {i + 1} = {ProblemObj.MinBinvar[i]}");
+                    writer.WriteLine($" Upper limit of binary variable {i + 1} = {ProblemObj.MaxBinvar[i]}");
                 }
                 writer.WriteLine($" Probability of crossover of binary variable = {ProblemObj.BinaryCrossoverProbability}");
                 writer.WriteLine($" Probability of mutation of binary variable = {ProblemObj.BinaryMutationProbability}");
@@ -515,7 +510,7 @@ namespace NSGAII
             {
                 for (int i = 0; i < ProblemObj.BinaryVariableCount; i++)
                 {
-                    ProblemObj.TotalBinaryBitLength += ProblemObj.nbits[i];
+                    ProblemObj.TotalBinaryBitLength += ProblemObj.Nbits[i];
                 }
             }
 
@@ -907,7 +902,7 @@ namespace NSGAII
                 {
                     if (RandomizationObj.RandomPercent() <= 0.5)
                     {
-                        if (Math.Abs(parent1.Xreal[i] - parent2.Xreal[i]) > ProblemObj.EPS)
+                        if (Math.Abs(parent1.Xreal[i] - parent2.Xreal[i]) > ProblemObj.Eps)
                         {
                             if (parent1.Xreal[i] < parent2.Xreal[i])
                             {
@@ -919,8 +914,8 @@ namespace NSGAII
                                 y1 = parent2.Xreal[i];
                                 y2 = parent1.Xreal[i];
                             }
-                            yl = ProblemObj.min_realvar[i];
-                            yu = ProblemObj.max_realvar[i];
+                            yl = ProblemObj.MinRealvar[i];
+                            yu = ProblemObj.MaxRealvar[i];
                             rand = RandomizationObj.RandomPercent();
                             beta = 1.0 + 2.0 * (y1 - yl) / (y2 - y1);
                             alpha = 2.0 - Math.Pow(beta, -(ProblemObj.CrossoverDistributionIndex + 1.0));
@@ -998,8 +993,8 @@ namespace NSGAII
                 if (rand <= ProblemObj.BinaryCrossoverProbability)
                 {
                     ProblemObj.BinaryCrossoverCount++;
-                    site1 = RandomizationObj.RandomInteger(0, ProblemObj.nbits[i] - 1);
-                    site2 = RandomizationObj.RandomInteger(0, ProblemObj.nbits[i] - 1);
+                    site1 = RandomizationObj.RandomInteger(0, ProblemObj.Nbits[i] - 1);
+                    site2 = RandomizationObj.RandomInteger(0, ProblemObj.Nbits[i] - 1);
                     if (site1 > site2)
                     {
                         temp = site1;
@@ -1016,7 +1011,7 @@ namespace NSGAII
                         child1.Gene[i][j] = parent2.Gene[i][j];
                         child2.Gene[i][j] = parent1.Gene[i][j];
                     }
-                    for (j = site2; j < ProblemObj.nbits[i]; j++)
+                    for (j = site2; j < ProblemObj.Nbits[i]; j++)
                     {
                         child1.Gene[i][j] = parent1.Gene[i][j];
                         child2.Gene[i][j] = parent2.Gene[i][j];
@@ -1024,7 +1019,7 @@ namespace NSGAII
                 }
                 else
                 {
-                    for (j = 0; j < ProblemObj.nbits[i]; j++)
+                    for (j = 0; j < ProblemObj.Nbits[i]; j++)
                     {
                         child1.Gene[i][j] = parent1.Gene[i][j];
                         child2.Gene[i][j] = parent2.Gene[i][j];
@@ -1128,7 +1123,7 @@ namespace NSGAII
             double prob;
             for (j = 0; j < ProblemObj.BinaryVariableCount; j++)
             {
-                for (k = 0; k < ProblemObj.nbits[j]; k++)
+                for (k = 0; k < ProblemObj.Nbits[j]; k++)
                 {
                     prob = RandomizationObj.RandomPercent();
                     if (prob <= ProblemObj.BinaryMutationProbability)
@@ -1158,8 +1153,8 @@ namespace NSGAII
                 if (RandomizationObj.RandomPercent() <= ProblemObj.RealMutationProbability)
                 {
                     y = ind.Xreal[j];
-                    yl = ProblemObj.min_realvar[j];
-                    yu = ProblemObj.max_realvar[j];
+                    yl = ProblemObj.MinRealvar[j];
+                    yu = ProblemObj.MaxRealvar[j];
                     delta1 = (y - yl) / (yu - yl);
                     delta2 = (yu - y) / (yu - yl);
                     rnd = RandomizationObj.RandomPercent();
@@ -1262,7 +1257,7 @@ namespace NSGAII
                 if (orig.child.child == null)
                 {
                     newPopulation.IndList[orig.child.index].Rank = rank;
-                    newPopulation.IndList[orig.child.index].CrowdDist = ProblemObj.INF;
+                    newPopulation.IndList[orig.child.index].CrowdDist = ProblemObj.Inf;
                     break;
                 }
                 temp1 = orig.child;
@@ -1337,13 +1332,13 @@ namespace NSGAII
             temp = lst;
             if (frontSize == 1)
             {
-                pop.IndList[lst.index].CrowdDist = ProblemObj.INF;
+                pop.IndList[lst.index].CrowdDist = ProblemObj.Inf;
                 return;
             }
             if (frontSize == 2)
             {
-                pop.IndList[lst.index].CrowdDist = ProblemObj.INF;
-                pop.IndList[lst.child.index].CrowdDist = ProblemObj.INF;
+                pop.IndList[lst.index].CrowdDist = ProblemObj.Inf;
+                pop.IndList[lst.child.index].CrowdDist = ProblemObj.Inf;
                 return;
             }
             dist = new int[frontSize];
@@ -1372,13 +1367,13 @@ namespace NSGAII
             frontSize = c2 - c1 + 1;
             if (frontSize == 1)
             {
-                pop.IndList[c1].CrowdDist = ProblemObj.INF;
+                pop.IndList[c1].CrowdDist = ProblemObj.Inf;
                 return;
             }
             if (frontSize == 2)
             {
-                pop.IndList[c1].CrowdDist = ProblemObj.INF;
-                pop.IndList[c2].CrowdDist = ProblemObj.INF;
+                pop.IndList[c1].CrowdDist = ProblemObj.Inf;
+                pop.IndList[c2].CrowdDist = ProblemObj.Inf;
                 return;
             }
             dist = new int[frontSize];
@@ -1415,13 +1410,13 @@ namespace NSGAII
             }
             for (i = 0; i < ProblemObj.ObjectiveCount; i++)
             {
-                pop.IndList[objArray[i][0]].CrowdDist = ProblemObj.INF;
+                pop.IndList[objArray[i][0]].CrowdDist = ProblemObj.Inf;
             }
             for (i = 0; i < ProblemObj.ObjectiveCount; i++)
             {
                 for (j = 1; j < frontSize - 1; j++)
                 {
-                    if (pop.IndList[objArray[i][j]].CrowdDist != ProblemObj.INF)
+                    if (pop.IndList[objArray[i][j]].CrowdDist != ProblemObj.Inf)
                     {
                         if (pop.IndList[objArray[i][frontSize - 1]].Obj[i] == pop.IndList[objArray[i][0]].Obj[i])
                         {
@@ -1436,7 +1431,7 @@ namespace NSGAII
             }
             for (j = 0; j < frontSize; j++)
             {
-                if (pop.IndList[dist[j]].CrowdDist != ProblemObj.INF)
+                if (pop.IndList[dist[j]].CrowdDist != ProblemObj.Inf)
                 {
                     pop.IndList[dist[j]].CrowdDist = pop.IndList[dist[j]].CrowdDist / ProblemObj.ObjectiveCount;
                 }

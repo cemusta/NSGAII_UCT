@@ -17,6 +17,7 @@ namespace NSGAII.Models
         public int TotalResult;
 
         public List<Collision> CollisionList { get; set; }
+        public List<FacultySection> FacultySections { get; set; }
 
         public int _nRealVar;
         public int _nBinVar;
@@ -29,6 +30,7 @@ namespace NSGAII.Models
         public Individual(int nRealVar, int nBinVar, int nMaxBit, int nObj, int nCons)
         {
             CollisionList = new List<Collision>();
+            FacultySections = new List<FacultySection>();
 
             _nRealVar = nRealVar;
             _nBinVar = nBinVar;
@@ -65,6 +67,7 @@ namespace NSGAII.Models
         public Individual(Individual ind, ProblemDefinition problem)
         {
             CollisionList = new List<Collision>();
+            FacultySections = new List<FacultySection>();
             TotalResult = 0;
 
             _nRealVar = ind._nRealVar;
@@ -112,7 +115,7 @@ namespace NSGAII.Models
                 for (int i = 0; i < ind._nBinVar; i++)
                 {
                     SlotId[i] = ind.SlotId[i];
-                    for (int j = 0; j < problem.nbits[i]; j++)
+                    for (int j = 0; j < problem.Nbits[i]; j++)
                     {
                         Gene[i][j] = ind.Gene[i][j];
                     }
@@ -171,6 +174,7 @@ namespace NSGAII.Models
             _nCons = ind._nCons;
 
             CollisionList.Clear();
+            FacultySections.Clear();
             TotalResult = 0;
 
             Rank = ind.Rank;
@@ -188,7 +192,7 @@ namespace NSGAII.Models
                 for (int i = 0; i < ind._nBinVar; i++)
                 {
                     SlotId[i] = ind.SlotId[i];
-                    for (int j = 0; j < problem.nbits[i]; j++)
+                    for (int j = 0; j < problem.Nbits[i]; j++)
                     {
                         Gene[i][j] = ind.Gene[i][j];
                     }
@@ -212,7 +216,7 @@ namespace NSGAII.Models
         {
             TotalResult = 0;
             CollisionList.Clear();
-
+            FacultySections.Clear();
             if (problem.BinaryVariableCount == 0)
                 return;
 
@@ -225,26 +229,26 @@ namespace NSGAII.Models
         private int DecodeGene(ProblemDefinition problem, int j)
         {
             var sum = 0;
-            for (int k = 0; k < problem.nbits[j]; k++)
+            for (int k = 0; k < problem.Nbits[j]; k++)
             {
                 if (Gene[j][k] == 1)
                 {
-                    sum += (int)Math.Pow(2, problem.nbits[j] - 1 - k);
+                    sum += (int)Math.Pow(2, problem.Nbits[j] - 1 - k);
                 }
             }
 
-            double minbin = problem.min_binvar[j];
-            double maxbin = problem.max_binvar[j];
-            double nbit = problem.nbits[j];
+            double minbin = problem.MinBinvar[j];
+            double maxbin = problem.MaxBinvar[j];
+            double nbit = problem.Nbits[j];
 
             return (int)(minbin + sum * (maxbin - minbin) / (Math.Pow(2, nbit) - 1));
         }
 
         private void ChangeGene(int geneId, int value, ProblemDefinition problem)
         {
-            double minbin = problem.min_binvar[geneId];
-            double maxbin = problem.max_binvar[geneId];
-            double nbit = problem.nbits[geneId];
+            double minbin = problem.MinBinvar[geneId];
+            double maxbin = problem.MaxBinvar[geneId];
+            double nbit = problem.Nbits[geneId];
 
             //int valueToAdd = (int)((value - minbin) * ((Math.Pow(2, nbit) - 1) / (maxbin - minbin)));
             double sum = (double)((value - minbin) / ((maxbin - minbin) / (Math.Pow(2, nbit) - 1)));
@@ -253,7 +257,7 @@ namespace NSGAII.Models
             if (sum > (int)sum)
                 valueToAdd++;
 
-            int bits = problem.nbits[geneId];
+            int bits = problem.Nbits[geneId];
             for (int k = bits - 1; k >= 0; k--)
             {
                 int divident = (int)Math.Pow(2, bits - 1 - k);
@@ -279,14 +283,14 @@ namespace NSGAII.Models
             {
                 for (j = 0; j < problem.RealVariableCount; j++)
                 {
-                    Xreal[j] = randomObj.RandomDouble(problem.min_realvar[j], problem.max_realvar[j]);
+                    Xreal[j] = randomObj.RandomDouble(problem.MinRealvar[j], problem.MaxRealvar[j]);
                 }
             }
             if (problem.BinaryVariableCount != 0)
             {
                 for (j = 0; j < problem.BinaryVariableCount; j++)
                 {
-                    for (int k = 0; k < problem.nbits[j]; k++)
+                    for (int k = 0; k < problem.Nbits[j]; k++)
                     {
                         if (randomObj.RandomPercent() <= 0.5)
                         {
@@ -328,6 +332,24 @@ namespace NSGAII.Models
         {
             TotalResult = 0;
             CollisionList.Clear();
+
+            FacultySections.Clear();
+
+            int fc = 0;
+            foreach (var course in problemObj.FacultyCourseList.OrderBy(x=>x.Code))
+            {
+                if (!FacultySections.Any(x => x.Code == course.Code && x.Section == course.Section))
+                {
+                    var temp = new FacultySection
+                    {
+                        Id = fc,
+                        Code = course.Code,
+                        Section = course.Section
+                    };
+                    FacultySections.Add(temp);
+                    fc++;
+                }
+            }
 
             #region fill variables
 
@@ -779,7 +801,8 @@ namespace NSGAII.Models
                                         {
                                             counter++;
                                         }
-                                        else {
+                                        else
+                                        {
                                             counter = 0; // ara varsa 0'la
                                         }
                                         if (counter > maxConsecutiveHour)

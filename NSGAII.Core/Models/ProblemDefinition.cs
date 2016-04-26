@@ -6,8 +6,8 @@ namespace NSGAII.Models
     {
         public string Title;
 
-        public double INF = 1.0e14;
-        public double EPS = 1.0e-14;
+        public double Inf = 1.0e14;
+        public double Eps = 1.0e-14;
                
         public int RealVariableCount;
         public int BinaryVariableCount;
@@ -29,18 +29,17 @@ namespace NSGAII.Models
         public int RealCrossoverCount;       //for reporting only
         public int TotalBinaryBitLength;     //for reporting only
                
-        public int[] nbits = new int[50];
-        public double[] min_realvar = new double[50];
-        public double[] max_realvar = new double[50];
-        public double[] min_binvar = new double[50];
-        public double[] max_binvar = new double[50];
+        public int[] Nbits = new int[50];
+        public double[] MinRealvar = new double[50];
+        public double[] MaxRealvar = new double[50];
+        public double[] MinBinvar = new double[50];
+        public double[] MaxBinvar = new double[50];
 
         public readonly List<string> TeacherList = new List<string>(8);
         public readonly List<Course> CourseList = new List<Course>(8);
         public readonly List<Course> FacultyCourseList = new List<Course>(8);
         public readonly List<List<int>> Meeting = new List<List<int>>(); // bölüm hocalarının ortak meeting saatleri.
         public readonly List<List<int>> LabScheduling = new List<List<int>>(); // labda dönem tutulmuyor 
-        //public readonly List<List<List<int>>> FacultyCourses = new List<List<List<int>>>(8); //8 dönem, 5 gün, 9 ders   
 
         public ProblemDefinition(string title)
         {
