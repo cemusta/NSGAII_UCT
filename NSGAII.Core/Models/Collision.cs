@@ -15,7 +15,7 @@ namespace NSGAII.Models
         {
             get
             {
-                string ret = $"obj:{Obj} {Reason} :";
+                string ret = $"obj:{Obj} {Reason}";
 
                 if (CrashingCourses.Count > 0)
                     ret += " | ";

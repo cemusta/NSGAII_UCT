@@ -19,11 +19,11 @@ namespace NSGAII.Models
         public List<Collision> CollisionList { get; set; }
         public List<FacultySection> FacultySections { get; set; }
 
-        public int _nRealVar;
-        public int _nBinVar;
-        public int _nMaxBit;
-        public int _nObj;
-        public int _nCons;
+        public int NRealVar;
+        public int NBinVar;
+        public int NMaxBit;
+        public int NObj;
+        public int NCons;
 
         public readonly List<List<Slot>> Timetable;
 
@@ -32,11 +32,11 @@ namespace NSGAII.Models
             CollisionList = new List<Collision>();
             FacultySections = new List<FacultySection>();
 
-            _nRealVar = nRealVar;
-            _nBinVar = nBinVar;
-            _nMaxBit = nMaxBit;
-            _nObj = nObj;
-            _nCons = nCons;
+            NRealVar = nRealVar;
+            NBinVar = nBinVar;
+            NMaxBit = nMaxBit;
+            NObj = nObj;
+            NCons = nCons;
 
             if (nRealVar != 0)
                 Xreal = new double[nRealVar];
@@ -70,23 +70,23 @@ namespace NSGAII.Models
             FacultySections = new List<FacultySection>();
             TotalResult = 0;
 
-            _nRealVar = ind._nRealVar;
-            _nBinVar = ind._nBinVar;
-            _nMaxBit = ind._nMaxBit;
-            _nObj = ind._nObj;
-            _nCons = ind._nCons;
+            NRealVar = ind.NRealVar;
+            NBinVar = ind.NBinVar;
+            NMaxBit = ind.NMaxBit;
+            NObj = ind.NObj;
+            NCons = ind.NCons;
 
-            if (ind._nRealVar != 0)
-                Xreal = new double[_nRealVar];
+            if (ind.NRealVar != 0)
+                Xreal = new double[NRealVar];
 
-            if (ind._nBinVar != 0)
+            if (ind.NBinVar != 0)
             {
-                SlotId = new int[ind._nBinVar];
+                SlotId = new int[ind.NBinVar];
                 Gene = new List<List<int>>();
-                for (int i = 0; i < ind._nBinVar; i++)
+                for (int i = 0; i < ind.NBinVar; i++)
                 {
-                    Gene.Add(new List<int>(ind._nBinVar));
-                    for (int j = 0; j < _nMaxBit; j++)
+                    Gene.Add(new List<int>(ind.NBinVar));
+                    for (int j = 0; j < NMaxBit; j++)
                     {
                         Gene[i].Add(0);
                     }
@@ -94,25 +94,25 @@ namespace NSGAII.Models
                 //Gene = new int[ind._nBinVar, ind._nMaxBit];
             }
 
-            Obj = new int[ind._nObj];
+            Obj = new int[ind.NObj];
 
-            if (ind._nCons != 0)
-                Constr = new double[ind._nCons];
+            if (ind.NCons != 0)
+                Constr = new double[ind.NCons];
 
 
             Rank = ind.Rank;
             ConstrViolation = ind.ConstrViolation;
             CrowdDist = ind.CrowdDist;
-            if (ind._nRealVar > 0)
+            if (ind.NRealVar > 0)
             {
-                for (int i = 0; i < ind._nRealVar; i++)
+                for (int i = 0; i < ind.NRealVar; i++)
                 {
                     Xreal[i] = ind.Xreal[i];
                 }
             }
-            if (ind._nBinVar > 0)
+            if (ind.NBinVar > 0)
             {
-                for (int i = 0; i < ind._nBinVar; i++)
+                for (int i = 0; i < ind.NBinVar; i++)
                 {
                     SlotId[i] = ind.SlotId[i];
                     for (int j = 0; j < problem.Nbits[i]; j++)
@@ -121,13 +121,13 @@ namespace NSGAII.Models
                     }
                 }
             }
-            for (int i = 0; i < ind._nObj; i++)
+            for (int i = 0; i < ind.NObj; i++)
             {
                 Obj[i] = ind.Obj[i];
             }
-            if (ind._nCons > 0)
+            if (ind.NCons > 0)
             {
-                for (int i = 0; i < ind._nCons; i++)
+                for (int i = 0; i < ind.NCons; i++)
                 {
                     Constr[i] = ind.Constr[i];
                 }
@@ -141,17 +141,17 @@ namespace NSGAII.Models
         {
             Timetable = new List<List<Slot>>();
 
-            if (_nRealVar != 0)
-                Xreal = new double[_nRealVar];
+            if (NRealVar != 0)
+                Xreal = new double[NRealVar];
 
-            if (_nBinVar != 0)
+            if (NBinVar != 0)
             {
-                SlotId = new int[_nBinVar];
+                SlotId = new int[NBinVar];
                 Gene = new List<List<int>>();
-                for (int i = 0; i < _nBinVar; i++)
+                for (int i = 0; i < NBinVar; i++)
                 {
-                    Gene.Add(new List<int>(_nMaxBit));
-                    for (int j = 0; j < _nMaxBit; j++)
+                    Gene.Add(new List<int>(NMaxBit));
+                    for (int j = 0; j < NMaxBit; j++)
                     {
                         Gene[i].Add(0);
                     }
@@ -159,19 +159,19 @@ namespace NSGAII.Models
                 //Gene = new int[nBinVar, nMaxBit];
             }
 
-            Obj = new int[_nObj];
+            Obj = new int[NObj];
 
-            if (_nCons != 0)
-                Constr = new double[_nCons];
+            if (NCons != 0)
+                Constr = new double[NCons];
         }
 
         public void Copy(Individual ind, ProblemDefinition problem)
         {
-            _nRealVar = ind._nRealVar;
-            _nBinVar = ind._nBinVar;
-            _nMaxBit = ind._nMaxBit;
-            _nObj = ind._nObj;
-            _nCons = ind._nCons;
+            NRealVar = ind.NRealVar;
+            NBinVar = ind.NBinVar;
+            NMaxBit = ind.NMaxBit;
+            NObj = ind.NObj;
+            NCons = ind.NCons;
 
             CollisionList.Clear();
             FacultySections.Clear();
@@ -180,16 +180,16 @@ namespace NSGAII.Models
             Rank = ind.Rank;
             ConstrViolation = ind.ConstrViolation;
             CrowdDist = ind.CrowdDist;
-            if (ind._nRealVar > 0)
+            if (ind.NRealVar > 0)
             {
-                for (int i = 0; i < ind._nRealVar; i++)
+                for (int i = 0; i < ind.NRealVar; i++)
                 {
                     Xreal[i] = ind.Xreal[i];
                 }
             }
-            if (ind._nBinVar > 0)
+            if (ind.NBinVar > 0)
             {
-                for (int i = 0; i < ind._nBinVar; i++)
+                for (int i = 0; i < ind.NBinVar; i++)
                 {
                     SlotId[i] = ind.SlotId[i];
                     for (int j = 0; j < problem.Nbits[i]; j++)
@@ -198,13 +198,13 @@ namespace NSGAII.Models
                     }
                 }
             }
-            for (int i = 0; i < ind._nObj; i++)
+            for (int i = 0; i < ind.NObj; i++)
             {
                 Obj[i] = ind.Obj[i];
             }
-            if (ind._nCons > 0)
+            if (ind.NCons > 0)
             {
-                for (int i = 0; i < ind._nCons; i++)
+                for (int i = 0; i < ind.NCons; i++)
                 {
                     Constr[i] = ind.Constr[i];
                 }
@@ -336,7 +336,7 @@ namespace NSGAII.Models
             FacultySections.Clear();
 
             int fc = 0;
-            foreach (var course in problemObj.FacultyCourseList.OrderBy(x=>x.Code))
+            foreach (var course in problemObj.FacultyCourseList.OrderBy(x => x.Code))
             {
                 if (!FacultySections.Any(x => x.Code == course.Code && x.Section == course.Section))
                 {
@@ -399,19 +399,46 @@ namespace NSGAII.Models
 
                 }
             }
+
             #endregion
 
             #region calc. collisions
 
             #region Base vs Faculty same semester
+
             //dönem ici dekanlik/bolum dersi cakismasi todo: scheduling'in normal slot halinde gelmesi lazım
-            for (int j = 0; j < 8; j++)
             {
-                List<Collision> col = CollisionBaseVsFaculty(Timetable, 0, j + 1);
+                List<Collision> col = CollisionBaseVsFaculty(0);
+
+                foreach (var collision in col)
+                {
+                    int changeResult = 0;
+                    var crashingfacultycourses = collision.CrashingCourses.Where(x => x.FacultyCourse);
+
+                    foreach (var course in crashingfacultycourses)
+                    {
+                        if (FacultySections.Any(x => x.Code == course.Code && x.Crashing == false))
+                        {
+                            FacultySection tempFacultyCourse =
+                                FacultySections.Find(x => x.Code == course.Code);
+
+                            collision.Reason += $"; {course.Code} has noncrashing section";
+                        }
+                        else
+                        {
+                            changeResult++;
+                        }
+                    }
+
+                    collision.Result = changeResult;
+                }
+
+
                 var result = col.Sum(item => item.Result);
                 Obj[0] += result;
                 CollisionList.AddRange(col);
             }
+
             #endregion
 
             #region Base vs Base same semester
@@ -659,7 +686,7 @@ namespace NSGAII.Models
                     List<int> semiFittingSlots = new List<int>();
 
                     #region Course type collisions
-                    foreach (var courseToReposition in collision.CrashingCourses.OrderBy(x => x.Duration)) //önce küçügü koy bir yerlere
+                    foreach (var courseToReposition in collision.CrashingCourses.Where(x=> !x.FacultyCourse).OrderBy(x => x.Duration)) //önce küçügü koy bir yerlere
                     {
                         int maxSlot = courseToReposition.Duration == 3 ? 20 : 25;
                         List<int> testSlots = new List<int>(maxSlot);
@@ -1251,30 +1278,49 @@ namespace NSGAII.Models
 
         #region Collisions
 
-        static List<Collision> CollisionBaseVsFaculty(List<List<Slot>> timeTable, int minimumCollision, int semester, int obj = 0)
+        private List<Collision> CollisionBaseVsFaculty(int minimumCollision, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
-            for (int i = 0; i < 5; i++)
+            for (int semester = 1; semester < 9; semester++)
             {
-                for (int j = 0; j < 9; j++)
+                for (int i = 0; i < 5; i++)
                 {
-                    Slot tempSlot = timeTable[i][j];
-
-                    if (tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision && tempSlot.facultyCourses.Count(x => x.Semester == semester) > minimumCollision)
+                    for (int j = 0; j < 9; j++)
                     {
-                        var temp = tempSlot.facultyCourses.Where(x => x.Semester == semester);
+                        Slot tempSlot = Timetable[i][j];
 
-                        Collision tempCollision = new Collision
+                        if (tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision &&
+                            tempSlot.facultyCourses.Count(x => x.Semester == semester) > minimumCollision)
                         {
-                            SlotId = tempSlot.Id,
-                            Obj = obj,
-                            Type = CollisionType.BaseLectureWithFaculty,
-                            Result = tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) + tempSlot.facultyCourses.Count(x => x.Semester == semester) - 1,
-                            Reason = "Base v Faculty same semester"
-                        };
-                        tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Semester == semester && !x.Elective));
+                            var semester1 = semester;
+                            var crashingFacultyCourses = tempSlot.facultyCourses.Where(x => x.Semester == semester1);
 
-                        collisionList.Add(tempCollision);
+                            foreach (var course in crashingFacultyCourses)
+                            {
+                                if (FacultySections.Any(x => x.Code == course.Code && x.Section == course.Section))
+                                {
+                                    FacultySection temp =
+                                        FacultySections.Find(x => x.Code == course.Code && x.Section == course.Section);
+                                    temp.CrashCount++;
+                                    temp.Crashing = true;
+                                }
+                            }
+
+                            Collision tempCollision = new Collision
+                            {
+                                SlotId = tempSlot.Id,
+                                Obj = obj,
+                                Type = CollisionType.BaseLectureWithFaculty,
+                                Result = tempSlot.facultyCourses.Count(x => x.Semester == semester),
+                                Reason = "Base v Faculty same semester"
+                            };
+                            tempCollision.CrashingCourses.AddRange(
+                                tempSlot.Courses.FindAll(x => x.Semester == semester && !x.Elective));
+                            tempCollision.CrashingCourses.AddRange(
+                                tempSlot.facultyCourses.FindAll(x => x.Semester == semester));
+
+                            collisionList.Add(tempCollision);
+                        }
                     }
                 }
             }

@@ -314,12 +314,7 @@ namespace NSGAII
                 Console.WriteLine(ex.Message);
                 throw;
             }
-
-            //ProblemObj.FacultySections.Clear();
-            //foreach (var course in ProblemObj.FacultyCourseList)
-            //{
-            //    if(ProblemObj.FacultySections.Any(x=> x.Code == course.Code && x.))
-            //}
+            
         }
 
         private void ReadLab()
