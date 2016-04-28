@@ -313,7 +313,7 @@ namespace UCT
                         {
                             string collisionRep = $"obj:{coll.Obj} {coll.Reason}";
                             int count = 0;
-                            if (coll.CrashingCourses.Count == 0)
+                            if (coll.CrashingCourses.Count > 0)
                                 collisionRep += " : ";
                             foreach (var cc in coll.CrashingCourses)
                             {
@@ -338,7 +338,7 @@ namespace UCT
                 {
                     if (coll.TeacherId == tid)
                     {
-                        teacherColl += $"obj:{coll.Obj} {coll.Reason} :";
+                        teacherColl += $"obj:{coll.Obj} {coll.Reason} \n";
                         hasTeacherCollision = true;
                     }
                 }

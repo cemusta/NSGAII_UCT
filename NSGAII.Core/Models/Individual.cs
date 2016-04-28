@@ -17,7 +17,8 @@ namespace NSGAII.Models
         public int TotalResult;
 
         public List<Collision> CollisionList { get; set; }
-        public List<FacultySection> FacultySections { get; set; }
+        private List<FacultySection> FacultySections { get; set; }
+        private List<FacultySection> DiffSemesterFacultySections { get; set; }
 
         public int NRealVar;
         public int NBinVar;
@@ -31,6 +32,7 @@ namespace NSGAII.Models
         {
             CollisionList = new List<Collision>();
             FacultySections = new List<FacultySection>();
+            DiffSemesterFacultySections = new List<FacultySection>();
 
             NRealVar = nRealVar;
             NBinVar = nBinVar;
@@ -68,6 +70,8 @@ namespace NSGAII.Models
         {
             CollisionList = new List<Collision>();
             FacultySections = new List<FacultySection>();
+            DiffSemesterFacultySections = new List<FacultySection>();
+
             TotalResult = 0;
 
             NRealVar = ind.NRealVar;
@@ -175,6 +179,8 @@ namespace NSGAII.Models
 
             CollisionList.Clear();
             FacultySections.Clear();
+            DiffSemesterFacultySections.Clear();
+
             TotalResult = 0;
 
             Rank = ind.Rank;
@@ -217,6 +223,8 @@ namespace NSGAII.Models
             TotalResult = 0;
             CollisionList.Clear();
             FacultySections.Clear();
+            DiffSemesterFacultySections.Clear();
+
             if (problem.BinaryVariableCount == 0)
                 return;
 
@@ -334,7 +342,6 @@ namespace NSGAII.Models
             CollisionList.Clear();
 
             FacultySections.Clear();
-
             int fc = 0;
             foreach (var course in problemObj.FacultyCourseList.OrderBy(x => x.Code))
             {
@@ -347,6 +354,23 @@ namespace NSGAII.Models
                         Section = course.Section
                     };
                     FacultySections.Add(temp);
+                    fc++;
+                }
+            }
+
+            DiffSemesterFacultySections.Clear();
+            fc = 0;
+            foreach (var course in problemObj.FacultyCourseList.OrderBy(x => x.Code))
+            {
+                if (!DiffSemesterFacultySections.Any(x => x.Code == course.Code && x.Section == course.Section))
+                {
+                    var temp = new FacultySection
+                    {
+                        Id = fc,
+                        Code = course.Code,
+                        Section = course.Section
+                    };
+                    DiffSemesterFacultySections.Add(temp);
                     fc++;
                 }
             }
@@ -419,9 +443,6 @@ namespace NSGAII.Models
                     {
                         if (FacultySections.Any(x => x.Code == course.Code && x.Crashing == false))
                         {
-                            FacultySection tempFacultyCourse =
-                                FacultySections.Find(x => x.Code == course.Code);
-
                             collision.Reason += $"; {course.Code} has noncrashing section";
                         }
                         else
@@ -460,10 +481,32 @@ namespace NSGAII.Models
                 {
                     // 1-2  2-3  3-4  4-5  5-6  6-7  7-8
                     // 2-1  3-2  4-3  5-4  6-5  7-6  8-7     consecutive CSE&faculty courses
-                    col.AddRange( CollisionBaseVsFacultyDiffSemester(0, j, j + 1, 1));
+                    col.AddRange(CollisionBaseVsFacultyDiffSemester(0, j, j + 1, 1));
                     col.AddRange(CollisionBaseVsFacultyDiffSemester(0, j + 1, j, 1));
 
                 }
+
+                foreach (var collision in col)
+                {
+                    int changeResult = 0;
+                    var crashingfacultycourses = collision.CrashingCourses.Where(x => x.FacultyCourse);
+
+                    foreach (var course in crashingfacultycourses)
+                    {
+                        if (DiffSemesterFacultySections.Any(x => x.Code == course.Code && x.Crashing == false))
+                        {
+                            collision.Reason += $"; {course.Code} has noncrashing section";
+                        }
+                        else
+                        {
+                            changeResult++;
+                        }
+                    }
+
+                    collision.Result = changeResult;
+                }
+
+
 
                 var result = col.Sum(item => item.Result);
                 Obj[1] += result;
@@ -1342,6 +1385,20 @@ namespace NSGAII.Models
 
                     if (tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision && tempSlot.facultyCourses.Count(x => x.Semester == facultySemester) > minimumCollision)
                     {
+                        
+                        var crashingFacultyCourses = tempSlot.facultyCourses.Where(x => x.Semester == facultySemester);
+
+                        foreach (var course in crashingFacultyCourses)
+                        {
+                            if (DiffSemesterFacultySections.Any(x => x.Code == course.Code && x.Section == course.Section))
+                            {
+                                FacultySection temp =
+                                    DiffSemesterFacultySections.Find(x => x.Code == course.Code && x.Section == course.Section);
+                                temp.CrashCount++;
+                                temp.Crashing = true;
+                            }
+                        }
+
                         Collision tempCollision = new Collision
                         {
                             SlotId = tempSlot.Id,
@@ -1351,6 +1408,7 @@ namespace NSGAII.Models
                             Reason = "Base v Faculty different semesters"
                         };
                         tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Semester == semester && !x.Elective));
+                        tempCollision.CrashingCourses.AddRange(tempSlot.facultyCourses.FindAll(x => x.Semester == facultySemester));
 
                         collisionList.Add(tempCollision);
                     }

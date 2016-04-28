@@ -15,14 +15,19 @@ namespace NSGAII.Models
         {
             get
             {
+                int count = 0;
                 string ret = $"obj:{Obj} {Reason}";
 
                 if (CrashingCourses.Count > 0)
-                    ret += " | ";
-                for (int i = 0; i < CrashingCourses.Count; i++)
+                    ret += " : ";
+                foreach (var cc in CrashingCourses)
                 {
-                    ret += $"{CrashingCourses[i].Code} ";
+                    count++;
+                    ret += cc.Code;
+                    if (count != CrashingCourses.Count)
+                        ret += "|";
                 }
+
                 ret += $" Result:{Result}";
                 return ret;
             }
