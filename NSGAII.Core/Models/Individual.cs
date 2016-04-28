@@ -454,12 +454,17 @@ namespace NSGAII.Models
 
             #region Base vs Faculty -1 +1 semester.
             //dönemler arasi dekanlik/bolum dersi cakismasi todo: scheduling'in normal slot halinde gelmesi lazım
-            for (int j = 1; j < 8; j++)
             {
-                // 1-2  2-3  3-4  4-5  5-6  6-7  7-8
-                // 2-1  3-2  4-3  5-4  6-5  7-6  8-7     consecutive CSE&faculty courses
-                List<Collision> col = CollisionBaseVsFacultyDiffSemester(Timetable, 0, j, j + 1, 1);
-                col.AddRange(CollisionBaseVsFacultyDiffSemester(Timetable, 0, j + 1, j, 1));
+                List<Collision> col = new List<Collision>();
+                for (int j = 1; j < 8; j++)
+                {
+                    // 1-2  2-3  3-4  4-5  5-6  6-7  7-8
+                    // 2-1  3-2  4-3  5-4  6-5  7-6  8-7     consecutive CSE&faculty courses
+                    col.AddRange( CollisionBaseVsFacultyDiffSemester(0, j, j + 1, 1));
+                    col.AddRange(CollisionBaseVsFacultyDiffSemester(0, j + 1, j, 1));
+
+                }
+
                 var result = col.Sum(item => item.Result);
                 Obj[1] += result;
                 CollisionList.AddRange(col);
@@ -686,7 +691,7 @@ namespace NSGAII.Models
                     List<int> semiFittingSlots = new List<int>();
 
                     #region Course type collisions
-                    foreach (var courseToReposition in collision.CrashingCourses.Where(x=> !x.FacultyCourse).OrderBy(x => x.Duration)) //önce küçügü koy bir yerlere
+                    foreach (var courseToReposition in collision.CrashingCourses.Where(x => !x.FacultyCourse).OrderBy(x => x.Duration)) //önce küçügü koy bir yerlere
                     {
                         int maxSlot = courseToReposition.Duration == 3 ? 20 : 25;
                         List<int> testSlots = new List<int>(maxSlot);
@@ -1326,14 +1331,14 @@ namespace NSGAII.Models
             }
             return collisionList;
         }
-        static List<Collision> CollisionBaseVsFacultyDiffSemester(List<List<Slot>> timeTable, int minimumCollision, int semester, int facultySemester, int obj = 0)
+        private List<Collision> CollisionBaseVsFacultyDiffSemester(int minimumCollision, int semester, int facultySemester, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    Slot tempSlot = timeTable[i][j];
+                    Slot tempSlot = Timetable[i][j];
 
                     if (tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision && tempSlot.facultyCourses.Count(x => x.Semester == facultySemester) > minimumCollision)
                     {
