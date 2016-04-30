@@ -643,20 +643,21 @@ namespace NSGAII.Models
 
             #region Elective vs Base in semester 6 7 8
             //elective vs base courses in semester
+            if (!problemObj.DisabledCollisions.HasFlag(UCTProblem.DisabledCollisions.ElectiveVsBase))
             {
-                List<Collision> col = CollisionElectiveVsBaseDiffSemester(Timetable, 0, 6, 1);
+                List<Collision> col = CollisionElectiveVsBaseDiffSemester(0, 6, 1);
                 var y = col.Sum(item => item.Result);
                 Obj[1] += y;
                 CollisionList.AddRange(col);
                 col.Clear();
 
-                col = CollisionElectiveVsBaseDiffSemester(Timetable, 0, 7);
+                col = CollisionElectiveVsBaseDiffSemester(0, 7);
                 y = col.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(col);
                 col.Clear();
 
-                col = CollisionElectiveVsBaseDiffSemester(Timetable, 0, 8);
+                col = CollisionElectiveVsBaseDiffSemester(0, 8);
                 y = col.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(col);
@@ -1765,14 +1766,14 @@ namespace NSGAII.Models
             return collisionList;
         }
 
-        static List<Collision> CollisionElectiveVsBaseDiffSemester(List<List<Slot>> timeTable, int minimumCollision, int semester, int obj = 0)
+        private List<Collision> CollisionElectiveVsBaseDiffSemester(int minimumCollision, int semester, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    Slot tempSlot = timeTable[i][j];
+                    Slot tempSlot = Timetable[i][j];
 
                     if (tempSlot.Courses.Count(x => x.Elective) > minimumCollision && tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision)
                     {

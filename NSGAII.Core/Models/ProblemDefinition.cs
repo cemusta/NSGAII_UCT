@@ -42,6 +42,8 @@ namespace NSGAII.Models
         public readonly List<List<int>> Meeting = new List<List<int>>(); // bölüm hocalarının ortak meeting saatleri.
         public readonly List<List<int>> LabScheduling = new List<List<int>>(); // labda dönem tutulmuyor 
 
+        public UCTProblem.DisabledCollisions DisabledCollisions;
+
         public ProblemDefinition(string title)
         {
             Title = title;
@@ -52,17 +54,6 @@ namespace NSGAII.Models
         {
             //xml load save için gerekiyor.
         }
-    }
-
-    [Flags]
-    enum DisabledCollisions
-    {
-        None = 0x0,
-        DataUri = 0x1,
-        GZip = 0x2,
-        ContentPage = 0x4,
-        ViewPage = 0x8,
-        HomePage = 0x10
     }
 
 }

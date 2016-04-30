@@ -27,7 +27,7 @@ namespace NSGAII
 
         #endregion
 
-        public UCTProblem(double dSeed, int nPopulation, int nMaxGeneration, int nObjective, int nConstraint, bool useBinary, double crossProbability, double mutateProbability, bool usePlot = false)
+        public UCTProblem(double dSeed, int nPopulation, int nMaxGeneration, int nObjective, int nConstraint, bool useBinary, double crossProbability, double mutateProbability, bool usePlot = false, DisabledCollisions disableOptions = DisabledCollisions.None )
         {
             CurrentGeneration = 0;
             Seed = dSeed;
@@ -48,7 +48,8 @@ namespace NSGAII
                 ObjectiveCount = nObjective,
                 ConstraintCount = nConstraint,
                 BinaryVariableCount = 0,
-                RealVariableCount = 0
+                RealVariableCount = 0,
+                DisabledCollisions = disableOptions
             };
 
 
@@ -800,47 +801,47 @@ namespace NSGAII
 
         #region tourselect.c
         /* Routine for Tournament Selection, it creates a newPopulation from oldPopulation by performing Tournament Selection and the Crossover */
-        static void Selection(Population oldPopulation, Population newPopulation, ProblemDefinition ProblemObj, Randomization RandomizationObj)
+        static void Selection(Population oldPopulation, Population newPopulation, ProblemDefinition problemObj, Randomization randomizationObj)
         {
             int[] a1, a2; //todo: optmizasyon
             int temp;
             int i;
             int rand;
             Individual parent1, parent2;
-            a1 = new int[ProblemObj.PopulationSize];
-            a2 = new int[ProblemObj.PopulationSize];
-            for (i = 0; i < ProblemObj.PopulationSize; i++)
+            a1 = new int[problemObj.PopulationSize];
+            a2 = new int[problemObj.PopulationSize];
+            for (i = 0; i < problemObj.PopulationSize; i++)
             {
                 a1[i] = a2[i] = i;
             }
-            for (i = 0; i < ProblemObj.PopulationSize; i++)
+            for (i = 0; i < problemObj.PopulationSize; i++)
             {
-                rand = RandomizationObj.RandomInteger(i, ProblemObj.PopulationSize - 1);
+                rand = randomizationObj.RandomInteger(i, problemObj.PopulationSize - 1);
                 temp = a1[rand];
                 a1[rand] = a1[i];
                 a1[i] = temp;
-                rand = RandomizationObj.RandomInteger(i, ProblemObj.PopulationSize - 1);
+                rand = randomizationObj.RandomInteger(i, problemObj.PopulationSize - 1);
                 temp = a2[rand];
                 a2[rand] = a2[i];
                 a2[i] = temp;
             }
-            for (i = 0; i < ProblemObj.PopulationSize; i += 4)
+            for (i = 0; i < problemObj.PopulationSize; i += 4)
             {
-                parent1 = Tournament(oldPopulation.IndList[a1[i]], oldPopulation.IndList[a1[i + 1]], ProblemObj, RandomizationObj);
-                parent2 = Tournament(oldPopulation.IndList[a1[i + 2]], oldPopulation.IndList[a1[i + 3]], ProblemObj, RandomizationObj);
-                Crossover(parent1, parent2, newPopulation.IndList[i], newPopulation.IndList[i + 1], ProblemObj, RandomizationObj);
-                parent1 = Tournament(oldPopulation.IndList[a2[i]], oldPopulation.IndList[a2[i + 1]], ProblemObj, RandomizationObj);
-                parent2 = Tournament(oldPopulation.IndList[a2[i + 2]], oldPopulation.IndList[a2[i + 3]], ProblemObj, RandomizationObj);
-                Crossover(parent1, parent2, newPopulation.IndList[i + 2], newPopulation.IndList[i + 3], ProblemObj, RandomizationObj);
+                parent1 = Tournament(oldPopulation.IndList[a1[i]], oldPopulation.IndList[a1[i + 1]], problemObj, randomizationObj);
+                parent2 = Tournament(oldPopulation.IndList[a1[i + 2]], oldPopulation.IndList[a1[i + 3]], problemObj, randomizationObj);
+                Crossover(parent1, parent2, newPopulation.IndList[i], newPopulation.IndList[i + 1], problemObj, randomizationObj);
+                parent1 = Tournament(oldPopulation.IndList[a2[i]], oldPopulation.IndList[a2[i + 1]], problemObj, randomizationObj);
+                parent2 = Tournament(oldPopulation.IndList[a2[i + 2]], oldPopulation.IndList[a2[i + 3]], problemObj, randomizationObj);
+                Crossover(parent1, parent2, newPopulation.IndList[i + 2], newPopulation.IndList[i + 3], problemObj, randomizationObj);
             }
 
         }
 
         /* Routine for binary Tournament */
-        static Individual Tournament(Individual ind1, Individual ind2, ProblemDefinition ProblemObj, Randomization RandomizationObj)
+        static Individual Tournament(Individual ind1, Individual ind2, ProblemDefinition problemObj, Randomization randomizationObj)
         {
             int flag;
-            flag = CheckDominance(ind1, ind2, ProblemObj);
+            flag = CheckDominance(ind1, ind2, problemObj);
             if (flag == 1)
             {
                 return ind1;
@@ -857,7 +858,7 @@ namespace NSGAII
             {
                 return ind2;
             }
-            if (RandomizationObj.RandomPercent() <= 0.5)
+            if (randomizationObj.RandomPercent() <= 0.5)
             {
                 return ind1;
             }
@@ -870,34 +871,34 @@ namespace NSGAII
 
         #region crossover.c
         /* Function to cross two individuals */
-        static void Crossover(Individual parent1, Individual parent2, Individual child1, Individual child2, ProblemDefinition ProblemObj, Randomization RandomizationObj)
+        static void Crossover(Individual parent1, Individual parent2, Individual child1, Individual child2, ProblemDefinition problemObj, Randomization randomizationObj)
         {
-            if (ProblemObj.RealVariableCount != 0)
+            if (problemObj.RealVariableCount != 0)
             {
-                RealCrossover(parent1, parent2, child1, child2, ProblemObj, RandomizationObj);
+                RealCrossover(parent1, parent2, child1, child2, problemObj, randomizationObj);
             }
-            if (ProblemObj.BinaryVariableCount != 0)
+            if (problemObj.BinaryVariableCount != 0)
             {
-                BinaryCrossover(parent1, parent2, child1, child2, ProblemObj, RandomizationObj);
+                BinaryCrossover(parent1, parent2, child1, child2, problemObj, randomizationObj);
             }
         }
 
         /* Routine for real variable SBX Crossover */
-        static void RealCrossover(Individual parent1, Individual parent2, Individual child1, Individual child2, ProblemDefinition ProblemObj, Randomization RandomizationObj)
+        static void RealCrossover(Individual parent1, Individual parent2, Individual child1, Individual child2, ProblemDefinition problemObj, Randomization randomizationObj)
         {
             int i;
             double rand;
             double y1, y2, yl, yu;
             double c1, c2;
             double alpha, beta, betaq;
-            if (RandomizationObj.RandomPercent() <= ProblemObj.RealCrossoverProbability)
+            if (randomizationObj.RandomPercent() <= problemObj.RealCrossoverProbability)
             {
-                ProblemObj.RealCrossoverCount++;
-                for (i = 0; i < ProblemObj.RealVariableCount; i++)
+                problemObj.RealCrossoverCount++;
+                for (i = 0; i < problemObj.RealVariableCount; i++)
                 {
-                    if (RandomizationObj.RandomPercent() <= 0.5)
+                    if (randomizationObj.RandomPercent() <= 0.5)
                     {
-                        if (Math.Abs(parent1.Xreal[i] - parent2.Xreal[i]) > ProblemObj.Eps)
+                        if (Math.Abs(parent1.Xreal[i] - parent2.Xreal[i]) > problemObj.Eps)
                         {
                             if (parent1.Xreal[i] < parent2.Xreal[i])
                             {
@@ -909,29 +910,29 @@ namespace NSGAII
                                 y1 = parent2.Xreal[i];
                                 y2 = parent1.Xreal[i];
                             }
-                            yl = ProblemObj.MinRealvar[i];
-                            yu = ProblemObj.MaxRealvar[i];
-                            rand = RandomizationObj.RandomPercent();
+                            yl = problemObj.MinRealvar[i];
+                            yu = problemObj.MaxRealvar[i];
+                            rand = randomizationObj.RandomPercent();
                             beta = 1.0 + 2.0 * (y1 - yl) / (y2 - y1);
-                            alpha = 2.0 - Math.Pow(beta, -(ProblemObj.CrossoverDistributionIndex + 1.0));
+                            alpha = 2.0 - Math.Pow(beta, -(problemObj.CrossoverDistributionIndex + 1.0));
                             if (rand <= 1.0 / alpha)
                             {
-                                betaq = Math.Pow(rand * alpha, 1.0 / (ProblemObj.CrossoverDistributionIndex + 1.0));
+                                betaq = Math.Pow(rand * alpha, 1.0 / (problemObj.CrossoverDistributionIndex + 1.0));
                             }
                             else
                             {
-                                betaq = Math.Pow(1.0 / (2.0 - rand * alpha), 1.0 / (ProblemObj.CrossoverDistributionIndex + 1.0));
+                                betaq = Math.Pow(1.0 / (2.0 - rand * alpha), 1.0 / (problemObj.CrossoverDistributionIndex + 1.0));
                             }
                             c1 = 0.5 * (y1 + y2 - betaq * (y2 - y1));
                             beta = 1.0 + 2.0 * (yu - y2) / (y2 - y1);
-                            alpha = 2.0 - Math.Pow(beta, -(ProblemObj.CrossoverDistributionIndex + 1.0));
+                            alpha = 2.0 - Math.Pow(beta, -(problemObj.CrossoverDistributionIndex + 1.0));
                             if (rand <= 1.0 / alpha)
                             {
-                                betaq = Math.Pow(rand * alpha, 1.0 / (ProblemObj.CrossoverDistributionIndex + 1.0));
+                                betaq = Math.Pow(rand * alpha, 1.0 / (problemObj.CrossoverDistributionIndex + 1.0));
                             }
                             else
                             {
-                                betaq = Math.Pow(1.0 / (2.0 - rand * alpha), 1.0 / (ProblemObj.CrossoverDistributionIndex + 1.0));
+                                betaq = Math.Pow(1.0 / (2.0 - rand * alpha), 1.0 / (problemObj.CrossoverDistributionIndex + 1.0));
                             }
                             c2 = 0.5 * (y1 + y2 + betaq * (y2 - y1));
                             if (c1 < yl)
@@ -942,7 +943,7 @@ namespace NSGAII
                                 c1 = yu;
                             if (c2 > yu)
                                 c2 = yu;
-                            if (RandomizationObj.RandomPercent() <= 0.5)
+                            if (randomizationObj.RandomPercent() <= 0.5)
                             {
                                 child1.Xreal[i] = c2;
                                 child2.Xreal[i] = c1;
@@ -968,7 +969,7 @@ namespace NSGAII
             }
             else
             {
-                for (i = 0; i < ProblemObj.RealVariableCount; i++)
+                for (i = 0; i < problemObj.RealVariableCount; i++)
                 {
                     child1.Xreal[i] = parent1.Xreal[i];
                     child2.Xreal[i] = parent2.Xreal[i];
@@ -977,19 +978,19 @@ namespace NSGAII
         }
 
         /* Routine for two point binary Crossover */
-        static void BinaryCrossover(Individual parent1, Individual parent2, Individual child1, Individual child2, ProblemDefinition ProblemObj, Randomization RandomizationObj)
+        static void BinaryCrossover(Individual parent1, Individual parent2, Individual child1, Individual child2, ProblemDefinition problemObj, Randomization randomizationObj)
         {
             int i, j;
             double rand;
             int temp, site1, site2;
-            for (i = 0; i < ProblemObj.BinaryVariableCount; i++)
+            for (i = 0; i < problemObj.BinaryVariableCount; i++)
             {
-                rand = RandomizationObj.RandomPercent();
-                if (rand <= ProblemObj.BinaryCrossoverProbability)
+                rand = randomizationObj.RandomPercent();
+                if (rand <= problemObj.BinaryCrossoverProbability)
                 {
-                    ProblemObj.BinaryCrossoverCount++;
-                    site1 = RandomizationObj.RandomInteger(0, ProblemObj.Nbits[i] - 1);
-                    site2 = RandomizationObj.RandomInteger(0, ProblemObj.Nbits[i] - 1);
+                    problemObj.BinaryCrossoverCount++;
+                    site1 = randomizationObj.RandomInteger(0, problemObj.Nbits[i] - 1);
+                    site2 = randomizationObj.RandomInteger(0, problemObj.Nbits[i] - 1);
                     if (site1 > site2)
                     {
                         temp = site1;
@@ -1006,7 +1007,7 @@ namespace NSGAII
                         child1.Gene[i][j] = parent2.Gene[i][j];
                         child2.Gene[i][j] = parent1.Gene[i][j];
                     }
-                    for (j = site2; j < ProblemObj.Nbits[i]; j++)
+                    for (j = site2; j < problemObj.Nbits[i]; j++)
                     {
                         child1.Gene[i][j] = parent1.Gene[i][j];
                         child2.Gene[i][j] = parent2.Gene[i][j];
@@ -1014,7 +1015,7 @@ namespace NSGAII
                 }
                 else
                 {
-                    for (j = 0; j < ProblemObj.Nbits[i]; j++)
+                    for (j = 0; j < problemObj.Nbits[i]; j++)
                     {
                         child1.Gene[i][j] = parent1.Gene[i][j];
                         child2.Gene[i][j] = parent2.Gene[i][j];
@@ -1031,7 +1032,7 @@ namespace NSGAII
    1 if a dominates b
    -1 if b dominates a
    0 if both a and b are non-dominated */
-        static int CheckDominance(Individual a, Individual b, ProblemDefinition ProblemObj)
+        static int CheckDominance(Individual a, Individual b, ProblemDefinition problemObj)
         {
             int i;
             int flag1;
@@ -1060,7 +1061,7 @@ namespace NSGAII
                 return 1;
             }
 
-            for (i = 0; i < ProblemObj.ObjectiveCount; i++)
+            for (i = 0; i < problemObj.ObjectiveCount; i++)
             {
                 if (a.Obj[i] < b.Obj[i])
                 {
@@ -1089,39 +1090,39 @@ namespace NSGAII
 
         #region mutation.c
         /* Function to perform mutation in a population */
-        static void MutatePopulation(Population pop, ProblemDefinition ProblemObj, Randomization RandomizationObj)
+        static void MutatePopulation(Population pop, ProblemDefinition problemObj, Randomization randomizationObj)
         {
             int i;
-            for (i = 0; i < ProblemObj.PopulationSize; i++)
+            for (i = 0; i < problemObj.PopulationSize; i++)
             {
-                MutateIndividual(pop.IndList[i], ProblemObj, RandomizationObj);
+                MutateIndividual(pop.IndList[i], problemObj, randomizationObj);
             }
         }
 
         /* Function to perform mutation of an individual */
-        static void MutateIndividual(Individual ind, ProblemDefinition ProblemObj, Randomization RandomizationObj)
+        static void MutateIndividual(Individual ind, ProblemDefinition problemObj, Randomization randomizationObj)
         {
-            if (ProblemObj.RealVariableCount != 0)
+            if (problemObj.RealVariableCount != 0)
             {
-                RealMutate(ind, ProblemObj, RandomizationObj);
+                RealMutate(ind, problemObj, randomizationObj);
             }
-            if (ProblemObj.BinaryVariableCount != 0)
+            if (problemObj.BinaryVariableCount != 0)
             {
-                BinaryMutate(ind, ProblemObj, RandomizationObj);
+                BinaryMutate(ind, problemObj, randomizationObj);
             }
         }
 
         /* Routine for binary mutation of an individual */
-        static void BinaryMutate(Individual ind, ProblemDefinition ProblemObj, Randomization RandomizationObj)
+        static void BinaryMutate(Individual ind, ProblemDefinition problemObj, Randomization randomizationObj)
         {
             int j, k;
             double prob;
-            for (j = 0; j < ProblemObj.BinaryVariableCount; j++)
+            for (j = 0; j < problemObj.BinaryVariableCount; j++)
             {
-                for (k = 0; k < ProblemObj.Nbits[j]; k++)
+                for (k = 0; k < problemObj.Nbits[j]; k++)
                 {
-                    prob = RandomizationObj.RandomPercent();
-                    if (prob <= ProblemObj.BinaryMutationProbability)
+                    prob = randomizationObj.RandomPercent();
+                    if (prob <= problemObj.BinaryMutationProbability)
                     {
                         if (ind.Gene[j][k] == 0)
                         {
@@ -1131,39 +1132,39 @@ namespace NSGAII
                         {
                             ind.Gene[j][k] = 0;
                         }
-                        ProblemObj.BinaryMutationCount += 1;
+                        problemObj.BinaryMutationCount += 1;
                     }
                 }
             }
         }
 
         /* Routine for real polynomial mutation of an individual */
-        static void RealMutate(Individual ind, ProblemDefinition ProblemObj, Randomization RandomizationObj)
+        static void RealMutate(Individual ind, ProblemDefinition problemObj, Randomization randomizationObj)
         {
             int j;
             double rnd, delta1, delta2, mutPow, deltaq;
             double y, yl, yu, val, xy;
-            for (j = 0; j < ProblemObj.RealVariableCount; j++)
+            for (j = 0; j < problemObj.RealVariableCount; j++)
             {
-                if (RandomizationObj.RandomPercent() <= ProblemObj.RealMutationProbability)
+                if (randomizationObj.RandomPercent() <= problemObj.RealMutationProbability)
                 {
                     y = ind.Xreal[j];
-                    yl = ProblemObj.MinRealvar[j];
-                    yu = ProblemObj.MaxRealvar[j];
+                    yl = problemObj.MinRealvar[j];
+                    yu = problemObj.MaxRealvar[j];
                     delta1 = (y - yl) / (yu - yl);
                     delta2 = (yu - y) / (yu - yl);
-                    rnd = RandomizationObj.RandomPercent();
-                    mutPow = 1.0 / (ProblemObj.MutationDistributionIndex + 1.0);
+                    rnd = randomizationObj.RandomPercent();
+                    mutPow = 1.0 / (problemObj.MutationDistributionIndex + 1.0);
                     if (rnd <= 0.5)
                     {
                         xy = 1.0 - delta1;
-                        val = 2.0 * rnd + (1.0 - 2.0 * rnd) * Math.Pow(xy, ProblemObj.MutationDistributionIndex + 1.0);
+                        val = 2.0 * rnd + (1.0 - 2.0 * rnd) * Math.Pow(xy, problemObj.MutationDistributionIndex + 1.0);
                         deltaq = Math.Pow(val, mutPow) - 1.0;
                     }
                     else
                     {
                         xy = 1.0 - delta2;
-                        val = 2.0 * (1.0 - rnd) + 2.0 * (rnd - 0.5) * Math.Pow(xy, ProblemObj.MutationDistributionIndex + 1.0);
+                        val = 2.0 * (1.0 - rnd) + 2.0 * (rnd - 0.5) * Math.Pow(xy, problemObj.MutationDistributionIndex + 1.0);
                         deltaq = 1.0 - Math.Pow(val, mutPow);
                     }
                     y = y + deltaq * (yu - yl);
@@ -1172,7 +1173,7 @@ namespace NSGAII
                     if (y > yu)
                         y = yu;
                     ind.Xreal[j] = y;
-                    ProblemObj.RealMutationCount += 1;
+                    problemObj.RealMutationCount += 1;
                 }
             }
         }
@@ -1222,7 +1223,7 @@ namespace NSGAII
 
         #region rank.c
         /* Function to assign rank and crowding distance to a population of size pop_size*/
-        static void assign_rank_and_crowding_distance(Population newPopulation, ProblemDefinition ProblemObj, Randomization RandomizationObj)
+        static void assign_rank_and_crowding_distance(Population newPopulation, ProblemDefinition problemObj, Randomization randomizationObj)
         {
             int flag;
             int i;
@@ -1242,7 +1243,7 @@ namespace NSGAII
             cur.parent = null;
             cur.child = null;
             temp1 = orig;
-            for (i = 0; i < ProblemObj.PopulationSize; i++)
+            for (i = 0; i < problemObj.PopulationSize; i++)
             {
                 Insert(temp1, i);
                 temp1 = temp1.child;
@@ -1252,7 +1253,7 @@ namespace NSGAII
                 if (orig.child.child == null)
                 {
                     newPopulation.IndList[orig.child.index].Rank = rank;
-                    newPopulation.IndList[orig.child.index].CrowdDist = ProblemObj.Inf;
+                    newPopulation.IndList[orig.child.index].CrowdDist = problemObj.Inf;
                     break;
                 }
                 temp1 = orig.child;
@@ -1267,7 +1268,7 @@ namespace NSGAII
                     do
                     {
                         end = 0;
-                        flag = CheckDominance(newPopulation.IndList[temp1.index], newPopulation.IndList[temp2.index], ProblemObj);
+                        flag = CheckDominance(newPopulation.IndList[temp1.index], newPopulation.IndList[temp2.index], problemObj);
                         if (flag == 1)
                         {
                             Insert(orig, temp2.index);
@@ -1301,7 +1302,7 @@ namespace NSGAII
                     temp2 = temp2.child;
                 }
                 while (temp2 != null);
-                assign_crowding_distance_list(newPopulation, cur.child, frontSize, ProblemObj, RandomizationObj);
+                assign_crowding_distance_list(newPopulation, cur.child, frontSize, problemObj, randomizationObj);
                 temp2 = cur.child;
                 do
                 {
@@ -1318,7 +1319,7 @@ namespace NSGAII
 
         #region crowddist.c
         /* Routine to compute crowding distance based on ojbective function values when the population in in the form of a list */
-        static void assign_crowding_distance_list(Population pop, Lists lst, int frontSize, ProblemDefinition ProblemObj, Randomization RandomizationObj)
+        static void assign_crowding_distance_list(Population pop, Lists lst, int frontSize, ProblemDefinition problemObj, Randomization randomizationObj)
         {
             int[][] objArray;
             int[] dist;
@@ -1327,19 +1328,19 @@ namespace NSGAII
             temp = lst;
             if (frontSize == 1)
             {
-                pop.IndList[lst.index].CrowdDist = ProblemObj.Inf;
+                pop.IndList[lst.index].CrowdDist = problemObj.Inf;
                 return;
             }
             if (frontSize == 2)
             {
-                pop.IndList[lst.index].CrowdDist = ProblemObj.Inf;
-                pop.IndList[lst.child.index].CrowdDist = ProblemObj.Inf;
+                pop.IndList[lst.index].CrowdDist = problemObj.Inf;
+                pop.IndList[lst.child.index].CrowdDist = problemObj.Inf;
                 return;
             }
             dist = new int[frontSize];
-            objArray = new int[ProblemObj.ObjectiveCount][];
+            objArray = new int[problemObj.ObjectiveCount][];
             //obj_array = (int**)malloc(ProblemObj.ObjectiveCount * sizeof(int*));
-            for (i = 0; i < ProblemObj.ObjectiveCount; i++)
+            for (i = 0; i < problemObj.ObjectiveCount; i++)
             {
                 objArray[i] = new int[frontSize];
             }
@@ -1348,12 +1349,12 @@ namespace NSGAII
                 dist[j] = temp.index;
                 temp = temp.child;
             }
-            assign_crowding_distance(pop, dist, objArray, frontSize, ProblemObj, RandomizationObj);
+            assign_crowding_distance(pop, dist, objArray, frontSize, problemObj, randomizationObj);
 
         }
 
         /* Routine to compute crowding distance based on objective function values when the population in in the form of an array */
-        static void assign_crowding_distance_indices(Population pop, int c1, int c2, ProblemDefinition ProblemObj, Randomization RandomizationObj)
+        static void assign_crowding_distance_indices(Population pop, int c1, int c2, ProblemDefinition problemObj, Randomization randomizationObj)
         {
             int[][] objArray;
             int[] dist;
@@ -1362,19 +1363,19 @@ namespace NSGAII
             frontSize = c2 - c1 + 1;
             if (frontSize == 1)
             {
-                pop.IndList[c1].CrowdDist = ProblemObj.Inf;
+                pop.IndList[c1].CrowdDist = problemObj.Inf;
                 return;
             }
             if (frontSize == 2)
             {
-                pop.IndList[c1].CrowdDist = ProblemObj.Inf;
-                pop.IndList[c2].CrowdDist = ProblemObj.Inf;
+                pop.IndList[c1].CrowdDist = problemObj.Inf;
+                pop.IndList[c2].CrowdDist = problemObj.Inf;
                 return;
             }
             dist = new int[frontSize];
-            objArray = new int[ProblemObj.ObjectiveCount][];
+            objArray = new int[problemObj.ObjectiveCount][];
             //obj_array = (int**)malloc(ProblemObj.ObjectiveCount * sizeof(int*));
-            for (i = 0; i < ProblemObj.ObjectiveCount; i++)
+            for (i = 0; i < problemObj.ObjectiveCount; i++)
             {
                 objArray[i] = new int[frontSize];
             }
@@ -1383,35 +1384,35 @@ namespace NSGAII
             {
                 dist[j] = c1++;
             }
-            assign_crowding_distance(pop, dist, objArray, frontSize, ProblemObj, RandomizationObj);
+            assign_crowding_distance(pop, dist, objArray, frontSize, problemObj, randomizationObj);
 
         }
 
         /* Routine to compute crowding distances */
-        static void assign_crowding_distance(Population pop, int[] dist, int[][] objArray, int frontSize, ProblemDefinition ProblemObj, Randomization RandomizationObj)
+        static void assign_crowding_distance(Population pop, int[] dist, int[][] objArray, int frontSize, ProblemDefinition problemObj, Randomization randomizationObj)
         {
             int i, j;
-            for (i = 0; i < ProblemObj.ObjectiveCount; i++)
+            for (i = 0; i < problemObj.ObjectiveCount; i++)
             {
                 for (j = 0; j < frontSize; j++)
                 {
                     objArray[i][j] = dist[j];
                 }
-                quicksort_front_obj(pop, i, objArray[i], frontSize, RandomizationObj);
+                quicksort_front_obj(pop, i, objArray[i], frontSize, randomizationObj);
             }
             for (j = 0; j < frontSize; j++)
             {
                 pop.IndList[dist[j]].CrowdDist = 0.0;
             }
-            for (i = 0; i < ProblemObj.ObjectiveCount; i++)
+            for (i = 0; i < problemObj.ObjectiveCount; i++)
             {
-                pop.IndList[objArray[i][0]].CrowdDist = ProblemObj.Inf;
+                pop.IndList[objArray[i][0]].CrowdDist = problemObj.Inf;
             }
-            for (i = 0; i < ProblemObj.ObjectiveCount; i++)
+            for (i = 0; i < problemObj.ObjectiveCount; i++)
             {
                 for (j = 1; j < frontSize - 1; j++)
                 {
-                    if (pop.IndList[objArray[i][j]].CrowdDist != ProblemObj.Inf)
+                    if (pop.IndList[objArray[i][j]].CrowdDist != problemObj.Inf)
                     {
                         if (pop.IndList[objArray[i][frontSize - 1]].Obj[i] == pop.IndList[objArray[i][0]].Obj[i])
                         {
@@ -1426,9 +1427,9 @@ namespace NSGAII
             }
             for (j = 0; j < frontSize; j++)
             {
-                if (pop.IndList[dist[j]].CrowdDist != ProblemObj.Inf)
+                if (pop.IndList[dist[j]].CrowdDist != problemObj.Inf)
                 {
-                    pop.IndList[dist[j]].CrowdDist = pop.IndList[dist[j]].CrowdDist / ProblemObj.ObjectiveCount;
+                    pop.IndList[dist[j]].CrowdDist = pop.IndList[dist[j]].CrowdDist / problemObj.ObjectiveCount;
                 }
             }
         }
@@ -1436,13 +1437,13 @@ namespace NSGAII
 
         #region sort.c
         /* Randomized quick sort routine to sort a population based on a particular objective chosen */
-        static void quicksort_front_obj(Population pop, int objcount, int[] objArray, int objArraySize, Randomization RandomizationObj)
+        static void quicksort_front_obj(Population pop, int objcount, int[] objArray, int objArraySize, Randomization randomizationObj)
         {
-            q_sort_front_obj(pop, objcount, objArray, 0, objArraySize - 1, RandomizationObj);
+            q_sort_front_obj(pop, objcount, objArray, 0, objArraySize - 1, randomizationObj);
         }
 
         /* Actual implementation of the randomized quick sort used to sort a population based on a particular objective chosen */
-        static void q_sort_front_obj(Population pop, int objcount, int[] objArray, int left, int right, Randomization RandomizationObj)
+        static void q_sort_front_obj(Population pop, int objcount, int[] objArray, int left, int right, Randomization randomizationObj)
         {
             int index;
             int temp;
@@ -1450,7 +1451,7 @@ namespace NSGAII
             double pivot;
             if (left < right)
             {
-                index = RandomizationObj.RandomInteger(left, right);
+                index = randomizationObj.RandomInteger(left, right);
                 temp = objArray[right];
                 objArray[right] = objArray[index];
                 objArray[index] = temp;
@@ -1470,19 +1471,19 @@ namespace NSGAII
                 temp = objArray[index];
                 objArray[index] = objArray[right];
                 objArray[right] = temp;
-                q_sort_front_obj(pop, objcount, objArray, left, index - 1, RandomizationObj);
-                q_sort_front_obj(pop, objcount, objArray, index + 1, right, RandomizationObj);
+                q_sort_front_obj(pop, objcount, objArray, left, index - 1, randomizationObj);
+                q_sort_front_obj(pop, objcount, objArray, index + 1, right, randomizationObj);
             }
         }
 
         /* Randomized quick sort routine to sort a population based on crowding distance */
-        static void quicksort_dist(Population pop, int[] dist, int frontSize, Randomization RandomizationObj)
+        static void quicksort_dist(Population pop, int[] dist, int frontSize, Randomization randomizationObj)
         {
-            q_sort_dist(pop, dist, 0, frontSize - 1, RandomizationObj);
+            q_sort_dist(pop, dist, 0, frontSize - 1, randomizationObj);
         }
 
         /* Actual implementation of the randomized quick sort used to sort a population based on crowding distance */
-        static void q_sort_dist(Population pop, int[] dist, int left, int right, Randomization RandomizationObj)
+        static void q_sort_dist(Population pop, int[] dist, int left, int right, Randomization randomizationObj)
         {
             int index;
             int temp;
@@ -1490,7 +1491,7 @@ namespace NSGAII
             double pivot;
             if (left < right)
             {
-                index = RandomizationObj.RandomInteger(left, right);
+                index = randomizationObj.RandomInteger(left, right);
                 temp = dist[right];
                 dist[right] = dist[index];
                 dist[index] = temp;
@@ -1510,8 +1511,8 @@ namespace NSGAII
                 temp = dist[index];
                 dist[index] = dist[right];
                 dist[right] = temp;
-                q_sort_dist(pop, dist, left, index - 1, RandomizationObj);
-                q_sort_dist(pop, dist, index + 1, right, RandomizationObj);
+                q_sort_dist(pop, dist, left, index - 1, randomizationObj);
+                q_sort_dist(pop, dist, index + 1, right, randomizationObj);
             }
 
         }
@@ -1520,7 +1521,7 @@ namespace NSGAII
         #region fillnds.c
 
         /* Routine to perform non-dominated sorting */
-        static void fill_nondominated_sort(Population mixedPop, Population newPop, ProblemDefinition ProblemObj, Randomization RandomizationObj)
+        static void fill_nondominated_sort(Population mixedPop, Population newPop, ProblemDefinition problemObj, Randomization randomizationObj)
         {
             int flag;
             int i, j;
@@ -1542,7 +1543,7 @@ namespace NSGAII
             elite.parent = null;
             elite.child = null;
             temp1 = pool;
-            for (i = 0; i < 2 * ProblemObj.PopulationSize; i++)
+            for (i = 0; i < 2 * problemObj.PopulationSize; i++)
             {
                 Insert(temp1, i);
                 temp1 = temp1.child;
@@ -1566,7 +1567,7 @@ namespace NSGAII
                     do
                     {
                         end = 0;
-                        flag = CheckDominance(mixedPop.IndList[temp1.index], mixedPop.IndList[temp2.index], ProblemObj);
+                        flag = CheckDominance(mixedPop.IndList[temp1.index], mixedPop.IndList[temp2.index], problemObj);
                         if (flag == 1)
                         {
                             Insert(pool, temp2.index);
@@ -1595,11 +1596,11 @@ namespace NSGAII
                 while (temp1 != null);
                 temp2 = elite.child;
                 j = i;
-                if (archieveSize + frontSize <= ProblemObj.PopulationSize)
+                if (archieveSize + frontSize <= problemObj.PopulationSize)
                 {
                     do
                     {
-                        newPop.IndList[i].Copy(mixedPop.IndList[temp2.index], ProblemObj);
+                        newPop.IndList[i].Copy(mixedPop.IndList[temp2.index], problemObj);
                         //CopyIndividual(mixedPop.IndList[temp2.index], newPop.IndList[i]);
 
                         newPop.IndList[i].Rank = rank;
@@ -1608,14 +1609,14 @@ namespace NSGAII
                         i += 1;
                     }
                     while (temp2 != null);
-                    assign_crowding_distance_indices(newPop, j, i - 1, ProblemObj, RandomizationObj);
+                    assign_crowding_distance_indices(newPop, j, i - 1, problemObj, randomizationObj);
                     rank += 1;
                 }
                 else
                 {
-                    crowding_fill(mixedPop, newPop, i, frontSize, elite, ProblemObj, RandomizationObj);
-                    archieveSize = ProblemObj.PopulationSize;
-                    for (j = i; j < ProblemObj.PopulationSize; j++)
+                    crowding_fill(mixedPop, newPop, i, frontSize, elite, problemObj, randomizationObj);
+                    archieveSize = problemObj.PopulationSize;
+                    for (j = i; j < problemObj.PopulationSize; j++)
                     {
                         newPop.IndList[j].Rank = rank;
                     }
@@ -1628,7 +1629,7 @@ namespace NSGAII
                 }
                 while (elite.child != null);
             }
-            while (archieveSize < ProblemObj.PopulationSize);
+            while (archieveSize < problemObj.PopulationSize);
 
         }
 
@@ -1674,6 +1675,27 @@ namespace NSGAII
             Rank1Best = 8,
             Rank1All = 9,
             AdaptiveRank1All = 10
+        }
+
+        [Flags]
+        public enum DisabledCollisions
+        {
+            None = 0x0,
+            //core
+            BaseVsFaculty = 0x1,
+            BaseVsFacultyDiffSemester = 0x2,
+            BaseVsBase = 0x4,
+            BaseVsBaseDiffSemester = 0x8,
+            InLabs = 0x10,
+            Teacher = 0x20,
+            // optionals
+            TeacherFreeDay = 0x40,
+            TeacherConsicutive = 0x80,
+            LabLectureSameDay = 0x100,
+            //electives
+            ElectiveVsElective = 0x200,
+            ElectiveVsFaculty = 0x400,
+            ElectiveVsBase = 0x800,
         }
     }
 }
