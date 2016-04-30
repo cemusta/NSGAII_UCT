@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace NSGAII.Models
 {
@@ -52,4 +53,16 @@ namespace NSGAII.Models
             //xml load save için gerekiyor.
         }
     }
+
+    [Flags]
+    enum DisabledCollisions
+    {
+        None = 0x0,
+        DataUri = 0x1,
+        GZip = 0x2,
+        ContentPage = 0x4,
+        ViewPage = 0x8,
+        HomePage = 0x10
+    }
+
 }

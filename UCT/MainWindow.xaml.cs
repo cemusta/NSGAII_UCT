@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -49,7 +51,28 @@ namespace UCT
             //Random rnd = new Random((int)DateTime.Now.Ticks);
 
             double seed = 0.75;
+            double customSeed;
+            if (CustomSeed.Text != "0.75" && double.TryParse(CustomSeed.Text, NumberStyles.Float,CultureInfo.InvariantCulture, out customSeed))
+            {
+                if (customSeed >= 0 & customSeed <= 1)
+                {
+                    seed = customSeed;
+
+                }
+
+            }
+
             int population = 200;
+            int customPop;
+            if (CustomPopulation.Text != "200" && int.TryParse(CustomPopulation.Text, out customPop))
+            {
+                if (customPop >= 10 & customPop <= 100000)
+                {
+                    population = customPop - ( customPop % 4  );
+
+                }
+                    
+            }
             int generation = 20000;
             
             _uctproblem = new UCTProblem(seed, population, generation, 3, 0, true, 0.75, 0.0232558);
@@ -65,12 +88,12 @@ namespace UCT
         private void SetTitleToProblem()
         {
             this.Title =
-                $"UCT: {_uctproblem.ProblemObj.Title} seed: {_uctproblem.Seed}   {_uctproblem.CurrentGeneration}/{_uctproblem.ProblemObj.MaxGeneration}";
+                $"UCT: {_uctproblem.ProblemObj.Title} seed: {_uctproblem.Seed} pop:{_uctproblem.ProblemObj.PopulationSize} {_uctproblem.CurrentGeneration}/{_uctproblem.ProblemObj.MaxGeneration}";
         }
 
         private void generationTimer_Tick(object sender, EventArgs e)
         {
-            NextGeneration();     
+            NextGeneration();
         }
 
         private void StartPauseGeneration_Click(object sender, RoutedEventArgs e)
@@ -487,5 +510,17 @@ namespace UCT
             LogBox.Items.Insert(0, _uctproblem.BestReport());
             LogBox.Items.Insert(0, _uctproblem.GenerationReport());
         }
+
+        private void CustomPopulation_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            e.Handled = !IsTextAllowed(e.Text);
+        }
+
+        private static bool IsTextAllowed(string text)
+        {
+            Regex regex = new Regex("[^0-9.-]+"); //regex that matches disallowed text
+            return !regex.IsMatch(text);
+        }
+
     }
 }

@@ -110,9 +110,13 @@
             </TabItem>
             <TabItem Header="Options and stuff " >
                 <Grid>
-
+                    <TextBox x:Name="CustomPopulation" Height="23" TextWrapping="Wrap" Text="200" Width="75" Margin="116,14,0,0" RenderTransformOrigin="1.4,0.652" VerticalAlignment="Top" HorizontalAlignment="Left" PreviewTextInput="CustomPopulation_PreviewTextInput" ToolTip="Population Size ( Default is 200 )&#x0d;&#x0a; Allowed values 10-100.000 &#x0d;&#x0a; Value should be multiple of 4, if not it will rounded down to nearest multitude of 4" TextAlignment="Right"/>
+                    <Label Content="Custom Pop. Size" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" RenderTransformOrigin="-10.263,-6.308" Width="101"/>
+                    <Label Content="Custom Seed" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top" RenderTransformOrigin="-10.263,-6.308" Width="101"/>
+                    <TextBox x:Name="CustomSeed" Height="23" TextWrapping="Wrap" Text="0.75" Width="75" Margin="116,42,0,0" RenderTransformOrigin="1.4,0.652" VerticalAlignment="Top" HorizontalAlignment="Left" PreviewTextInput="CustomPopulation_PreviewTextInput" ToolTip="Seed Size ( Default is 0.75 )&#xA; Allowed values are between 0 and 1" TextAlignment="Right"/>
                 </Grid>
             </TabItem>
+
         </TabControl>
 
 

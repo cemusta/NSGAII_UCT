@@ -19,6 +19,7 @@ namespace NSGAII.Models
         public List<Collision> CollisionList { get; set; }
         private List<FacultySection> FacultySections { get; set; }
         private List<FacultySection> DiffSemesterFacultySections { get; set; }
+        private List<FacultySection> ElectiveFacultySections { get; set; }
 
         public int NRealVar;
         public int NBinVar;
@@ -33,6 +34,7 @@ namespace NSGAII.Models
             CollisionList = new List<Collision>();
             FacultySections = new List<FacultySection>();
             DiffSemesterFacultySections = new List<FacultySection>();
+            ElectiveFacultySections = new List<FacultySection>();
 
             NRealVar = nRealVar;
             NBinVar = nBinVar;
@@ -71,6 +73,7 @@ namespace NSGAII.Models
             CollisionList = new List<Collision>();
             FacultySections = new List<FacultySection>();
             DiffSemesterFacultySections = new List<FacultySection>();
+            ElectiveFacultySections = new List<FacultySection>();
 
             TotalResult = 0;
 
@@ -180,6 +183,7 @@ namespace NSGAII.Models
             CollisionList.Clear();
             FacultySections.Clear();
             DiffSemesterFacultySections.Clear();
+            ElectiveFacultySections.Clear();
 
             TotalResult = 0;
 
@@ -224,6 +228,7 @@ namespace NSGAII.Models
             CollisionList.Clear();
             FacultySections.Clear();
             DiffSemesterFacultySections.Clear();
+            ElectiveFacultySections.Clear();
 
             if (problem.BinaryVariableCount == 0)
                 return;
@@ -341,39 +346,49 @@ namespace NSGAII.Models
             TotalResult = 0;
             CollisionList.Clear();
 
+            #region faculty section lists
             FacultySections.Clear();
-            int fc = 0;
             foreach (var course in problemObj.FacultyCourseList.OrderBy(x => x.Code))
             {
                 if (!FacultySections.Any(x => x.Code == course.Code && x.Section == course.Section))
                 {
                     var temp = new FacultySection
                     {
-                        Id = fc,
                         Code = course.Code,
                         Section = course.Section
                     };
                     FacultySections.Add(temp);
-                    fc++;
                 }
             }
 
             DiffSemesterFacultySections.Clear();
-            fc = 0;
             foreach (var course in problemObj.FacultyCourseList.OrderBy(x => x.Code))
             {
                 if (!DiffSemesterFacultySections.Any(x => x.Code == course.Code && x.Section == course.Section))
                 {
                     var temp = new FacultySection
                     {
-                        Id = fc,
                         Code = course.Code,
                         Section = course.Section
                     };
                     DiffSemesterFacultySections.Add(temp);
-                    fc++;
                 }
             }
+
+            ElectiveFacultySections.Clear();
+            foreach (var course in problemObj.FacultyCourseList.OrderBy(x => x.Code))
+            {
+                if (!ElectiveFacultySections.Any(x => x.Code == course.Code && x.Section == course.Section))
+                {
+                    var temp = new FacultySection
+                    {
+                        Code = course.Code,
+                        Section = course.Section
+                    };
+                    ElectiveFacultySections.Add(temp);
+                }
+            }
+            #endregion
 
             #region fill variables
 
@@ -506,8 +521,6 @@ namespace NSGAII.Models
                     collision.Result = changeResult;
                 }
 
-
-
                 var result = col.Sum(item => item.Result);
                 Obj[1] += result;
                 CollisionList.AddRange(col);
@@ -573,6 +586,7 @@ namespace NSGAII.Models
             }
             #endregion
 
+            #region Lab vs Lecture different day collision
             //lab ve lecture farklı günlerde olsun
             {
                 List<Collision> col = CollisionLabLectureSameDay(Timetable);
@@ -580,6 +594,7 @@ namespace NSGAII.Models
                 Obj[2] += y;
                 CollisionList.AddRange(col);
             }
+            #endregion
 
             #region Elecive vs Elective
             //elective vs elective collision
@@ -594,20 +609,33 @@ namespace NSGAII.Models
             #region Elective vs Faculty in semester 6 7 8
             //elective vs faculty courses in semester
             {
-                List<Collision> col = CollisionElectiveVsFacultyDiffSemester(Timetable, 6, 0);
+                List<Collision> col = new List<Collision>();
+
+                col.AddRange(CollisionElectiveVsFacultyDiffSemester(6, 0));
+                col.AddRange(CollisionElectiveVsFacultyDiffSemester(7, 0));
+                col.AddRange(CollisionElectiveVsFacultyDiffSemester(8, 0));
+
+                foreach (var collision in col)
+                {
+                    int changeResult = 0;
+                    var crashingfacultycourses = collision.CrashingCourses.Where(x => x.FacultyCourse);
+
+                    foreach (var course in crashingfacultycourses)
+                    {
+                        if (ElectiveFacultySections.Any(x => x.Code == course.Code && x.Crashing == false))
+                        {
+                            collision.Reason += $"; {course.Code} has noncrashing section";
+                        }
+                        else
+                        {
+                            changeResult++;
+                        }
+                    }
+
+                    collision.Result = changeResult;
+                }
+
                 var y = col.Sum(item => item.Result);
-                Obj[2] += y;
-                CollisionList.AddRange(col);
-                col.Clear();
-
-                col = CollisionElectiveVsFacultyDiffSemester(Timetable, 7, 0);
-                y = col.Sum(item => item.Result);
-                Obj[2] += y;
-                CollisionList.AddRange(col);
-                col.Clear();
-
-                col = CollisionElectiveVsFacultyDiffSemester(Timetable, 8, 0);
-                y = col.Sum(item => item.Result);
                 Obj[2] += y;
                 CollisionList.AddRange(col);
             }
@@ -635,7 +663,7 @@ namespace NSGAII.Models
             }
             #endregion
 
-            //todo: dekanlık derslerinin sectionları??
+
             #endregion
 
             TotalResult = Obj[0] + Obj[1] + Obj[2];
@@ -1385,7 +1413,7 @@ namespace NSGAII.Models
 
                     if (tempSlot.Courses.Count(x => x.Semester == semester && !x.Elective) > minimumCollision && tempSlot.facultyCourses.Count(x => x.Semester == facultySemester) > minimumCollision)
                     {
-                        
+
                         var crashingFacultyCourses = tempSlot.facultyCourses.Where(x => x.Semester == facultySemester);
 
                         foreach (var course in crashingFacultyCourses)
@@ -1416,6 +1444,7 @@ namespace NSGAII.Models
             }
             return collisionList;
         }
+
         static List<Collision> CollisionBaseVsBase(List<List<Slot>> timeTable, int minimumCollision, int semester, int obj = 0)
         {
             List<Collision> collisionList = new List<Collision>();
@@ -1694,17 +1723,29 @@ namespace NSGAII.Models
             return collisionList;
         }
 
-        static List<Collision> CollisionElectiveVsFacultyDiffSemester(List<List<Slot>> timeTable, int facultySemester, int minimumCollision, int obj = 2)
+        private List<Collision> CollisionElectiveVsFacultyDiffSemester(int facultySemester, int minimumCollision, int obj = 2)
         {
             List<Collision> collisionList = new List<Collision>();
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    Slot tempSlot = timeTable[i][j];
+                    Slot tempSlot = Timetable[i][j];
 
                     if (tempSlot.Courses.Count(x => x.Elective) > minimumCollision && tempSlot.facultyCourses.Count(x => x.Semester == facultySemester) > minimumCollision)
                     {
+                        var crashingFacultyCourses = tempSlot.facultyCourses.Where(x => x.Semester == facultySemester);
+
+                        foreach (var course in crashingFacultyCourses)
+                        {
+                            if (ElectiveFacultySections.Any(x => x.Code == course.Code && x.Section == course.Section))
+                            {
+                                FacultySection temp =
+                                    ElectiveFacultySections.Find(x => x.Code == course.Code && x.Section == course.Section);
+                                temp.CrashCount++;
+                                temp.Crashing = true;
+                            }
+                        }
 
                         Collision tempCollision = new Collision
                         {
@@ -1715,6 +1756,7 @@ namespace NSGAII.Models
                             Reason = $"Elective v Faculty Semester {facultySemester}"
                         };
                         tempCollision.CrashingCourses.AddRange(tempSlot.Courses.FindAll(x => x.Elective));
+                        tempCollision.CrashingCourses.AddRange(tempSlot.facultyCourses.FindAll(x => x.Semester == facultySemester));
 
                         collisionList.Add(tempCollision);
                     }
