@@ -11,10 +11,10 @@ namespace NSGAII.Models
         public double[] Xreal { get; set; }
         public List<List<int>> Gene { get; set; }
         public int[] SlotId { get; set; }
-        public int[] Obj { get; set; }
+        public double[] Obj { get; set; }
         public double[] Constr { get; set; }
         public double CrowdDist { get; set; }
-        public int TotalResult;
+        public double TotalResult;
 
         public List<Collision> CollisionList { get; set; }
         private List<FacultySection> FacultySections { get; set; }
@@ -60,7 +60,7 @@ namespace NSGAII.Models
                 //Gene = new int[nBinVar, nMaxBit];
             }
 
-            Obj = new int[nObj];
+            Obj = new double[nObj];
 
             if (nCons != 0)
                 Constr = new double[nCons];
@@ -101,7 +101,7 @@ namespace NSGAII.Models
                 //Gene = new int[ind._nBinVar, ind._nMaxBit];
             }
 
-            Obj = new int[ind.NObj];
+            Obj = new double[ind.NObj];
 
             if (ind.NCons != 0)
                 Constr = new double[ind.NCons];
@@ -166,7 +166,7 @@ namespace NSGAII.Models
                 //Gene = new int[nBinVar, nMaxBit];
             }
 
-            Obj = new int[NObj];
+            Obj = new double[NObj];
 
             if (NCons != 0)
                 Constr = new double[NCons];
@@ -451,7 +451,7 @@ namespace NSGAII.Models
 
                 foreach (var collision in col)
                 {
-                    int changeResult = 0;
+                    double changeResult = 0;
                     var crashingfacultycourses = collision.CrashingCourses.Where(x => x.FacultyCourse);
 
                     foreach (var course in crashingfacultycourses)
@@ -459,6 +459,7 @@ namespace NSGAII.Models
                         if (FacultySections.Any(x => x.Code == course.Code && x.Crashing == false))
                         {
                             collision.Reason += $"; {course.Code} has noncrashing section";
+                            changeResult += 0.1;
                         }
                         else
                         {
@@ -503,7 +504,7 @@ namespace NSGAII.Models
 
                 foreach (var collision in col)
                 {
-                    int changeResult = 0;
+                    double changeResult = 0;
                     var crashingfacultycourses = collision.CrashingCourses.Where(x => x.FacultyCourse);
 
                     foreach (var course in crashingfacultycourses)
@@ -511,6 +512,7 @@ namespace NSGAII.Models
                         if (DiffSemesterFacultySections.Any(x => x.Code == course.Code && x.Crashing == false))
                         {
                             collision.Reason += $"; {course.Code} has noncrashing section";
+                            changeResult += 0.1;
                         }
                         else
                         {
@@ -617,7 +619,7 @@ namespace NSGAII.Models
 
                 foreach (var collision in col)
                 {
-                    int changeResult = 0;
+                    double changeResult = 0;
                     var crashingfacultycourses = collision.CrashingCourses.Where(x => x.FacultyCourse);
 
                     foreach (var course in crashingfacultycourses)
@@ -625,6 +627,7 @@ namespace NSGAII.Models
                         if (ElectiveFacultySections.Any(x => x.Code == course.Code && x.Crashing == false))
                         {
                             collision.Reason += $"; {course.Code} has noncrashing section";
+                            changeResult += 0.1;
                         }
                         else
                         {
@@ -671,9 +674,9 @@ namespace NSGAII.Models
 
         }
 
-        public int HillClimb(ProblemDefinition problemObj)
+        public double HillClimb(ProblemDefinition problemObj)
         {
-            int tResultImprovement = 0;
+            double tResultImprovement = 0;
 
             if (CollisionList.Count > 0)
             {

@@ -22,7 +22,7 @@ namespace NSGAII
         public Population ParentPopulation;
         public Population ChildPopulation;
         public Population MixedPopulation;
-        public int Best;
+        public double Best;
         public int AdaptiveClimb;
 
         #endregion
@@ -540,7 +540,7 @@ namespace NSGAII
                 _displayObj.PlotPopulation(ParentPopulation, ProblemObj, CurrentGeneration);
             }
 
-            int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+            double minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
             Best = minimumResult;
 
         }
@@ -576,7 +576,7 @@ namespace NSGAII
                 ParentPopulation.HillClimb(ProblemObj);
             }
 
-            int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+            double minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
             if (minimumResult < Best)
             {
                 Best = minimumResult;
@@ -607,7 +607,7 @@ namespace NSGAII
             }
 
             var result = minimumResult;
-            var bestChild = ParentPopulation.IndList.Where(x => x.TotalResult == result).ToList();
+            var bestChild = ParentPopulation.IndList.Where(x => x.TotalResult <= result).ToList();
 
             if (mode == HillClimbMode.BestOfParent)
             {
@@ -622,7 +622,7 @@ namespace NSGAII
             }
             else if (mode == HillClimbMode.Rank1Best)
             {
-                var rank1Best = ParentPopulation.IndList.First(x => x.Rank == 1 && x.TotalResult == result);
+                var rank1Best = ParentPopulation.IndList.First(x => x.Rank == 1 && x.TotalResult <= result);
                 rank1Best.HillClimb(ProblemObj);
             }
             else if (mode == HillClimbMode.Rank1All)
@@ -650,15 +650,15 @@ namespace NSGAII
 
         public string GenerationReport()
         {
-            int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+            double minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
             return ($" gen = {CurrentGeneration} min = {minimumResult}");
         }
 
         public string BestReport()
         {
-            int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+            double minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
             var result = minimumResult;
-            var bc = ParentPopulation.IndList.First(x => x.TotalResult == result);
+            var bc = ParentPopulation.IndList.First(x => x.TotalResult <= result);
             return $" best: coll  = {bc.CollisionList.Count} result = {bc.TotalResult} obj0:{bc.Obj[0]} obj1:{bc.Obj[1]} obj2:{bc.Obj[2]}";
 
         }
@@ -667,8 +667,8 @@ namespace NSGAII
         {
             if (CurrentGeneration != 0)
             {
-                int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
-                var bestChild = ParentPopulation.IndList.Where(x => x.TotalResult == minimumResult).ToList();
+                double minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+                var bestChild = ParentPopulation.IndList.Where(x => x.TotalResult <= minimumResult).ToList();
                 _displayObj.PlotPopulation(ParentPopulation, ProblemObj, CurrentGeneration, bestChild.ToList());
             }
         }
@@ -777,21 +777,21 @@ namespace NSGAII
         }
 
 
-        public int HillClimbParent()
+        public double HillClimbParent()
         {
             ParentPopulation.Decode(ProblemObj);
             ParentPopulation.Evaluate(ProblemObj);
             return ParentPopulation.HillClimb(ProblemObj);
         }
 
-        public int HillClimbBest()
+        public double HillClimbBest()
         {
             ParentPopulation.Decode(ProblemObj);
             ParentPopulation.Evaluate(ProblemObj);
 
-            int minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
+            double minimumResult = ParentPopulation.IndList.Min(x => x.TotalResult);
             var result = minimumResult;
-            var bc = ParentPopulation.IndList.First(x => x.TotalResult == result);
+            var bc = ParentPopulation.IndList.First(x => x.TotalResult <= result);
 
             return bc.HillClimb(ProblemObj);
         }

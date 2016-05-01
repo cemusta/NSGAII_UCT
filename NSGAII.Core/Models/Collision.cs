@@ -9,7 +9,7 @@ namespace NSGAII.Models
         public int SlotId;
         public CollisionType Type;
         public string Reason;
-        public int Result;
+        public double Result;
         public int Obj = -1;
         public string Printable 
         {

@@ -194,7 +194,7 @@ namespace UCT
             if (_uctproblem == null || _uctproblem.CurrentGeneration == 0)
                 return;
 
-            int minimumResult = _uctproblem.ParentPopulation.IndList.Min(x => x.TotalResult);
+            double minimumResult = _uctproblem.ParentPopulation.IndList.Min(x => x.TotalResult);
             var result = minimumResult;
             var bc = _uctproblem.ParentPopulation.IndList.First(x => x.TotalResult == result);
             bc.Decode(_uctproblem.ProblemObj);

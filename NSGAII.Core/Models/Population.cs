@@ -60,9 +60,9 @@ namespace NSGAII.Models
             }
         }
 
-        public int HillClimb(ProblemDefinition problemObj)
+        public double HillClimb(ProblemDefinition problemObj)
         {
-            int retVal = 0;
+            double retVal = 0;
             for (int i = 0; i < IndList.Count; i++)
             {
                 retVal += IndList[i].HillClimb(problemObj);
