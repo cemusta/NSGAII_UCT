@@ -226,9 +226,18 @@ namespace NSGAII.Models
         {
             TotalResult = 0;
             CollisionList.Clear();
+            if(FacultySections == null)
+                FacultySections = new List<FacultySection>();
             FacultySections.Clear();
+            if (DiffSemesterFacultySections == null)
+                DiffSemesterFacultySections = new List<FacultySection>();
             DiffSemesterFacultySections.Clear();
+            if (ElectiveFacultySections == null)
+                ElectiveFacultySections = new List<FacultySection>();
             ElectiveFacultySections.Clear();
+
+            if(Obj.Length == 0)
+                Obj = new double[problem.ObjectiveCount];
 
             if (problem.BinaryVariableCount == 0)
                 return;
