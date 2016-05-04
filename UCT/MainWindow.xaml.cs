@@ -459,11 +459,12 @@ namespace UCT
             CollisionTab.Header = "Coll";
             CollisionList.Items.Clear();
 
-            foreach (var teacher in _uctproblem.ProblemObj.TeacherList)
-            {
-                if (teacher != "ASSISTANT")
-                    TeacherTables[teacher].Clear();
-            }
+            if (_uctproblem != null)
+                foreach (var teacher in _uctproblem.ProblemObj.TeacherList)
+                {
+                    if (teacher != "ASSISTANT")
+                        TeacherTables[teacher].Clear();
+                }
             return timeTables;
         }
 
