@@ -108,6 +108,9 @@
 
                 </Grid>
             </TabItem>
+            <TabItem Header="Teacher List">
+                <TabControl x:Name="TeacherTab"/>
+            </TabItem>
             <TabItem Header="Options and stuff " >
                 <Grid>
                     <TextBox x:Name="CustomPopulation" Height="23" TextWrapping="Wrap" Text="200" Width="75" Margin="116,14,0,0" RenderTransformOrigin="1.4,0.652" VerticalAlignment="Top" HorizontalAlignment="Left" PreviewTextInput="CustomPopulation_PreviewTextInput" ToolTip="Population Size ( Default is 200 )&#x0d;&#x0a; Allowed values 10-100.000 &#x0d;&#x0a; Value should be multiple of 4, if not it will rounded down to nearest multitude of 4" TextAlignment="Right"/>

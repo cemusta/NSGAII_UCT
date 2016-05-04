@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Threading;
 using NSGAII;
@@ -19,6 +20,7 @@ namespace UCT
     {
         UCTProblem _uctproblem;
         readonly DispatcherTimer _generationTimer;
+        Dictionary<string, TimeTable> TeacherTables = new Dictionary<string, TimeTable>();
 
         public MainWindow()
         {
@@ -52,7 +54,7 @@ namespace UCT
 
             double seed = 0.75;
             double customSeed;
-            if (CustomSeed.Text != "0.75" && double.TryParse(CustomSeed.Text, NumberStyles.Float,CultureInfo.InvariantCulture, out customSeed))
+            if (CustomSeed.Text != "0.75" && double.TryParse(CustomSeed.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out customSeed))
             {
                 if (customSeed >= 0 & customSeed <= 1)
                 {
@@ -68,13 +70,13 @@ namespace UCT
             {
                 if (customPop >= 10 & customPop <= 100000)
                 {
-                    population = customPop - ( customPop % 4  );
+                    population = customPop - (customPop % 4);
 
                 }
-                    
+
             }
             int generation = 20000;
-            
+
             _uctproblem = new UCTProblem(seed, population, generation, 3, 0, true, 0.75, 0.0232558);
             ProblemTitle.Content = _uctproblem.ProblemObj.Title;
             EnableGenerationControls();
@@ -83,6 +85,25 @@ namespace UCT
             LogBox.Items.Add("Create completed.");
 
             SetTitleToProblem();
+
+            TeacherTables.Clear();
+            TeacherTab.Items.Clear();
+            foreach (var teacher in _uctproblem.ProblemObj.TeacherList)
+            {
+                if (teacher == "ASSISTANT")
+                    continue;
+
+                TabItem temp = new TabItem
+                {
+                    Header = teacher
+                };
+                TeacherTab.Items.Add(temp);
+
+                TimeTable tempTt = new TimeTable();
+                //tempTt.Name = teacher;
+                temp.Content = tempTt;
+                TeacherTables.Add(teacher, tempTt);
+            }
         }
 
         private void SetTitleToProblem()
@@ -265,8 +286,8 @@ namespace UCT
                             var labTextBlock = new TextBlock { Text = course.PrintableName };
                             LabTimetable.ControlArray[i, j].Children.Add(labTextBlock);
                         }
-
                     }
+
                     foreach (var course in temp.facultyCourses)
                     {
                         tempTextBlock = new TextBlock
@@ -349,6 +370,32 @@ namespace UCT
                             MainTimetable.ControlArray[i, j].ToolTip += collisionRep + "\n";
                         }
                     }
+
+                    foreach (var teacher in _uctproblem.ProblemObj.TeacherList)
+                    {
+                        if (teacher == "ASSISTANT")
+                            continue;
+
+                        if (temp.Courses.Any(x => x.Teacher == teacher))
+                        {
+                            foreach (var course in temp.Courses.Where(x => x.Teacher == teacher))
+                            {
+                                tempTextBlock = new TextBlock { Text = course.PrintableName };
+                                tempTextBlockForSemester = new TextBlock { Text = course.PrintableName };
+                                if (crashingCourses.Contains(course.Id))
+                                {
+                                    tempTextBlock.Background = Brushes.PaleVioletRed;
+                                    tempTextBlockForSemester.Background = Brushes.PaleVioletRed;
+                                }
+
+                                TeacherTables[teacher].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
+
+
+                            }
+
+                        }
+
+                    }
                 } //hour
             } //day
 
@@ -384,6 +431,7 @@ namespace UCT
                 collindex++;
             }
 
+
         }
 
         private List<TimeTable> ClearTables()
@@ -410,6 +458,12 @@ namespace UCT
             TeacherPanel.Children.Clear();
             CollisionTab.Header = "Coll";
             CollisionList.Items.Clear();
+
+            foreach (var teacher in _uctproblem.ProblemObj.TeacherList)
+            {
+                if (teacher != "ASSISTANT")
+                    TeacherTables[teacher].Clear();
+            }
             return timeTables;
         }
 
@@ -475,6 +529,7 @@ namespace UCT
             EnableGenerationControls(false);
             LogBox.Items.Clear();
             IndBox.Items.Clear();
+            TeacherTab.Items.Clear();
             ClearTables();
             this.Title = "UCT";
         }

@@ -468,7 +468,7 @@ namespace NSGAII.Models
                         if (FacultySections.Any(x => x.Code == course.Code && x.Crashing == false))
                         {
                             collision.Reason += $"; {course.Code} has noncrashing section";
-                            changeResult += 0.1;
+                            changeResult += 0.01;
                         }
                         else
                         {
@@ -521,7 +521,7 @@ namespace NSGAII.Models
                         if (DiffSemesterFacultySections.Any(x => x.Code == course.Code && x.Crashing == false))
                         {
                             collision.Reason += $"; {course.Code} has noncrashing section";
-                            changeResult += 0.1;
+                            changeResult += 0.01;
                         }
                         else
                         {
@@ -636,7 +636,7 @@ namespace NSGAII.Models
                         if (ElectiveFacultySections.Any(x => x.Code == course.Code && x.Crashing == false))
                         {
                             collision.Reason += $"; {course.Code} has noncrashing section";
-                            changeResult += 0.1;
+                            changeResult += 0.01;
                         }
                         else
                         {
