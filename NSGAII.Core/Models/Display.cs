@@ -15,8 +15,8 @@ namespace NSGAII.Models
 
         ///* Function to display the current population for the subsequent generation */
         public void PlotPopulation(Population pop, ProblemDefinition problem, int genNo = 0, List<Individual> best = null)
-        {            
-            if (!Use3D)
+        {
+            if (!Use3D) //2D
             {
 
                 var xr = new double[problem.PopulationSize];
@@ -45,32 +45,58 @@ namespace NSGAII.Models
                         x[i] = best[i].Obj[GnuplotObjective1];
                         y[i] = best[i].Obj[GnuplotObjective2];
                     }
-                    GnuPlot.Plot(x,y, $"title 'best ({best.First().TotalResult})' with points pointtype 6 lc rgb 'red'");
+                    GnuPlot.Plot(x, y, $"title 'best ({best.First().TotalResult})' with points pointtype 6 lc rgb 'red'");
                 }
 
                 GnuPlot.Set($"xlabel \"obj[{GnuplotObjective1 }]\"");
                 GnuPlot.Set($"ylabel \"obj[{GnuplotObjective2 }]\"");
 
             }
-            else
+            else //3D
             {
-                var xr = new double[problem.PopulationSize];
-                var yr = new double[problem.PopulationSize];
-                var zr = new double[problem.PopulationSize];
+                var rank1Count = pop.IndList.Count(x => x.Rank == 1);
+                var rankOtherCount = pop.IndList.Count(x => x.Rank != 1);
 
-                for (int x = 0; x < problem.PopulationSize; x++)
+                if (rank1Count > 0)
                 {
-                    xr[x] = pop.IndList[x].Obj[GnuplotObjective1];
-                    yr[x] = pop.IndList[x].Obj[GnuplotObjective2];
-                    zr[x] = pop.IndList[x].Obj[GnuplotObjective3];
+                    var xr = new double[rank1Count];
+                    var yr = new double[rank1Count];
+                    var zr = new double[rank1Count];
+
+                    int index = 0;
+                    foreach (var ind in pop.IndList.Where(x => x.Rank == 1))
+                    {
+                        xr[index] = ind.Obj[GnuplotObjective1];
+                        yr[index] = ind.Obj[GnuplotObjective2];
+                        zr[index] = ind.Obj[GnuplotObjective3];
+                        index++;
+                    }
+
+                    if (best != null || rankOtherCount > 0)
+                    {
+                        GnuPlot.HoldOn();
+                    }
+
+                    GnuPlot.SPlot(xr, yr, zr, $"title 'Rank 1 individuals' with points pointtype 8 lc rgb 'red'");
+
                 }
 
-                if (best != null)
+                if (rankOtherCount > 0)
                 {
-                    GnuPlot.HoldOn();
-                }
+                    var xr = new double[rankOtherCount];
+                    var yr = new double[rankOtherCount];
+                    var zr = new double[rankOtherCount];
 
-                GnuPlot.SPlot(xr, yr, zr, $"title 'Generation #{genNo} of {problem.MaxGeneration}' with points pointtype 8 lc rgb 'blue'");
+                    int index = 0;
+                    foreach (var ind in pop.IndList.Where(x => x.Rank != 1))
+                    {
+                        xr[index] = ind.Obj[GnuplotObjective1];
+                        yr[index] = ind.Obj[GnuplotObjective2];
+                        zr[index] = ind.Obj[GnuplotObjective3];
+                        index++;
+                    }
+                    GnuPlot.SPlot(xr, yr, zr, $"title 'Rank 2-{pop.IndList.Max(x=>x.Rank)} individuals' with points pointtype 8 lc rgb 'blue'");
+                }
 
                 if (best != null)
                 {
@@ -83,11 +109,13 @@ namespace NSGAII.Models
                     {
                         x[i] = best[i].Obj[GnuplotObjective1];
                         y[i] = best[i].Obj[GnuplotObjective2];
-                        z[i] = best[i].Obj[GnuplotObjective3 ];
+                        z[i] = best[i].Obj[GnuplotObjective3];
                     }
 
-                    GnuPlot.SPlot(x, y, z, $"title 'best ({best.First().TotalResult})' with points pointtype 6 lc rgb 'red'");
+                    GnuPlot.SPlot(x, y, z, $"title 'best ({best.First().TotalResult})' with points pointtype 6 lc rgb 'green'");
                 }
+
+                GnuPlot.Set($"title 'Generation #{genNo} of {problem.MaxGeneration}'");
 
                 GnuPlot.Set($"xlabel \"obj[{GnuplotObjective1}]\"");
                 GnuPlot.Set($"ylabel \"obj[{GnuplotObjective2}]\"");
