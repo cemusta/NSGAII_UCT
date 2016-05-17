@@ -1361,7 +1361,7 @@ namespace NSGAII.Models
 
         public override string ToString()
         {
-            string ret = $"Rank:{Rank}\tTotal:{TotalResult}\t[0]:{Obj[0]}\t[1]:{Obj[1]}\t[2]:{Obj[2]}";
+            string ret = $"Rank:{Rank} \tTotal:{TotalResult}  \t[0]:{Obj[0]}\t[1]:{Obj[1]}\t[2]:{Obj[2]}";
             return ret;
         }
 

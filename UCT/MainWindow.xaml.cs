@@ -86,6 +86,11 @@ namespace UCT
 
             SetTitleToProblem();
 
+            ClearTeacherTabs();
+        }
+
+        private void ClearTeacherTabs()
+        {
             TeacherTables.Clear();
             TeacherTab.Items.Clear();
             foreach (var teacher in _uctproblem.ProblemObj.TeacherList)
@@ -259,21 +264,32 @@ namespace UCT
                     Slot temp = ind.Timetable[i][j];
                     TextBlock tempTextBlock, tempTextBlockForSemester;
 
-                    var collix = ind.CollisionList.Where(x => x.SlotId == temp.Id);
-                    List<int> crashingCourses = new List<int>();
-                    foreach (var collision in collix)
+                    List<int> fullCrashes = new List<int>();
+                    foreach (var collision in ind.CollisionList.Where(x => x.SlotId == temp.Id && x.Result >= 1))
                     {
-                        crashingCourses.AddRange(collision.CrashingCourses.Select(x => x.Id));
+                        fullCrashes.AddRange(collision.CrashingCourses.Select(x => x.Id));
                     }
 
+                    List<int> semiCrashes = new List<int>();
+                    foreach (var collision in ind.CollisionList.Where(x => x.SlotId == temp.Id && x.Result < 1))
+                    {
+                        semiCrashes.AddRange(collision.CrashingCourses.Select(x => x.Id));
+                    }
+
+                    #region add courses and coloring
                     foreach (var course in temp.Courses)
                     {
                         tempTextBlock = new TextBlock { Text = course.PrintableName };
                         tempTextBlockForSemester = new TextBlock { Text = course.PrintableName };
-                        if (crashingCourses.Contains(course.Id))
+                        if (fullCrashes.Contains(course.Id))
                         {
                             tempTextBlock.Background = Brushes.PaleVioletRed;
                             tempTextBlockForSemester.Background = Brushes.PaleVioletRed;
+                        }
+                        else if (semiCrashes.Contains(course.Id))
+                        {
+                            tempTextBlock.Background = Brushes.LightSkyBlue;
+                            tempTextBlockForSemester.Background = Brushes.LightSkyBlue;
                         }
 
                         MainTimetable.ControlArray[i, j].Children.Add(tempTextBlock);
@@ -287,7 +303,9 @@ namespace UCT
                             LabTimetable.ControlArray[i, j].Children.Add(labTextBlock);
                         }
                     }
+                    #endregion
 
+                    #region add faculty courses
                     foreach (var course in temp.facultyCourses)
                     {
                         tempTextBlock = new TextBlock
@@ -301,15 +319,15 @@ namespace UCT
                             Foreground = Brushes.CadetBlue
                         };
 
-
                         MainTimetable.ControlArray[i, j].Children.Add(tempTextBlock);
 
                         if (course.Semester > 0 && course.Semester < 9)
                             timeTables[course.Semester - 1].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
 
                     }
+                    #endregion
 
-
+                    #region add faculty labs
                     if (temp.facultyLab > 0)
                     {
                         tempTextBlock = new TextBlock { Text = $"Faculty Lab (count:{temp.facultyLab})" };
@@ -325,12 +343,16 @@ namespace UCT
                             LabTimetable.ControlArray[i, j].Children.Add(labTextBlock);
                         }
                     }
+                    #endregion
 
+                    #region lab constraint coloring.
                     if (LabTimetable.ControlArray[i, j].Children.Count > 4)
                     {
                         LabTimetable.ControlArray[i, j].Background = Brushes.PaleVioletRed;
                     }
+                    #endregion
 
+                    #region add meeting.
                     if (temp.meetingHour)
                     {
                         tempTextBlock = new TextBlock
@@ -350,7 +372,9 @@ namespace UCT
                             timeTables[n].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
                         }
                     }
+                    #endregion
 
+                    #region tooltip filling.
                     foreach (var coll in ind.CollisionList)
                     {
                         if (temp.Id == coll.SlotId)
@@ -370,7 +394,9 @@ namespace UCT
                             MainTimetable.ControlArray[i, j].ToolTip += collisionRep + "\n";
                         }
                     }
+                    #endregion
 
+                    #region teacher coloring and teacher tabs/lists
                     foreach (var teacher in _uctproblem.ProblemObj.TeacherList)
                     {
                         if (teacher == "ASSISTANT")
@@ -382,20 +408,18 @@ namespace UCT
                             {
                                 tempTextBlock = new TextBlock { Text = course.PrintableName };
                                 tempTextBlockForSemester = new TextBlock { Text = course.PrintableName };
-                                if (crashingCourses.Contains(course.Id))
+                                if (fullCrashes.Contains(course.Id))
                                 {
                                     tempTextBlock.Background = Brushes.PaleVioletRed;
                                     tempTextBlockForSemester.Background = Brushes.PaleVioletRed;
                                 }
 
                                 TeacherTables[teacher].ControlArray[i, j].Children.Add(tempTextBlockForSemester);
-
-
                             }
-
                         }
 
                     }
+                    #endregion
                 } //hour
             } //day
 
@@ -509,6 +533,7 @@ namespace UCT
                     ListIndividuals();
                     LogBox.Items.Add("Load completed.");
                     SetTitleToProblem();
+                    ClearTeacherTabs();
                 }
 
             }
