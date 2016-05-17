@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 
 namespace NSGAII.Models
@@ -88,7 +89,7 @@ namespace NSGAII.Models
             {
                 for (int j = 0; j < problemObj.ObjectiveCount; j++)
                 {
-                    writer.Write($"{IndList[i].Obj[j].ToString()}\t");
+                    writer.Write($"{IndList[i].Obj[j].ToString(CultureInfo.InvariantCulture)}\t");
                 }
 
                 if (problemObj.ConstraintCount != 0)
@@ -144,7 +145,7 @@ namespace NSGAII.Models
                 {
                     for (int j = 0; j < problemObj.ObjectiveCount; j++)
                     {
-                        writer.Write($"{IndList[i].Obj[j].ToString()}\t");
+                        writer.Write($"{IndList[i].Obj[j].ToString(CultureInfo.InvariantCulture)}\t");
                     }
                     if (problemObj.ConstraintCount != 0)
                     {

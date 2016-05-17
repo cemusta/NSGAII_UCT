@@ -69,13 +69,13 @@ namespace ReportAnalyse
 
                     report.Finalcount = lines.Length - 2;
 
-                    int best = 10000;
+                    double best = 10000;
                     int bestCount = 0;
                     for (int i = 2; i < lines.Length; i++)
                     {
                         var test = lines[i].Split('\t');
 
-                        int temp = int.Parse(test[0]) + int.Parse(test[1]) + int.Parse(test[2]);
+                        double temp = double.Parse(test[0],CultureInfo.InvariantCulture) + double.Parse(test[1], CultureInfo.InvariantCulture) + double.Parse(test[2], CultureInfo.InvariantCulture);
                         if (temp < best)
                         {
                             best = temp;
@@ -127,7 +127,7 @@ namespace ReportAnalyse
         public int Pop;
         public int Gen;
         public string Method;
-        public int Best;
+        public double Best;
         public int Bestcount;
         public int Finalcount;
 

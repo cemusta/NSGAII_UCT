@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -27,7 +28,7 @@ namespace NSGAII
 
         #endregion
 
-        public UCTProblem(double dSeed, int nPopulation, int nMaxGeneration, int nObjective, int nConstraint, bool useBinary, double crossProbability, double mutateProbability, bool usePlot = false, DisabledCollisions disableOptions = DisabledCollisions.None )
+        public UCTProblem(double dSeed, int nPopulation, int nMaxGeneration, int nObjective, int nConstraint, bool useBinary, double crossProbability, double mutateProbability, bool usePlot = false, DisabledCollisions disableOptions = DisabledCollisions.None)
         {
             CurrentGeneration = 0;
             Seed = dSeed;
@@ -292,13 +293,13 @@ namespace NSGAII
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    FileStream semesterFile = File.OpenRead($"data//sem{i+1}.csv");
+                    FileStream semesterFile = File.OpenRead($"data//sem{i + 1}.csv");
                     var read = new StreamReader(semesterFile);
 
                     read.ReadLine(); //ilk line title
 
                     string line = read.ReadLine();
-                    while(line != null)
+                    while (line != null)
                     {
                         var parts = line.Split(',');
 
@@ -315,7 +316,7 @@ namespace NSGAII
                 Console.WriteLine(ex.Message);
                 throw;
             }
-            
+
         }
 
         private void ReadLab()
@@ -510,6 +511,8 @@ namespace NSGAII
                 }
             }
 
+            writer.Flush();
+            writer.Close();
         }
 
         private void CreatePopulationObject()
@@ -518,7 +521,6 @@ namespace NSGAII
             ChildPopulation = new Population(ProblemObj.PopulationSize, ProblemObj.RealVariableCount, ProblemObj.BinaryVariableCount, ProblemObj.MaxBitCount, ProblemObj.ObjectiveCount, ProblemObj.ConstraintCount);
             MixedPopulation = new Population(ProblemObj.PopulationSize * 2, ProblemObj.RealVariableCount, ProblemObj.BinaryVariableCount, ProblemObj.MaxBitCount, ProblemObj.ObjectiveCount, ProblemObj.ConstraintCount);
         }
-
 
 
         public void FirstGeneration()
@@ -561,7 +563,6 @@ namespace NSGAII
             {
                 ChildPopulation.HillClimb(ProblemObj);
             }
-
 
             MixedPopulation.Merge(ParentPopulation, ChildPopulation, ProblemObj);
             //mixedPopulation.Decode(ProblemObj);
@@ -840,8 +841,7 @@ namespace NSGAII
         /* Routine for binary Tournament */
         static Individual Tournament(Individual ind1, Individual ind2, ProblemDefinition problemObj, Randomization randomizationObj)
         {
-            int flag;
-            flag = CheckDominance(ind1, ind2, problemObj);
+            var flag = CheckDominance(ind1, ind2, problemObj);
             if (flag == 1)
             {
                 return ind1;
@@ -1250,12 +1250,13 @@ namespace NSGAII
             }
             do
             {
-                if (orig.child.child == null)
+                if (orig.child != null && orig.child.child == null)
                 {
                     newPopulation.IndList[orig.child.index].Rank = rank;
                     newPopulation.IndList[orig.child.index].CrowdDist = problemObj.Inf;
                     break;
                 }
+
                 temp1 = orig.child;
                 Insert(cur, temp1.index);
                 frontSize = 1;
@@ -1662,6 +1663,7 @@ namespace NSGAII
 
         #endregion
 
+        #region Enums
         public enum HillClimbMode
         {
             None = 0,
@@ -1697,5 +1699,6 @@ namespace NSGAII
             ElectiveVsFaculty = 0x400,
             ElectiveVsBase = 0x800,
         }
+        #endregion
     }
 }
