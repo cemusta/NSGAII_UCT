@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using NSGAII;
 
 namespace ConsoleTest
@@ -20,7 +21,7 @@ namespace ConsoleTest
                 {
                     try
                     {
-                        double seed = double.Parse(args[0]);
+                        double seed = double.Parse(args[0],CultureInfo.InvariantCulture);
 
                         int pop = int.Parse(args[1]);
                         int gen = int.Parse(args[2]);

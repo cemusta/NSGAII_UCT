@@ -10,6 +10,8 @@ namespace ReportAnalyse
     {
         static void Main(string[] args)
         {
+
+            #region check arguments
             string path;
             if (args.Length != 1)
             {
@@ -32,7 +34,9 @@ namespace ReportAnalyse
 
 
             }
+            #endregion
 
+            #region Get method files
             var methodFiles = Directory.GetFiles(path).Where(x => x.Contains("method")).ToList();
 
             List<Report> repList = new List<Report>();
@@ -59,7 +63,9 @@ namespace ReportAnalyse
 
                 repList.Add(temp);
             }
+            #endregion
 
+            #region for each method file check best pop files.
             foreach (var report in repList)
             {
                 string filename = path + report.Title + "_best_pop.out";
@@ -75,7 +81,7 @@ namespace ReportAnalyse
                     {
                         var test = lines[i].Split('\t');
 
-                        double temp = double.Parse(test[0],CultureInfo.InvariantCulture) + double.Parse(test[1], CultureInfo.InvariantCulture) + double.Parse(test[2], CultureInfo.InvariantCulture);
+                        double temp = double.Parse(test[0], CultureInfo.InvariantCulture) + double.Parse(test[1], CultureInfo.InvariantCulture) + double.Parse(test[2], CultureInfo.InvariantCulture);
                         if (temp < best)
                         {
                             best = temp;
@@ -92,8 +98,9 @@ namespace ReportAnalyse
                     report.Bestcount = bestCount;
                 }
             }
+            #endregion
 
-
+            #region write analysis to file
             var file = File.OpenWrite($"{path}Analysis.csv");
             StreamWriter writer = new StreamWriter(file);
 
@@ -108,7 +115,7 @@ namespace ReportAnalyse
                 writer.Write($"{report.Gen},");
                 writer.Write($"{report.Method},");
 
-                writer.Write($"{report.Best},");
+                writer.Write($"{report.Best.ToString(CultureInfo.InvariantCulture)},");
                 writer.Write($"{report.Bestcount},");
                 writer.Write($"{report.Finalcount}");
                 writer.Write("\n");
@@ -116,6 +123,7 @@ namespace ReportAnalyse
 
             writer.Flush();
             writer.Close();
+            #endregion
 
         }
     }
