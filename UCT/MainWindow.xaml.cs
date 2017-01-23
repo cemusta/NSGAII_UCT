@@ -495,8 +495,11 @@ namespace UCT
         private void ListIndividuals()
         {
             IndBox.Items.Clear();
-            foreach (var individual in _uctproblem.ParentPopulation.IndList)
-            {
+
+            var curPop = _uctproblem.ParentPopulation.IndList;
+            
+            foreach (var individual in curPop.OrderBy(x => x.Rank).ThenBy(x => x.TotalResult))
+            {                
                 IndBox.Items.Add(individual.ToString());
                 if (individual.Obj[0] == 0)
                 {
