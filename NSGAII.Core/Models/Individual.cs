@@ -29,6 +29,9 @@ namespace NSGAII.Models
 
         public readonly List<List<Slot>> Timetable;
 
+        public const int constLabCount = 6; // Fakültedeki lab sayısı ( aynı anda kaç lab olabilir )
+        public const int constConsecutiveHours = 4; // Bir hoca kaç saat aralıksız çalışabilir
+
         public Individual(int nRealVar, int nBinVar, int nMaxBit, int nObj, int nCons)
         {
             CollisionList = new List<Collision>();
@@ -551,14 +554,14 @@ namespace NSGAII.Models
             #endregion
 
             #region Lab Count
-            //aynı saatte 4'ten fazla lab olmaması lazim
+            //aynı saatte x'ten fazla lab olmaması lazim
             {
-                List<Collision> labcol = CollisionInLabs(Timetable, 4);
+                List<Collision> labcol = CollisionInLabs(Timetable, constLabCount);
                 var y = labcol.Sum(item => item.Result);
                 Obj[0] += y;
                 CollisionList.AddRange(labcol);
             }
-            //# of lab at most 4
+            //# of lab at most x
             #endregion
 
             #region Teacher Collisions
@@ -579,12 +582,12 @@ namespace NSGAII.Models
 
 
                 {
-                    //og. gor. gunluk 4 saatten fazla pespese dersinin olmamasi
-                    List<Collision> col = CollisionTeacherConsicutive(Timetable, j, 4);
+                    //og. gor. gunluk X saatten fazla pespese dersinin olmamasi
+                    List<Collision> col = CollisionTeacherConsicutive(Timetable, j, constConsecutiveHours);
                     var y = col.Sum(item => item.Result);
                     Obj[2] += y;
                     CollisionList.AddRange(col);
-                    //teacher have at most 4 consective lesson per day
+                    //teacher have at most X consective lesson per day
                 }
                 {
                     //og. gor. boş gununun olması
@@ -881,7 +884,7 @@ namespace NSGAII.Models
                                 #region LAB base vs faculty 
                                 if (courseToReposition.Type == 1) //lab ise
                                 {
-                                    if (temp[j].labCount + temp[j].facultyLab >= 4) //base vs faculty collision, same semester.
+                                    if (temp[j].labCount + temp[j].facultyLab >= constLabCount) //base vs faculty collision, same semester.
                                     {
                                         fittingSlot = false;
                                         break;
@@ -903,8 +906,7 @@ namespace NSGAII.Models
                                 #region Teacher consecutive coll
                                 //todo: obj2 og. gor. gunluk 4 saatten fazla pespese dersinin olmamasi
                                 if (courseToReposition.Teacher != "ASSISTANT")
-                                {
-                                    int maxConsecutiveHour = 4;
+                                {                                    
                                     int counter = 0;
                                     for (int k = 0; k < 9; k++)
                                     {
@@ -921,7 +923,7 @@ namespace NSGAII.Models
                                         {
                                             counter = 0; // ara varsa 0'la
                                         }
-                                        if (counter > maxConsecutiveHour)
+                                        if (counter > constConsecutiveHours)
                                         {
                                             fittingSlot = false;
                                             break;
